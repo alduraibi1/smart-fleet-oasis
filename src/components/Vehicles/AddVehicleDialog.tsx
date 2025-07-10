@@ -24,6 +24,7 @@ const vehicleSchema = z.object({
   dailyRate: z.number().min(1, 'السعر اليومي مطلوب'),
   mileage: z.number().min(0, 'الكيلومترات لا يمكن أن تكون سالبة'),
   ownerId: z.string().min(1, 'المالك مطلوب'),
+  vin: z.string().min(1, 'رقم VIN مطلوب'),
   engineNumber: z.string().min(1, 'رقم المحرك مطلوب'),
   chassisNumber: z.string().min(1, 'رقم الشاسيه مطلوب'),
   fuelType: z.enum(['gasoline', 'diesel', 'hybrid', 'electric']),
@@ -92,6 +93,8 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
         type: 'other',
         file: file,
         uploadDate: new Date().toISOString(),
+        expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 year from now
+        status: 'valid'
       };
       setDocuments(prev => [...prev, newDoc]);
     });
@@ -133,6 +136,18 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
       documents,
       images,
       features: [],
+      maintenance: {
+        status: 'completed' as const,
+        lastMaintenanceDate: new Date().toISOString(),
+        nextMaintenanceDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 3 months from now
+      },
+      location: {
+        isTracked: false,
+        address: selectedOwner?.address || '',
+      },
+      purchase: {
+        purchaseDate: new Date().toISOString(),
+      },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -304,6 +319,20 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
                             {...field} 
                             onChange={e => field.onChange(parseInt(e.target.value))}
                           />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="vin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>رقم VIN</FormLabel>
+                        <FormControl>
+                          <Input placeholder="WVW1J7A37CE123456" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import Sidebar from '@/components/Layout/Sidebar';
 import Header from '@/components/Layout/Header';
 import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
-import VehicleDetailsDialog from '@/components/Vehicles/VehicleDetailsDialog';
+import EnhancedVehicleDetailsDialog from '@/components/Vehicles/EnhancedVehicleDetailsDialog';
 import { Vehicle } from '@/types/vehicle';
 
 export default function Vehicles() {
@@ -36,12 +36,27 @@ export default function Vehicles() {
       },
       documents: [],
       images: [],
+      vin: 'WVW1J7A37CE123456',
       engineNumber: 'ENG123456',
       chassisNumber: 'CHS789012',
       fuelType: 'gasoline',
       transmission: 'automatic',
       seatingCapacity: 5,
       features: [],
+      maintenance: {
+        status: 'completed',
+        lastMaintenanceDate: '2024-01-01T00:00:00Z',
+        nextMaintenanceDate: '2024-04-01T00:00:00Z'
+      },
+      location: {
+        isTracked: true,
+        address: 'غزة، الرمال',
+        lastUpdated: '2024-01-15T08:00:00Z'
+      },
+      purchase: {
+        purchaseDate: '2023-01-01T00:00:00Z',
+        purchasePrice: 85000
+      },
       createdAt: '2024-01-15T08:00:00Z',
       updatedAt: '2024-01-15T08:00:00Z'
     },
@@ -67,12 +82,33 @@ export default function Vehicles() {
       },
       documents: [],
       images: [],
+      vin: 'KMHD73JA9CE987654',
       engineNumber: 'ENG654321',
       chassisNumber: 'CHS210987',
       fuelType: 'gasoline',
       transmission: 'manual',
       seatingCapacity: 5,
       features: [],
+      currentRental: {
+        customerId: 'C001',
+        customerName: 'فادي أحمد صالح',
+        startDate: '2024-01-10T00:00:00Z',
+        endDate: '2024-01-20T00:00:00Z'
+      },
+      maintenance: {
+        status: 'completed',
+        lastMaintenanceDate: '2023-12-15T00:00:00Z',
+        nextMaintenanceDate: '2024-03-15T00:00:00Z'
+      },
+      location: {
+        isTracked: true,
+        address: 'رام الله، البيرة',
+        lastUpdated: '2024-01-10T10:30:00Z'
+      },
+      purchase: {
+        purchaseDate: '2022-05-15T00:00:00Z',
+        purchasePrice: 75000
+      },
       createdAt: '2024-01-10T10:30:00Z',
       updatedAt: '2024-01-10T10:30:00Z'
     },
@@ -98,12 +134,27 @@ export default function Vehicles() {
       },
       documents: [],
       images: [],
+      vin: 'JN1CV6ARXEM123789',
       engineNumber: 'ENG789123',
       chassisNumber: 'CHS345678',
       fuelType: 'diesel',
       transmission: 'automatic',
       seatingCapacity: 5,
       features: [],
+      maintenance: {
+        status: 'in_progress',
+        lastMaintenanceDate: '2023-11-20T00:00:00Z',
+        notes: 'تغيير الزيت والفلاتر'
+      },
+      location: {
+        isTracked: false,
+        address: 'نابلس، البلدة القديمة'
+      },
+      purchase: {
+        purchaseDate: '2021-03-10T00:00:00Z',
+        purchasePrice: 65000,
+        financingCompany: 'بنك فلسطين'
+      },
       createdAt: '2024-01-05T14:20:00Z',
       updatedAt: '2024-01-05T14:20:00Z'
     }
@@ -201,7 +252,7 @@ export default function Vehicles() {
                         </div>
                         
                         <div className="flex gap-2 pt-4">
-                          <VehicleDetailsDialog 
+                          <EnhancedVehicleDetailsDialog 
                             vehicle={vehicle}
                             trigger={
                               <Button size="sm" className="flex-1 gap-1">
