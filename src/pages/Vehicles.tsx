@@ -1,17 +1,19 @@
 
 import { useState } from 'react';
-import { Car, Plus, Search, Filter } from 'lucide-react';
+import { Car, Plus, Search, Filter, Edit, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Sidebar from '@/components/Layout/Sidebar';
 import Header from '@/components/Layout/Header';
+import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
+import VehicleDetailsDialog from '@/components/Vehicles/VehicleDetailsDialog';
+import { Vehicle } from '@/types/vehicle';
 
 export default function Vehicles() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const vehicles = [
+  const [vehicles, setVehicles] = useState<Vehicle[]>([
     {
       id: '1',
       plateNumber: 'أ ب ج 123',
@@ -21,7 +23,27 @@ export default function Vehicles() {
       color: 'أبيض',
       status: 'available',
       dailyRate: 150,
-      mileage: 15000
+      mileage: 15000,
+      ownerId: '1',
+      owner: {
+        id: '1',
+        name: 'أحمد محمد علي',
+        phone: '+970-599-123456',
+        email: 'ahmed@example.com',
+        nationalId: '123456789',
+        address: 'غزة، الرمال',
+        isActive: true
+      },
+      documents: [],
+      images: [],
+      engineNumber: 'ENG123456',
+      chassisNumber: 'CHS789012',
+      fuelType: 'gasoline',
+      transmission: 'automatic',
+      seatingCapacity: 5,
+      features: [],
+      createdAt: '2024-01-15T08:00:00Z',
+      updatedAt: '2024-01-15T08:00:00Z'
     },
     {
       id: '2',
@@ -32,7 +54,27 @@ export default function Vehicles() {
       color: 'أسود',
       status: 'rented',
       dailyRate: 120,
-      mileage: 25000
+      mileage: 25000,
+      ownerId: '2',
+      owner: {
+        id: '2',
+        name: 'محمد أحمد سالم',
+        phone: '+970-599-654321',
+        email: 'mohammed@example.com',
+        nationalId: '987654321',
+        address: 'رام الله، البيرة',
+        isActive: true
+      },
+      documents: [],
+      images: [],
+      engineNumber: 'ENG654321',
+      chassisNumber: 'CHS210987',
+      fuelType: 'gasoline',
+      transmission: 'manual',
+      seatingCapacity: 5,
+      features: [],
+      createdAt: '2024-01-10T10:30:00Z',
+      updatedAt: '2024-01-10T10:30:00Z'
     },
     {
       id: '3',
@@ -43,9 +85,33 @@ export default function Vehicles() {
       color: 'فضي',
       status: 'maintenance',
       dailyRate: 130,
-      mileage: 35000
+      mileage: 35000,
+      ownerId: '3',
+      owner: {
+        id: '3',
+        name: 'سارة خالد محمود',
+        phone: '+970-599-111222',
+        email: 'sara@example.com',
+        nationalId: '456789123',
+        address: 'نابلس، البلدة القديمة',
+        isActive: true
+      },
+      documents: [],
+      images: [],
+      engineNumber: 'ENG789123',
+      chassisNumber: 'CHS345678',
+      fuelType: 'diesel',
+      transmission: 'automatic',
+      seatingCapacity: 5,
+      features: [],
+      createdAt: '2024-01-05T14:20:00Z',
+      updatedAt: '2024-01-05T14:20:00Z'
     }
-  ];
+  ]);
+
+  const handleVehicleAdded = (newVehicle: Vehicle) => {
+    setVehicles(prev => [...prev, newVehicle]);
+  };
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -77,10 +143,7 @@ export default function Vehicles() {
                   <h1 className="text-3xl font-bold">إدارة المركبات</h1>
                   <p className="text-muted-foreground">إدارة وتتبع جميع مركبات الأسطول</p>
                 </div>
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  إضافة مركبة جديدة
-                </Button>
+                <AddVehicleDialog onVehicleAdded={handleVehicleAdded} />
               </div>
 
               {/* Search and Filters */}
@@ -138,10 +201,17 @@ export default function Vehicles() {
                         </div>
                         
                         <div className="flex gap-2 pt-4">
-                          <Button size="sm" className="flex-1">
-                            عرض التفاصيل
-                          </Button>
-                          <Button size="sm" variant="outline">
+                          <VehicleDetailsDialog 
+                            vehicle={vehicle}
+                            trigger={
+                              <Button size="sm" className="flex-1 gap-1">
+                                <Eye className="h-4 w-4" />
+                                عرض التفاصيل
+                              </Button>
+                            }
+                          />
+                          <Button size="sm" variant="outline" className="gap-1">
+                            <Edit className="h-4 w-4" />
                             تعديل
                           </Button>
                         </div>
