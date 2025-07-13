@@ -31,6 +31,16 @@ const vehicleSchema = z.object({
   transmission: z.enum(['manual', 'automatic']),
   seatingCapacity: z.number().min(1).max(50),
   notes: z.string().optional(),
+  
+  // Insurance and Documents Information
+  insuranceCompany: z.string().min(1, 'شركة التأمين مطلوبة'),
+  insuranceExpiryDate: z.string().min(1, 'تاريخ انتهاء التأمين مطلوب'),
+  licenseExpiryDate: z.string().min(1, 'تاريخ انتهاء الرخصة مطلوب'),
+  inspectionExpiryDate: z.string().min(1, 'تاريخ انتهاء الفحص الدوري مطلوب'),
+  
+  // Estimated Rental Price Range
+  minRentalPrice: z.number().min(1, 'أقل سعر إيجار مطلوب'),
+  maxRentalPrice: z.number().min(1, 'أعلى سعر إيجار مطلوب'),
 });
 
 interface AddVehicleDialogProps {
@@ -81,6 +91,11 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
       seatingCapacity: 5,
       fuelType: 'gasoline',
       transmission: 'automatic',
+      insuranceExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      licenseExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      inspectionExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      minRentalPrice: 80,
+      maxRentalPrice: 90,
     },
   });
 
@@ -185,8 +200,9 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="basic">المعلومات الأساسية</TabsTrigger>
+            <TabsTrigger value="insurance">التأمين والرخص</TabsTrigger>
             <TabsTrigger value="owner">المالك</TabsTrigger>
             <TabsTrigger value="documents">المستندات</TabsTrigger>
             <TabsTrigger value="images">الصور</TabsTrigger>
@@ -431,6 +447,113 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
                     </FormItem>
                   )}
                 />
+              </TabsContent>
+
+              {/* Insurance and License Tab */}
+              <TabsContent value="insurance" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="insuranceCompany"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>شركة التأمين</FormLabel>
+                        <FormControl>
+                          <Input placeholder="شركة التأمين الوطنية" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="insuranceExpiryDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>تاريخ انتهاء التأمين</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="licenseExpiryDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>تاريخ انتهاء رخصة القيادة</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="inspectionExpiryDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>تاريخ انتهاء الفحص الدوري</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <Label className="text-base font-medium">نطاق السعر المقدر للإيجار (ريال سعودي)</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="minRentalPrice"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>أقل سعر إيجار</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="80"
+                              {...field} 
+                              onChange={e => field.onChange(parseFloat(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="maxRentalPrice"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>أعلى سعر إيجار</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="90"
+                              {...field} 
+                              onChange={e => field.onChange(parseFloat(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    سيتم استخدام هذا النطاق كمرجع تقديري لأسعار الإيجار حسب الموسم والطلب
+                  </p>
+                </div>
               </TabsContent>
 
               <TabsContent value="owner" className="space-y-4">
