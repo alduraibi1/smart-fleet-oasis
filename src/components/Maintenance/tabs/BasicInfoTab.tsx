@@ -55,21 +55,21 @@ export function BasicInfoTab({ formData, setFormData, onCalculateCosts }: BasicI
   const selectedMechanic = mechanics.find(m => m.id === formData.mechanicId);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Vehicle & Mechanic Selection */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Vehicle Selection */}
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
-              <Car className="h-5 w-5" />
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Car className="h-4 w-4" />
               اختيار المركبة
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
+          <CardContent className="pt-2">
+            <div className="space-y-2">
               <Select value={formData.vehicleId} onValueChange={(value) => handleInputChange("vehicleId", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="h-8">
                   <SelectValue placeholder="اختر المركبة" />
                 </SelectTrigger>
                 <SelectContent>
@@ -77,7 +77,7 @@ export function BasicInfoTab({ formData, setFormData, onCalculateCosts }: BasicI
                     <SelectItem key={vehicle.id} value={vehicle.id}>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{vehicle.plate}</span>
-                        <span className="text-muted-foreground">
+                        <span className="text-muted-foreground text-xs">
                           {vehicle.brand} {vehicle.model} ({vehicle.year})
                         </span>
                       </div>
@@ -87,12 +87,12 @@ export function BasicInfoTab({ formData, setFormData, onCalculateCosts }: BasicI
               </Select>
               
               {selectedVehicle && (
-                <div className="bg-muted/50 p-3 rounded-lg">
-                  <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="bg-muted/50 p-2 rounded text-xs">
+                  <div className="grid grid-cols-2 gap-1">
                     <div>الطراز: {selectedVehicle.brand} {selectedVehicle.model}</div>
                     <div>السنة: {selectedVehicle.year}</div>
-                    <div>المسافة المقطوعة: {selectedVehicle.mileage.toLocaleString()} كم</div>
-                    <div>رقم اللوحة: {selectedVehicle.plate}</div>
+                    <div>المسافة: {selectedVehicle.mileage.toLocaleString()} كم</div>
+                    <div>اللوحة: {selectedVehicle.plate}</div>
                   </div>
                 </div>
               )}
@@ -102,14 +102,14 @@ export function BasicInfoTab({ formData, setFormData, onCalculateCosts }: BasicI
 
         {/* Mechanic Selection */}
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <User className="h-4 w-4" />
               اختيار الميكانيكي
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
+          <CardContent className="pt-2">
+            <div className="space-y-2">
               <Select 
                 value={formData.mechanicId} 
                 onValueChange={(value) => {
@@ -120,7 +120,7 @@ export function BasicInfoTab({ formData, setFormData, onCalculateCosts }: BasicI
                   }
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-8">
                   <SelectValue placeholder="اختر الميكانيكي" />
                 </SelectTrigger>
                 <SelectContent>
@@ -128,7 +128,7 @@ export function BasicInfoTab({ formData, setFormData, onCalculateCosts }: BasicI
                     <SelectItem key={mechanic.id} value={mechanic.id}>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{mechanic.name}</span>
-                        <span className="text-muted-foreground">({mechanic.rate} ر.س/ساعة)</span>
+                        <span className="text-muted-foreground text-xs">({mechanic.rate} ر.س/ساعة)</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -136,11 +136,11 @@ export function BasicInfoTab({ formData, setFormData, onCalculateCosts }: BasicI
               </Select>
               
               {selectedMechanic && (
-                <div className="bg-muted/50 p-3 rounded-lg">
-                  <div className="text-sm space-y-1">
+                <div className="bg-muted/50 p-2 rounded text-xs">
+                  <div className="space-y-1">
                     <div>التخصص: {selectedMechanic.specialization}</div>
-                    <div>سنوات الخبرة: {selectedMechanic.experience} سنوات</div>
-                    <div>أجرة الساعة: {selectedMechanic.rate} ر.س</div>
+                    <div>الخبرة: {selectedMechanic.experience} سنوات</div>
+                    <div>الأجرة: {selectedMechanic.rate} ر.س/ساعة</div>
                   </div>
                 </div>
               )}
@@ -151,19 +151,19 @@ export function BasicInfoTab({ formData, setFormData, onCalculateCosts }: BasicI
 
       {/* Maintenance Details */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wrench className="h-5 w-5" />
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Wrench className="h-4 w-4" />
             تفاصيل الصيانة
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <CardContent className="pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {/* Maintenance Type */}
-            <div className="space-y-2">
-              <Label>نوع الصيانة *</Label>
+            <div className="space-y-1">
+              <Label className="text-xs">نوع الصيانة *</Label>
               <Select value={formData.type} onValueChange={(value) => handleInputChange("type", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="h-8">
                   <SelectValue placeholder="اختر نوع الصيانة" />
                 </SelectTrigger>
                 <SelectContent>
@@ -175,10 +175,10 @@ export function BasicInfoTab({ formData, setFormData, onCalculateCosts }: BasicI
             </div>
 
             {/* Priority */}
-            <div className="space-y-2">
-              <Label>الأولوية</Label>
+            <div className="space-y-1">
+              <Label className="text-xs">الأولوية</Label>
               <Select value={formData.priority} onValueChange={(value: any) => handleInputChange("priority", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="h-8">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -191,18 +191,18 @@ export function BasicInfoTab({ formData, setFormData, onCalculateCosts }: BasicI
             </div>
 
             {/* Date */}
-            <div className="space-y-2">
-              <Label>تاريخ الصيانة *</Label>
+            <div className="space-y-1">
+              <Label className="text-xs">تاريخ الصيانة *</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "w-full justify-start text-left font-normal h-8 text-xs",
                       !formData.date && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarIcon className="mr-1 h-3 w-3" />
                     {formData.date ? format(formData.date, "PPP") : "اختر التاريخ"}
                   </Button>
                 </PopoverTrigger>
@@ -219,120 +219,68 @@ export function BasicInfoTab({ formData, setFormData, onCalculateCosts }: BasicI
             </div>
 
             {/* Estimated Hours */}
-            <div className="space-y-2">
-              <Label>الساعات المقدرة</Label>
+            <div className="space-y-1">
+              <Label className="text-xs">الساعات المقدرة</Label>
               <Input
                 type="number"
                 step="0.5"
                 min="0"
                 placeholder="0"
+                className="h-8"
                 value={formData.estimatedHours || ""}
                 onChange={(e) => handleInputChange("estimatedHours", parseFloat(e.target.value) || 0)}
               />
             </div>
 
             {/* Actual Hours */}
-            <div className="space-y-2">
-              <Label>ساعات العمل الفعلية</Label>
+            <div className="space-y-1">
+              <Label className="text-xs">ساعات العمل الفعلية</Label>
               <Input
                 type="number"
                 step="0.5"
                 min="0"
                 placeholder="0"
+                className="h-8"
                 value={formData.laborHours || ""}
                 onChange={(e) => handleInputChange("laborHours", parseFloat(e.target.value) || 0)}
               />
             </div>
 
             {/* Hourly Rate */}
-            <div className="space-y-2">
-              <Label>أجرة الساعة (ر.س)</Label>
+            <div className="space-y-1">
+              <Label className="text-xs">أجرة الساعة (ر.س)</Label>
               <Input
                 type="number"
                 min="0"
                 placeholder="50"
+                className="h-8"
                 value={formData.hourlyRate || ""}
                 onChange={(e) => handleInputChange("hourlyRate", parseFloat(e.target.value) || 0)}
               />
             </div>
           </div>
 
-          {/* Work Time Tracking */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <div className="space-y-2">
-              <Label>وقت بداية العمل</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.workStartTime && "text-muted-foreground"
-                    )}
-                  >
-                    <Clock className="mr-2 h-4 w-4" />
-                    {formData.workStartTime ? format(formData.workStartTime, "PPpp") : "اختر وقت البداية"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.workStartTime}
-                    onSelect={(date) => handleInputChange("workStartTime", date)}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <Label>وقت انتهاء العمل</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.workEndTime && "text-muted-foreground"
-                    )}
-                  >
-                    <Clock className="mr-2 h-4 w-4" />
-                    {formData.workEndTime ? format(formData.workEndTime, "PPpp") : "اختر وقت الانتهاء"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.workEndTime}
-                    onSelect={(date) => handleInputChange("workEndTime", date)}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-
           {/* Description */}
-          <div className="space-y-2 mt-4">
-            <Label>وصف الصيانة *</Label>
+          <div className="space-y-1 mt-3 col-span-full">
+            <Label className="text-xs">وصف الصيانة *</Label>
             <Textarea
               placeholder="اكتب تفاصيل أعمال الصيانة المطلوبة..."
               value={formData.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
-              rows={3}
+              rows={2}
+              className="text-xs"
             />
           </div>
 
           {/* Notes */}
-          <div className="space-y-2 mt-4">
-            <Label>ملاحظات إضافية</Label>
+          <div className="space-y-1 mt-2 col-span-full">
+            <Label className="text-xs">ملاحظات إضافية</Label>
             <Textarea
               placeholder="أي ملاحظات أو تفاصيل إضافية..."
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}
-              rows={2}
+              rows={1}
+              className="text-xs"
             />
           </div>
         </CardContent>
@@ -341,10 +289,10 @@ export function BasicInfoTab({ formData, setFormData, onCalculateCosts }: BasicI
       {/* Priority Alert */}
       {formData.priority === 'urgent' && (
         <Card className="border-destructive bg-destructive/5">
-          <CardContent className="pt-6">
+          <CardContent className="pt-3">
             <div className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-              <span className="font-medium">صيانة عاجلة - يتطلب معالجة فورية</span>
+              <AlertTriangle className="h-4 w-4" />
+              <span className="font-medium text-sm">صيانة عاجلة - يتطلب معالجة فورية</span>
             </div>
           </CardContent>
         </Card>

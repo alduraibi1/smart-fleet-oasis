@@ -248,22 +248,22 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden">
-        <DialogHeader className="pb-4">
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden">
+        <DialogHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle className="text-2xl font-bold">إضافة سجل صيانة متقدم</DialogTitle>
-              <p className="text-muted-foreground mt-1">إدارة شاملة لسجلات الصيانة والمخزون</p>
+              <DialogTitle className="text-xl font-bold">إضافة سجل صيانة متقدم</DialogTitle>
+              <p className="text-muted-foreground text-sm">إدارة شاملة لسجلات الصيانة والمخزون</p>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant={getPriorityColor(formData.priority)}>
+              <Badge variant={getPriorityColor(formData.priority)} className="text-xs">
                 {formData.priority === 'urgent' && 'عاجل'}
                 {formData.priority === 'high' && 'عالي'}
                 {formData.priority === 'medium' && 'متوسط'}
                 {formData.priority === 'low' && 'منخفض'}
               </Badge>
               {formData.totalCost > 0 && (
-                <Badge variant="secondary" className="text-lg font-bold">
+                <Badge variant="secondary" className="text-sm font-bold">
                   {formData.totalCost.toFixed(2)} ر.س
                 </Badge>
               )}
@@ -271,29 +271,29 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
           </div>
         </DialogHeader>
 
-        <Separator />
+        <Separator className="mb-3" />
 
         <div className="flex-1 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-5 mb-4">
+            <TabsList className="grid w-full grid-cols-5 mb-3 h-9">
               {[
-                { id: 'basic', label: 'معلومات أساسية', icon: ClipboardList },
-                { id: 'parts', label: 'قطع الغيار', icon: Package },
-                { id: 'oils', label: 'الزيوت والسوائل', icon: Droplets },
-                { id: 'costs', label: 'التكاليف', icon: Calculator },
-                { id: 'images', label: 'الصور والتوثيق', icon: Camera },
+                { id: 'basic', label: 'أساسية', icon: ClipboardList },
+                { id: 'parts', label: 'قطع غيار', icon: Package },
+                { id: 'oils', label: 'زيوت', icon: Droplets },
+                { id: 'costs', label: 'تكاليف', icon: Calculator },
+                { id: 'images', label: 'صور', icon: Camera },
               ].map((tab) => {
                 const Icon = tab.icon;
                 return (
-                  <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
-                    <Icon className="h-4 w-4" />
-                    <span className="hidden sm:inline">{tab.label}</span>
+                  <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-1 px-2 text-xs">
+                    <Icon className="h-3 w-3" />
+                    <span className="hidden md:inline">{tab.label}</span>
                   </TabsTrigger>
                 );
               })}
             </TabsList>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto pr-1">
               <TabsContent value="basic" className="mt-0">
                 <BasicInfoTab 
                   formData={formData} 
@@ -336,35 +336,36 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
           </Tabs>
         </div>
 
-        <Separator />
+        <Separator className="mt-3" />
 
         {/* Summary and Actions */}
-        <div className="flex items-center justify-between pt-4">
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-muted-foreground">
-              قطع الغيار: {formData.partsUsed.length} • 
-              الزيوت: {formData.oilsUsed.length} • 
-              ساعات العمل: {formData.laborHours}
+        <div className="flex items-center justify-between pt-3">
+          <div className="flex items-center gap-2">
+            <div className="text-xs text-muted-foreground">
+              قطع: {formData.partsUsed.length} • 
+              زيوت: {formData.oilsUsed.length} • 
+              ساعات: {formData.laborHours}
             </div>
             {formData.totalCost > 1000 && (
               <div className="flex items-center gap-1 text-amber-600">
-                <AlertTriangle className="h-4 w-4" />
-                <span className="text-sm">تكلفة عالية</span>
+                <AlertTriangle className="h-3 w-3" />
+                <span className="text-xs">تكلفة عالية</span>
               </div>
             )}
           </div>
           
-          <div className="flex gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              <X className="h-4 w-4 mr-2" />
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+              <X className="h-3 w-3 mr-1" />
               إلغاء
             </Button>
             <Button 
               onClick={handleSubmit} 
               disabled={isSubmitting}
+              size="sm"
               className="bg-primary hover:bg-primary/90"
             >
-              <Save className="h-4 w-4 mr-2" />
+              <Save className="h-3 w-3 mr-1" />
               {isSubmitting ? "جاري الحفظ..." : "حفظ السجل"}
             </Button>
           </div>
