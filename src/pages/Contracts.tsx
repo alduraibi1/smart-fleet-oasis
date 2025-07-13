@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Search, Plus, Filter, Eye, Edit, FileText, Calendar, Car, User } from 'lucide-react';
+import AddContractDialog from '@/components/Contracts/AddContractDialog';
+import VehicleReturnDialog from '@/components/Contracts/VehicleReturnDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -153,10 +155,10 @@ const Contracts = () => {
                     إدارة عقود الإيجار ومتابعة حالاتها وتجديدها
                   </p>
                 </div>
-                <Button className="bg-rental-primary hover:bg-rental-primary/90">
-                  <Plus className="h-4 w-4 ml-2" />
-                  عقد جديد
-                </Button>
+                <div className="flex gap-2">
+                  <VehicleReturnDialog />
+                  <AddContractDialog />
+                </div>
               </div>
 
               {/* Summary Cards */}
@@ -323,6 +325,9 @@ const Contracts = () => {
                                 <Button variant="ghost" size="sm">
                                   <Edit className="h-4 w-4" />
                                 </Button>
+                                {contract.status === 'active' && (
+                                  <VehicleReturnDialog contractId={contract.id} />
+                                )}
                                 {contract.status === 'expired' && (
                                   <Button variant="ghost" size="sm" className="text-rental-primary">
                                     <Calendar className="h-4 w-4" />
