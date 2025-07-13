@@ -9,6 +9,9 @@ import { AccountingOverview } from "@/components/Accounting/AccountingOverview";
 import { RevenueExpenseReport } from "@/components/Accounting/RevenueExpenseReport";
 import { CashFlowReport } from "@/components/Accounting/CashFlowReport";
 import { AssetsReport } from "@/components/Accounting/AssetsReport";
+import { AccountsReceivable } from "@/components/Accounting/AccountsReceivable";
+import { AccountsPayable } from "@/components/Accounting/AccountsPayable";
+import { TaxManagement } from "@/components/Accounting/TaxManagement";
 
 export default function Accounting() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -47,11 +50,14 @@ export default function Accounting() {
               </div>
 
               <Tabs defaultValue="overview" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-7">
                   <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
                   <TabsTrigger value="revenue-expense">الإيرادات والمصروفات</TabsTrigger>
                   <TabsTrigger value="cash-flow">التدفق النقدي</TabsTrigger>
                   <TabsTrigger value="assets">الأصول</TabsTrigger>
+                  <TabsTrigger value="receivables">الحسابات المدينة</TabsTrigger>
+                  <TabsTrigger value="payables">الحسابات الدائنة</TabsTrigger>
+                  <TabsTrigger value="tax">النظام الضريبي</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-6">
@@ -68,6 +74,18 @@ export default function Accounting() {
 
                 <TabsContent value="assets" className="space-y-6">
                   <AssetsReport />
+                </TabsContent>
+
+                <TabsContent value="receivables" className="space-y-6">
+                  <AccountsReceivable />
+                </TabsContent>
+
+                <TabsContent value="payables" className="space-y-6">
+                  <AccountsPayable />
+                </TabsContent>
+
+                <TabsContent value="tax" className="space-y-6">
+                  <TaxManagement />
                 </TabsContent>
               </Tabs>
             </div>
