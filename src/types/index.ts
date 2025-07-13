@@ -141,31 +141,96 @@ export interface MaintenanceRecord {
   type: 'scheduled' | 'breakdown' | 'inspection';
   description: string;
   partsUsed: PartUsage[];
+  oilsUsed: OilUsage[];
   laborCost: number;
+  partsCost: number;
+  oilsCost: number;
   totalCost: number;
+  laborHours: number;
   warranty: boolean;
   warrantyExpiry?: Date;
   notes: string;
   status: 'pending' | 'in_progress' | 'completed';
+  beforeImages: string[];
+  afterImages: string[];
+  vehicleConditionBefore: string;
+  vehicleConditionAfter: string;
+  workStartTime?: Date;
+  workEndTime?: Date;
+  qualityRating?: number;
 }
 
 export interface PartUsage {
   partId: string;
+  partName: string;
   quantity: number;
-  cost: number;
+  unitCost: number;
+  totalCost: number;
+  stockBefore: number;
+  stockAfter: number;
+}
+
+export interface OilUsage {
+  oilId: string;
+  oilName: string;
+  quantity: number;
+  unitCost: number;
+  totalCost: number;
+  stockBefore: number;
+  stockAfter: number;
+  viscosity: string;
 }
 
 export interface InventoryItem {
   id: string;
   name: string;
-  category: 'oil' | 'filter' | 'brake' | 'tire' | 'battery' | 'other';
+  category: 'oil' | 'filter' | 'brake' | 'tire' | 'battery' | 'belt' | 'spark_plug' | 'coolant' | 'other';
   brand: string;
   stockLevel: number;
   minStockLevel: number;
   unitCost: number;
+  sellingPrice: number;
   barcode?: string;
   supplier: string;
+  supplierContact: string;
   lastRestocked: Date;
+  expiryDate?: Date;
+  location: string;
+  description: string;
+}
+
+export interface OilInventory {
+  id: string;
+  name: string;
+  brand: string;
+  viscosity: string;
+  type: 'engine' | 'transmission' | 'brake' | 'hydraulic' | 'coolant';
+  stockLevel: number;
+  minStockLevel: number;
+  unitCost: number;
+  sellingPrice: number;
+  supplier: string;
+  supplierContact: string;
+  lastRestocked: Date;
+  expiryDate: Date;
+  location: string;
+  barcode?: string;
+  specifications: string;
+}
+
+export interface Mechanic {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  specialization: string[];
+  hourlyRate: number;
+  hireDate: Date;
+  experienceYears: number;
+  rating: number;
+  totalJobsCompleted: number;
+  active: boolean;
+  shift: 'morning' | 'evening' | 'night' | 'flexible';
 }
 
 export interface Document {

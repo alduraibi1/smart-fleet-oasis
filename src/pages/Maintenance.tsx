@@ -3,7 +3,7 @@ import Header from "@/components/Layout/Header";
 import { MaintenanceStats } from "@/components/Maintenance/MaintenanceStats";
 import { MaintenanceFilters } from "@/components/Maintenance/MaintenanceFilters";
 import { MaintenanceTable } from "@/components/Maintenance/MaintenanceTable";
-import { AddMaintenanceDialog } from "@/components/Maintenance/AddMaintenanceDialog";
+import { EnhancedAddMaintenanceDialog } from "@/components/Maintenance/EnhancedAddMaintenanceDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -67,10 +67,10 @@ export default function Maintenance() {
         </div>
       </main>
 
-      <AddMaintenanceDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-      />
+        <EnhancedAddMaintenanceDialog 
+          open={showAddDialog} 
+          onOpenChange={setShowAddDialog}
+        />
     </div>
   );
 }
