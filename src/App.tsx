@@ -11,6 +11,7 @@ import Customers from "./pages/Customers";
 import Accounting from "./pages/Accounting";
 import Maintenance from "./pages/Maintenance";
 import Inventory from "./pages/Inventory";
+import HR from "./pages/HR";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,7 +31,7 @@ const App = () => (
           <Route path="/maintenance" element={<Maintenance />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/accounting" element={<Accounting />} />
-          <Route path="/hr" element={<div className="p-8 text-center">الموارد البشرية قيد التطوير</div>} />
+          <Route path="/hr" element={<HR />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
