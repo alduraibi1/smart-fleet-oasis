@@ -40,6 +40,7 @@ interface AddCustomerDialogProps {
 
 export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDialogProps) => {
   const [activeTab, setActiveTab] = useState("personal");
+  const [requiresGuarantor, setRequiresGuarantor] = useState(false);
   const [formData, setFormData] = useState({
     // Personal Information
     name: "",
@@ -113,6 +114,32 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
     insuranceCompany: "",
     insurancePolicyNumber: "",
     insuranceExpiry: undefined as Date | undefined,
+    
+    // Guarantor Information
+    requiresGuarantor: false,
+    guarantorName: "",
+    guarantorNameEnglish: "",
+    guarantorPhone: "",
+    guarantorPhoneSecondary: "",
+    guarantorEmail: "",
+    guarantorNationalId: "",
+    guarantorNationality: "سعودي",
+    guarantorDateOfBirth: undefined as Date | undefined,
+    guarantorRelation: "",
+    guarantorJobTitle: "",
+    guarantorCompany: "",
+    guarantorWorkPhone: "",
+    guarantorMonthlyIncome: "",
+    guarantorAddress: "",
+    guarantorCity: "",
+    guarantorDistrict: "",
+    guarantorPostalCode: "",
+    guarantorCountry: "السعودية",
+    guarantorLicenseNumber: "",
+    guarantorLicenseExpiry: undefined as Date | undefined,
+    guarantorBankName: "",
+    guarantorAccountNumber: "",
+    guarantorNotes: "",
   });
 
   const [documents, setDocuments] = useState<File[]>([]);
@@ -126,6 +153,10 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
     { id: "bank_statement", name: "كشف حساب بنكي", required: false },
     { id: "insurance_policy", name: "وثيقة تأمين", required: false },
     { id: "international_license", name: "رخصة قيادة دولية", required: false },
+    { id: "guarantor_id", name: "صورة هوية الكفيل", required: false },
+    { id: "guarantor_salary", name: "شهادة راتب الكفيل", required: false },
+    { id: "guarantor_bank_statement", name: "كشف حساب بنكي للكفيل", required: false },
+    { id: "guarantor_commitment", name: "تعهد الكفالة", required: false },
     { id: "additional_docs", name: "مستندات إضافية", required: false },
   ];
 
@@ -268,10 +299,35 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
       insuranceCompany: "",
       insurancePolicyNumber: "",
       insuranceExpiry: undefined,
+      requiresGuarantor: false,
+      guarantorName: "",
+      guarantorNameEnglish: "",
+      guarantorPhone: "",
+      guarantorPhoneSecondary: "",
+      guarantorEmail: "",
+      guarantorNationalId: "",
+      guarantorNationality: "سعودي",
+      guarantorDateOfBirth: undefined,
+      guarantorRelation: "",
+      guarantorJobTitle: "",
+      guarantorCompany: "",
+      guarantorWorkPhone: "",
+      guarantorMonthlyIncome: "",
+      guarantorAddress: "",
+      guarantorCity: "",
+      guarantorDistrict: "",
+      guarantorPostalCode: "",
+      guarantorCountry: "السعودية",
+      guarantorLicenseNumber: "",
+      guarantorLicenseExpiry: undefined,
+      guarantorBankName: "",
+      guarantorAccountNumber: "",
+      guarantorNotes: "",
     });
     setDocuments([]);
     setUploadedFileTypes([]);
     setActiveTab("personal");
+    setRequiresGuarantor(false);
   };
 
   return (
@@ -282,11 +338,12 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="personal">شخصية</TabsTrigger>
             <TabsTrigger value="license">الرخصة</TabsTrigger>
             <TabsTrigger value="address">العنوان</TabsTrigger>
             <TabsTrigger value="work">العمل</TabsTrigger>
+            <TabsTrigger value="guarantor">الكفيل</TabsTrigger>
             <TabsTrigger value="preferences">التفضيلات</TabsTrigger>
             <TabsTrigger value="documents">المستندات</TabsTrigger>
           </TabsList>
@@ -983,6 +1040,654 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Preferences Tab */}
+            <TabsContent value="preferences" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Car className="h-5 w-5" />
+                    تفضيلات المركبات
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="preferredVehicleType">نوع المركبة المفضل</Label>
+                      <Select value={formData.preferredVehicleType} onValueChange={(value) => setFormData({ ...formData, preferredVehicleType: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر النوع" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sedan">سيدان</SelectItem>
+                          <SelectItem value="suv">دفع رباعي</SelectItem>
+                          <SelectItem value="hatchback">هاتشباك</SelectItem>
+                          <SelectItem value="pickup">بيك أب</SelectItem>
+                          <SelectItem value="van">فان</SelectItem>
+                          <SelectItem value="luxury">فاخرة</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="preferredBrand">الماركة المفضلة</Label>
+                      <Input
+                        id="preferredBrand"
+                        value={formData.preferredBrand}
+                        onChange={(e) => setFormData({ ...formData, preferredBrand: e.target.value })}
+                        placeholder="تويوتا، نيسان، هونداي..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="specialRequirements">متطلبات خاصة</Label>
+                    <Textarea
+                      id="specialRequirements"
+                      value={formData.specialRequirements}
+                      onChange={(e) => setFormData({ ...formData, specialRequirements: e.target.value })}
+                      placeholder="كرسي أطفال، مقعد مرضى، تكييف قوي..."
+                      className="min-h-[60px]"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mail className="h-5 w-5" />
+                    تفضيلات التواصل والإشعارات
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="preferredLanguage">اللغة المفضلة</Label>
+                      <Select value={formData.preferredLanguage} onValueChange={(value) => setFormData({ ...formData, preferredLanguage: value })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ar">العربية</SelectItem>
+                          <SelectItem value="en">English</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="customerSource">مصدر العميل</Label>
+                      <Select value={formData.customerSource} onValueChange={(value) => setFormData({ ...formData, customerSource: value })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="website">الموقع الإلكتروني</SelectItem>
+                          <SelectItem value="social_media">وسائل التواصل</SelectItem>
+                          <SelectItem value="referral">إحالة من عميل</SelectItem>
+                          <SelectItem value="advertisement">إعلان</SelectItem>
+                          <SelectItem value="walk_in">زيارة مباشرة</SelectItem>
+                          <SelectItem value="phone">مكالمة هاتفية</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="referredBy">أحيل من قبل</Label>
+                      <Input
+                        id="referredBy"
+                        value={formData.referredBy}
+                        onChange={(e) => setFormData({ ...formData, referredBy: e.target.value })}
+                        placeholder="اسم العميل أو المصدر"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="smsNotifications"
+                        checked={formData.smsNotifications}
+                        onCheckedChange={(checked) => setFormData({ ...formData, smsNotifications: checked as boolean })}
+                      />
+                      <Label htmlFor="smsNotifications">إشعارات SMS</Label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="emailNotifications"
+                        checked={formData.emailNotifications}
+                        onCheckedChange={(checked) => setFormData({ ...formData, emailNotifications: checked as boolean })}
+                      />
+                      <Label htmlFor="emailNotifications">إشعارات البريد الإلكتروني</Label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="marketingConsent"
+                        checked={formData.marketingConsent}
+                        onCheckedChange={(checked) => setFormData({ ...formData, marketingConsent: checked as boolean })}
+                      />
+                      <Label htmlFor="marketingConsent">الموافقة على الرسائل التسويقية</Label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">ملاحظات إضافية</Label>
+                    <Textarea
+                      id="notes"
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      placeholder="أي ملاحظات مهمة عن العميل..."
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Guarantor Information Tab */}
+            <TabsContent value="guarantor" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    تحديد الحاجة للكفيل
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="requiresGuarantor"
+                      checked={formData.requiresGuarantor}
+                      onCheckedChange={(checked) => {
+                        setFormData({ ...formData, requiresGuarantor: checked as boolean });
+                        setRequiresGuarantor(checked as boolean);
+                      }}
+                    />
+                    <Label htmlFor="requiresGuarantor">يحتاج هذا العميل إلى كفيل/ضامن</Label>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    يُطلب الكفيل في حالات معينة مثل: عدم وجود راتب ثابت، عميل جديد، أو مبلغ الإيجار مرتفع
+                  </p>
+                </CardContent>
+              </Card>
+
+              {formData.requiresGuarantor && (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <User className="h-5 w-5" />
+                        المعلومات الشخصية للكفيل
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorName">اسم الكفيل بالعربية *</Label>
+                          <Input
+                            id="guarantorName"
+                            value={formData.guarantorName}
+                            onChange={(e) => setFormData({ ...formData, guarantorName: e.target.value })}
+                            placeholder="الاسم الكامل للكفيل"
+                            required={formData.requiresGuarantor}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorNameEnglish">اسم الكفيل بالإنجليزية</Label>
+                          <Input
+                            id="guarantorNameEnglish"
+                            value={formData.guarantorNameEnglish}
+                            onChange={(e) => setFormData({ ...formData, guarantorNameEnglish: e.target.value })}
+                            placeholder="Guarantor Full Name"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorNationalId">رقم هوية الكفيل *</Label>
+                          <Input
+                            id="guarantorNationalId"
+                            value={formData.guarantorNationalId}
+                            onChange={(e) => setFormData({ ...formData, guarantorNationalId: e.target.value })}
+                            placeholder="1xxxxxxxxx"
+                            required={formData.requiresGuarantor}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorNationality">جنسية الكفيل</Label>
+                          <Select value={formData.guarantorNationality} onValueChange={(value) => setFormData({ ...formData, guarantorNationality: value })}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="سعودي">سعودي</SelectItem>
+                              <SelectItem value="مصري">مصري</SelectItem>
+                              <SelectItem value="سوري">سوري</SelectItem>
+                              <SelectItem value="لبناني">لبناني</SelectItem>
+                              <SelectItem value="أردني">أردني</SelectItem>
+                              <SelectItem value="فلسطيني">فلسطيني</SelectItem>
+                              <SelectItem value="يمني">يمني</SelectItem>
+                              <SelectItem value="أخرى">أخرى</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>تاريخ ميلاد الكفيل</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-start text-left font-normal",
+                                  !formData.guarantorDateOfBirth && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="ml-2 h-4 w-4" />
+                                {formData.guarantorDateOfBirth ? (
+                                  format(formData.guarantorDateOfBirth, "dd/MM/yyyy", { locale: ar })
+                                ) : (
+                                  <span>اختر التاريخ</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                              <Calendar
+                                mode="single"
+                                selected={formData.guarantorDateOfBirth}
+                                onSelect={(date) => setFormData({ ...formData, guarantorDateOfBirth: date })}
+                                initialFocus
+                                className="pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorRelation">صلة القرابة بالعميل *</Label>
+                          <Select value={formData.guarantorRelation} onValueChange={(value) => setFormData({ ...formData, guarantorRelation: value })}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="اختر صلة القرابة" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="father">والد</SelectItem>
+                              <SelectItem value="mother">والدة</SelectItem>
+                              <SelectItem value="spouse">زوج/زوجة</SelectItem>
+                              <SelectItem value="brother">أخ</SelectItem>
+                              <SelectItem value="sister">أخت</SelectItem>
+                              <SelectItem value="son">ابن</SelectItem>
+                              <SelectItem value="daughter">ابنة</SelectItem>
+                              <SelectItem value="uncle">عم/خال</SelectItem>
+                              <SelectItem value="aunt">عمة/خالة</SelectItem>
+                              <SelectItem value="friend">صديق</SelectItem>
+                              <SelectItem value="colleague">زميل عمل</SelectItem>
+                              <SelectItem value="other">أخرى</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Phone className="h-5 w-5" />
+                        معلومات التواصل للكفيل
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorPhone">رقم هاتف الكفيل *</Label>
+                          <Input
+                            id="guarantorPhone"
+                            value={formData.guarantorPhone}
+                            onChange={(e) => setFormData({ ...formData, guarantorPhone: e.target.value })}
+                            placeholder="05xxxxxxxx"
+                            required={formData.requiresGuarantor}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorPhoneSecondary">رقم هاتف ثانوي للكفيل</Label>
+                          <Input
+                            id="guarantorPhoneSecondary"
+                            value={formData.guarantorPhoneSecondary}
+                            onChange={(e) => setFormData({ ...formData, guarantorPhoneSecondary: e.target.value })}
+                            placeholder="05xxxxxxxx"
+                          />
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="guarantorEmail">بريد إلكتروني للكفيل</Label>
+                          <Input
+                            id="guarantorEmail"
+                            type="email"
+                            value={formData.guarantorEmail}
+                            onChange={(e) => setFormData({ ...formData, guarantorEmail: e.target.value })}
+                            placeholder="guarantor@email.com"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        معلومات عمل الكفيل
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorJobTitle">المسمى الوظيفي للكفيل *</Label>
+                          <Input
+                            id="guarantorJobTitle"
+                            value={formData.guarantorJobTitle}
+                            onChange={(e) => setFormData({ ...formData, guarantorJobTitle: e.target.value })}
+                            placeholder="مهندس، طبيب، معلم..."
+                            required={formData.requiresGuarantor}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorCompany">جهة عمل الكفيل *</Label>
+                          <Input
+                            id="guarantorCompany"
+                            value={formData.guarantorCompany}
+                            onChange={(e) => setFormData({ ...formData, guarantorCompany: e.target.value })}
+                            placeholder="اسم الشركة أو المؤسسة"
+                            required={formData.requiresGuarantor}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorWorkPhone">هاتف عمل الكفيل</Label>
+                          <Input
+                            id="guarantorWorkPhone"
+                            value={formData.guarantorWorkPhone}
+                            onChange={(e) => setFormData({ ...formData, guarantorWorkPhone: e.target.value })}
+                            placeholder="011xxxxxxx"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorMonthlyIncome">راتب الكفيل الشهري *</Label>
+                          <Input
+                            id="guarantorMonthlyIncome"
+                            value={formData.guarantorMonthlyIncome}
+                            onChange={(e) => setFormData({ ...formData, guarantorMonthlyIncome: e.target.value })}
+                            placeholder="مثال: 8000 - 15000"
+                            required={formData.requiresGuarantor}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5" />
+                        عنوان الكفيل
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorCountry">الدولة</Label>
+                          <Select value={formData.guarantorCountry} onValueChange={(value) => setFormData({ ...formData, guarantorCountry: value })}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="السعودية">السعودية</SelectItem>
+                              <SelectItem value="الإمارات">الإمارات</SelectItem>
+                              <SelectItem value="الكويت">الكويت</SelectItem>
+                              <SelectItem value="قطر">قطر</SelectItem>
+                              <SelectItem value="البحرين">البحرين</SelectItem>
+                              <SelectItem value="عمان">عمان</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorCity">مدينة الكفيل *</Label>
+                          <Input
+                            id="guarantorCity"
+                            value={formData.guarantorCity}
+                            onChange={(e) => setFormData({ ...formData, guarantorCity: e.target.value })}
+                            placeholder="الرياض، جدة، الدمام..."
+                            required={formData.requiresGuarantor}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorDistrict">الحي</Label>
+                          <Input
+                            id="guarantorDistrict"
+                            value={formData.guarantorDistrict}
+                            onChange={(e) => setFormData({ ...formData, guarantorDistrict: e.target.value })}
+                            placeholder="النزهة، الملز، السليمانية..."
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorPostalCode">الرمز البريدي</Label>
+                          <Input
+                            id="guarantorPostalCode"
+                            value={formData.guarantorPostalCode}
+                            onChange={(e) => setFormData({ ...formData, guarantorPostalCode: e.target.value })}
+                            placeholder="12345"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="guarantorAddress">العنوان التفصيلي للكفيل *</Label>
+                        <Textarea
+                          id="guarantorAddress"
+                          value={formData.guarantorAddress}
+                          onChange={(e) => setFormData({ ...formData, guarantorAddress: e.target.value })}
+                          placeholder="العنوان التفصيلي للكفيل مع رقم المبنى والشارع"
+                          className="min-h-[80px]"
+                          required={formData.requiresGuarantor}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <CreditCard className="h-5 w-5" />
+                        معلومات إضافية للكفيل
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorLicenseNumber">رقم رخصة قيادة الكفيل</Label>
+                          <Input
+                            id="guarantorLicenseNumber"
+                            value={formData.guarantorLicenseNumber}
+                            onChange={(e) => setFormData({ ...formData, guarantorLicenseNumber: e.target.value })}
+                            placeholder="رقم رخصة القيادة"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>تاريخ انتهاء رخصة الكفيل</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-start text-left font-normal",
+                                  !formData.guarantorLicenseExpiry && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="ml-2 h-4 w-4" />
+                                {formData.guarantorLicenseExpiry ? (
+                                  format(formData.guarantorLicenseExpiry, "dd/MM/yyyy", { locale: ar })
+                                ) : (
+                                  <span>اختر التاريخ</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                              <Calendar
+                                mode="single"
+                                selected={formData.guarantorLicenseExpiry}
+                                onSelect={(date) => setFormData({ ...formData, guarantorLicenseExpiry: date })}
+                                initialFocus
+                                className="pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorBankName">بنك الكفيل</Label>
+                          <Input
+                            id="guarantorBankName"
+                            value={formData.guarantorBankName}
+                            onChange={(e) => setFormData({ ...formData, guarantorBankName: e.target.value })}
+                            placeholder="الأهلي، الراجحي، سامبا..."
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="guarantorAccountNumber">رقم حساب الكفيل</Label>
+                          <Input
+                            id="guarantorAccountNumber"
+                            value={formData.guarantorAccountNumber}
+                            onChange={(e) => setFormData({ ...formData, guarantorAccountNumber: e.target.value })}
+                            placeholder="SA00 0000 0000 0000 0000 0000"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="guarantorNotes">ملاحظات إضافية عن الكفيل</Label>
+                        <Textarea
+                          id="guarantorNotes"
+                          value={formData.guarantorNotes}
+                          onChange={(e) => setFormData({ ...formData, guarantorNotes: e.target.value })}
+                          placeholder="أي ملاحظات مهمة عن الكفيل..."
+                          className="min-h-[80px]"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        مستندات الكفيل المطلوبة
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 border-2 border-dashed border-muted-foreground/25 rounded-lg text-center">
+                          <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground mb-2">صورة هوية الكفيل</p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const input = document.createElement('input');
+                              input.type = 'file';
+                              input.multiple = true;
+                              input.accept = 'image/*,.pdf';
+                              input.onchange = (e) => handleFileUpload('guarantor_id', (e.target as HTMLInputElement).files);
+                              input.click();
+                            }}
+                          >
+                            رفع الملف
+                          </Button>
+                        </div>
+
+                        <div className="p-4 border-2 border-dashed border-muted-foreground/25 rounded-lg text-center">
+                          <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground mb-2">شهادة راتب الكفيل</p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const input = document.createElement('input');
+                              input.type = 'file';
+                              input.multiple = true;
+                              input.accept = 'image/*,.pdf';
+                              input.onchange = (e) => handleFileUpload('guarantor_salary', (e.target as HTMLInputElement).files);
+                              input.click();
+                            }}
+                          >
+                            رفع الملف
+                          </Button>
+                        </div>
+
+                        <div className="p-4 border-2 border-dashed border-muted-foreground/25 rounded-lg text-center">
+                          <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground mb-2">كشف حساب بنكي للكفيل</p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const input = document.createElement('input');
+                              input.type = 'file';
+                              input.multiple = true;
+                              input.accept = 'image/*,.pdf';
+                              input.onchange = (e) => handleFileUpload('guarantor_bank_statement', (e.target as HTMLInputElement).files);
+                              input.click();
+                            }}
+                          >
+                            رفع الملف
+                          </Button>
+                        </div>
+
+                        <div className="p-4 border-2 border-dashed border-muted-foreground/25 rounded-lg text-center">
+                          <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground mb-2">تعهد الكفالة</p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const input = document.createElement('input');
+                              input.type = 'file';
+                              input.multiple = true;
+                              input.accept = 'image/*,.pdf';
+                              input.onchange = (e) => handleFileUpload('guarantor_commitment', (e.target as HTMLInputElement).files);
+                              input.click();
+                            }}
+                          >
+                            رفع الملف
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                        <p className="text-sm text-blue-800">
+                          <strong>ملاحظة:</strong> مستندات الكفيل مطلوبة في حالة تحديد أن العميل يحتاج كفيل. 
+                          يجب التأكد من صحة جميع البيانات والمستندات قبل الموافقة على العقد.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </TabsContent>
 
             {/* Preferences Tab */}
