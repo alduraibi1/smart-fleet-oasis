@@ -48,6 +48,7 @@ export interface Customer {
 
 export interface RentalContract {
   id: string;
+  contractNumber: string;
   vehicleId: string;
   customerId: string;
   startDate: Date;
@@ -59,6 +60,77 @@ export interface RentalContract {
   documents: Document[];
   notes?: string;
   damageNotes?: string;
+  
+  // Financial Details
+  delegationFee: number;
+  vat: number;
+  vatRate: number;
+  additionalCharges: number;
+  discount: number;
+  securityDeposit: number;
+  paymentMethod: 'cash' | 'transfer' | 'credit_card' | 'installments';
+  installmentPlan?: {
+    numberOfInstallments: number;
+    installmentAmount: number;
+    installmentDates: Date[];
+  };
+  
+  // Delivery & Pickup Information
+  deliveryLocation: string;
+  pickupLocation: string;
+  deliveryTime: Date;
+  pickupTime: Date;
+  deliveryStaff: string;
+  pickupStaff: string;
+  emergencyContact: string;
+  usageType: 'personal' | 'commercial' | 'tourism';
+  
+  // Vehicle Inspection
+  inspection: {
+    mileageAtDelivery: number;
+    fuelLevelAtDelivery: number;
+    conditionAtDelivery: string;
+    damagesAtDelivery: string[];
+    imagesAtDelivery: string[];
+    mileageAtReturn?: number;
+    fuelLevelAtReturn?: number;
+    conditionAtReturn?: string;
+    damagesAtReturn?: string[];
+    imagesAtReturn?: string[];
+  };
+  
+  // Insurance & Emergency
+  insurance: {
+    company: string;
+    policyNumber: string;
+    expiryDate: Date;
+    coverage: string;
+  };
+  
+  // Terms & Conditions
+  terms: {
+    maxMileagePerDay?: number;
+    allowedAreas: string[];
+    penalties: {
+      lateReturnPerHour: number;
+      excessMileagePerKm: number;
+      smokingFine: number;
+      cleaningFee: number;
+      damageFee: number;
+    };
+    cancellationPolicy: string;
+    refundPolicy: string;
+    autoRenewal: boolean;
+  };
+  
+  // Legal & Administrative
+  signedAt: Date;
+  signedBy: string;
+  digitalSignature?: string;
+  createdBy: string;
+  approvedBy?: string;
+  printedAt?: Date;
+  emailSentAt?: Date;
 }
 
 export interface MaintenanceRecord {
