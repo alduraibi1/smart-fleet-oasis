@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Vehicles from "./pages/Vehicles";
 import Contracts from "./pages/Contracts";
+import Customers from "./pages/Customers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,7 +23,7 @@ const App = () => (
           <Route path="/vehicles" element={<Vehicles />} />
           {/* Placeholder routes for future modules */}
           <Route path="/contracts" element={<Contracts />} />
-          <Route path="/customers" element={<div className="p-8 text-center">صفحة العملاء قيد التطوير</div>} />
+          <Route path="/customers" element={<Customers />} />
           <Route path="/maintenance" element={<div className="p-8 text-center">صفحة الصيانة قيد التطوير</div>} />
           <Route path="/inventory" element={<div className="p-8 text-center">صفحة المخزون قيد التطوير</div>} />
           <Route path="/accounting" element={<div className="p-8 text-center">النظام المحاسبي قيد التطوير</div>} />
