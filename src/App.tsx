@@ -10,6 +10,7 @@ import Contracts from "./pages/Contracts";
 import Customers from "./pages/Customers";
 import Accounting from "./pages/Accounting";
 import Maintenance from "./pages/Maintenance";
+import Inventory from "./pages/Inventory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,7 +28,7 @@ const App = () => (
           <Route path="/contracts" element={<Contracts />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/maintenance" element={<Maintenance />} />
-          <Route path="/inventory" element={<div className="p-8 text-center">صفحة المخزون قيد التطوير</div>} />
+          <Route path="/inventory" element={<Inventory />} />
           <Route path="/accounting" element={<Accounting />} />
           <Route path="/hr" element={<div className="p-8 text-center">الموارد البشرية قيد التطوير</div>} />
           <Route path="*" element={<NotFound />} />
