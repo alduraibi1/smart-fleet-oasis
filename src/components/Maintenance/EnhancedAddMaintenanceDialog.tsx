@@ -248,34 +248,35 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden">
-        <DialogHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle className="text-xl font-bold">إضافة سجل صيانة متقدم</DialogTitle>
-              <p className="text-muted-foreground text-sm">إدارة شاملة لسجلات الصيانة والمخزون</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={getPriorityColor(formData.priority)} className="text-xs">
-                {formData.priority === 'urgent' && 'عاجل'}
-                {formData.priority === 'high' && 'عالي'}
-                {formData.priority === 'medium' && 'متوسط'}
-                {formData.priority === 'low' && 'منخفض'}
-              </Badge>
-              {formData.totalCost > 0 && (
-                <Badge variant="secondary" className="text-sm font-bold">
-                  {formData.totalCost.toFixed(2)} ر.س
+      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col p-0">
+        <div className="flex-shrink-0 p-6 pb-3">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-xl font-bold">إضافة سجل صيانة متقدم</DialogTitle>
+                <p className="text-muted-foreground text-sm">إدارة شاملة لسجلات الصيانة والمخزون</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={getPriorityColor(formData.priority)} className="text-xs">
+                  {formData.priority === 'urgent' && 'عاجل'}
+                  {formData.priority === 'high' && 'عالي'}
+                  {formData.priority === 'medium' && 'متوسط'}
+                  {formData.priority === 'low' && 'منخفض'}
                 </Badge>
-              )}
+                {formData.totalCost > 0 && (
+                  <Badge variant="secondary" className="text-sm font-bold">
+                    {formData.totalCost.toFixed(2)} ر.س
+                  </Badge>
+                )}
+              </div>
             </div>
-          </div>
-        </DialogHeader>
+          </DialogHeader>
+          <Separator className="mt-3" />
+        </div>
 
-        <Separator className="mb-3" />
-
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden px-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-5 mb-3 h-9">
+            <TabsList className="grid w-full grid-cols-5 mb-3 h-9 flex-shrink-0">
               {[
                 { id: 'basic', label: 'أساسية', icon: ClipboardList },
                 { id: 'parts', label: 'قطع غيار', icon: Package },
@@ -293,8 +294,8 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
               })}
             </TabsList>
 
-            <div className="flex-1 overflow-y-auto pr-1">
-              <TabsContent value="basic" className="mt-0">
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              <TabsContent value="basic" className="mt-0 mb-4">
                 <BasicInfoTab 
                   formData={formData} 
                   setFormData={setFormData}
@@ -302,7 +303,7 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
                 />
               </TabsContent>
 
-              <TabsContent value="parts" className="mt-0">
+              <TabsContent value="parts" className="mt-0 mb-4">
                 <PartsTab 
                   formData={formData} 
                   setFormData={setFormData}
@@ -310,7 +311,7 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
                 />
               </TabsContent>
 
-              <TabsContent value="oils" className="mt-0">
+              <TabsContent value="oils" className="mt-0 mb-4">
                 <OilsTab 
                   formData={formData} 
                   setFormData={setFormData}
@@ -318,7 +319,7 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
                 />
               </TabsContent>
 
-              <TabsContent value="costs" className="mt-0">
+              <TabsContent value="costs" className="mt-0 mb-4">
                 <CostsTab 
                   formData={formData} 
                   setFormData={setFormData}
@@ -326,7 +327,7 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
                 />
               </TabsContent>
 
-              <TabsContent value="images" className="mt-0">
+              <TabsContent value="images" className="mt-0 mb-4">
                 <ImagesTab 
                   formData={formData} 
                   setFormData={setFormData}
@@ -336,38 +337,40 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
           </Tabs>
         </div>
 
-        <Separator className="mt-3" />
-
-        {/* Summary and Actions */}
-        <div className="flex items-center justify-between pt-3">
-          <div className="flex items-center gap-2">
-            <div className="text-xs text-muted-foreground">
-              قطع: {formData.partsUsed.length} • 
-              زيوت: {formData.oilsUsed.length} • 
-              ساعات: {formData.laborHours}
-            </div>
-            {formData.totalCost > 1000 && (
-              <div className="flex items-center gap-1 text-amber-600">
-                <AlertTriangle className="h-3 w-3" />
-                <span className="text-xs">تكلفة عالية</span>
-              </div>
-            )}
-          </div>
+        <div className="flex-shrink-0 px-6 pb-4">
+          <Separator className="mb-3" />
           
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-              <X className="h-3 w-3 mr-1" />
-              إلغاء
-            </Button>
-            <Button 
-              onClick={handleSubmit} 
-              disabled={isSubmitting}
-              size="sm"
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Save className="h-3 w-3 mr-1" />
-              {isSubmitting ? "جاري الحفظ..." : "حفظ السجل"}
-            </Button>
+          {/* Summary and Actions */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="text-xs text-muted-foreground">
+                قطع: {formData.partsUsed.length} • 
+                زيوت: {formData.oilsUsed.length} • 
+                ساعات: {formData.laborHours}
+              </div>
+              {formData.totalCost > 1000 && (
+                <div className="flex items-center gap-1 text-amber-600">
+                  <AlertTriangle className="h-3 w-3" />
+                  <span className="text-xs">تكلفة عالية</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+                <X className="h-3 w-3 mr-1" />
+                إلغاء
+              </Button>
+              <Button 
+                onClick={handleSubmit} 
+                disabled={isSubmitting}
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Save className="h-3 w-3 mr-1" />
+                {isSubmitting ? "جاري الحفظ..." : "حفظ السجل"}
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
