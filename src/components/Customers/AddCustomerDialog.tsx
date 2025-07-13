@@ -1419,13 +1419,12 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="guarantorMonthlyIncome">راتب الكفيل الشهري *</Label>
+                          <Label htmlFor="guarantorMonthlyIncome">راتب الكفيل الشهري</Label>
                           <Input
                             id="guarantorMonthlyIncome"
                             value={formData.guarantorMonthlyIncome}
                             onChange={(e) => setFormData({ ...formData, guarantorMonthlyIncome: e.target.value })}
                             placeholder="مثال: 8000 - 15000"
-                            required={formData.requiresGuarantor}
                           />
                         </div>
                       </div>
