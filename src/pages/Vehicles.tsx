@@ -1,18 +1,25 @@
 
-import { useState } from 'react';
-import { Car, Plus, Search, Filter, Edit, Eye } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useState, useMemo } from 'react';
 import Sidebar from '@/components/Layout/Sidebar';
 import Header from '@/components/Layout/Header';
-import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
-import EnhancedVehicleDetailsDialog from '@/components/Vehicles/EnhancedVehicleDetailsDialog';
+import VehicleStats from '@/components/Vehicles/VehicleStats';
+import VehicleFilters, { VehicleFilters as FilterType } from '@/components/Vehicles/VehicleFilters';
+import VehicleGrid from '@/components/Vehicles/VehicleGrid';
+import VehicleTable from '@/components/Vehicles/VehicleTable';
+import VehicleActions from '@/components/Vehicles/VehicleActions';
 import { Vehicle } from '@/types/vehicle';
 
 export default function Vehicles() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [filters, setFilters] = useState<FilterType>({
+    search: '',
+    status: '',
+    brand: '',
+    minPrice: '',
+    maxPrice: '',
+    year: ''
+  });
   const [vehicles, setVehicles] = useState<Vehicle[]>([
     {
       id: '1',
@@ -164,16 +171,31 @@ export default function Vehicles() {
     setVehicles(prev => [...prev, newVehicle]);
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusMap = {
-      available: { label: 'متاحة', variant: 'default' as const },
-      rented: { label: 'مؤجرة', variant: 'secondary' as const },
-      maintenance: { label: 'صيانة', variant: 'destructive' as const },
-      out_of_service: { label: 'خارج الخدمة', variant: 'outline' as const }
-    };
-    
-    return statusMap[status as keyof typeof statusMap] || statusMap.available;
-  };
+  const filteredVehicles = useMemo(() => {
+    return vehicles.filter(vehicle => {
+      // Search filter
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        const searchableText = `${vehicle.plateNumber} ${vehicle.brand} ${vehicle.model} ${vehicle.owner.name}`.toLowerCase();
+        if (!searchableText.includes(searchTerm)) return false;
+      }
+
+      // Status filter
+      if (filters.status && vehicle.status !== filters.status) return false;
+
+      // Brand filter
+      if (filters.brand && vehicle.brand !== filters.brand) return false;
+
+      // Price filters
+      if (filters.minPrice && vehicle.dailyRate < parseInt(filters.minPrice)) return false;
+      if (filters.maxPrice && vehicle.dailyRate > parseInt(filters.maxPrice)) return false;
+
+      // Year filter
+      if (filters.year && vehicle.year.toString() !== filters.year) return false;
+
+      return true;
+    });
+  }, [vehicles, filters]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -194,83 +216,46 @@ export default function Vehicles() {
                   <h1 className="text-3xl font-bold">إدارة المركبات</h1>
                   <p className="text-muted-foreground">إدارة وتتبع جميع مركبات الأسطول</p>
                 </div>
-                <AddVehicleDialog onVehicleAdded={handleVehicleAdded} />
               </div>
 
-              {/* Search and Filters */}
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex gap-4 items-center">
-                    <div className="relative flex-1">
-                      <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="البحث في المركبات..." className="pr-10" />
-                    </div>
-                    <Button variant="outline" className="gap-2">
-                      <Filter className="h-4 w-4" />
-                      تصفية
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Statistics */}
+              <VehicleStats vehicles={vehicles} />
 
-              {/* Vehicles Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {vehicles.map((vehicle) => {
-                  const statusBadge = getStatusBadge(vehicle.status);
-                  return (
-                    <Card key={vehicle.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="flex items-center gap-2">
-                              <Car className="h-5 w-5" />
-                              {vehicle.plateNumber}
-                            </CardTitle>
-                            <p className="text-sm text-muted-foreground">
-                              {vehicle.brand} {vehicle.model} {vehicle.year}
-                            </p>
-                          </div>
-                          <Badge variant={statusBadge.variant}>
-                            {statusBadge.label}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">اللون:</span>
-                            <p className="font-medium">{vehicle.color}</p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">الكيلومترات:</span>
-                            <p className="font-medium">{vehicle.mileage.toLocaleString()}</p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">السعر اليومي:</span>
-                            <p className="font-medium">₪{vehicle.dailyRate}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex gap-2 pt-4">
-                          <EnhancedVehicleDetailsDialog 
-                            vehicle={vehicle}
-                            trigger={
-                              <Button size="sm" className="flex-1 gap-1">
-                                <Eye className="h-4 w-4" />
-                                عرض التفاصيل
-                              </Button>
-                            }
-                          />
-                          <Button size="sm" variant="outline" className="gap-1">
-                            <Edit className="h-4 w-4" />
-                            تعديل
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+              {/* Actions & Alerts */}
+              <VehicleActions 
+                vehicles={vehicles}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+                onVehicleAdded={handleVehicleAdded}
+              />
+
+              {/* Filters */}
+              <VehicleFilters onFiltersChange={setFilters} />
+
+              {/* Results Summary */}
+              <div className="flex justify-between items-center text-sm text-muted-foreground">
+                <span>عرض {filteredVehicles.length} من أصل {vehicles.length} مركبة</span>
               </div>
+
+              {/* Vehicles Display */}
+              {viewMode === 'grid' ? (
+                <VehicleGrid vehicles={filteredVehicles} />
+              ) : (
+                <VehicleTable vehicles={filteredVehicles} />
+              )}
+
+              {/* Empty State */}
+              {filteredVehicles.length === 0 && vehicles.length > 0 && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">لا توجد مركبات تطابق معايير البحث</p>
+                </div>
+              )}
+
+              {vehicles.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">لا توجد مركبات مضافة بعد</p>
+                </div>
+              )}
             </div>
           </main>
         </div>
