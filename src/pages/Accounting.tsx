@@ -12,6 +12,9 @@ import { AssetsReport } from "@/components/Accounting/AssetsReport";
 import { AccountsReceivable } from "@/components/Accounting/AccountsReceivable";
 import { AccountsPayable } from "@/components/Accounting/AccountsPayable";
 import { TaxManagement } from "@/components/Accounting/TaxManagement";
+import { FinancialKPIs } from "@/components/Accounting/FinancialKPIs";
+import { FinancialForecasting } from "@/components/Accounting/FinancialForecasting";
+import { ExecutiveDashboard } from "@/components/Accounting/ExecutiveDashboard";
 
 export default function Accounting() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -50,14 +53,17 @@ export default function Accounting() {
               </div>
 
               <Tabs defaultValue="overview" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-7">
+                <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10">
                   <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
-                  <TabsTrigger value="revenue-expense">الإيرادات والمصروفات</TabsTrigger>
+                  <TabsTrigger value="revenue-expense">الإيرادات</TabsTrigger>
                   <TabsTrigger value="cash-flow">التدفق النقدي</TabsTrigger>
                   <TabsTrigger value="assets">الأصول</TabsTrigger>
-                  <TabsTrigger value="receivables">الحسابات المدينة</TabsTrigger>
-                  <TabsTrigger value="payables">الحسابات الدائنة</TabsTrigger>
-                  <TabsTrigger value="tax">النظام الضريبي</TabsTrigger>
+                  <TabsTrigger value="receivables">المدينة</TabsTrigger>
+                  <TabsTrigger value="payables">الدائنة</TabsTrigger>
+                  <TabsTrigger value="tax">الضرائب</TabsTrigger>
+                  <TabsTrigger value="kpis">مؤشرات الأداء</TabsTrigger>
+                  <TabsTrigger value="forecasting">التنبؤات</TabsTrigger>
+                  <TabsTrigger value="executive">لوحة المدير</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-6">
@@ -86,6 +92,18 @@ export default function Accounting() {
 
                 <TabsContent value="tax" className="space-y-6">
                   <TaxManagement />
+                </TabsContent>
+
+                <TabsContent value="kpis" className="space-y-6">
+                  <FinancialKPIs />
+                </TabsContent>
+
+                <TabsContent value="forecasting" className="space-y-6">
+                  <FinancialForecasting />
+                </TabsContent>
+
+                <TabsContent value="executive" className="space-y-6">
+                  <ExecutiveDashboard />
                 </TabsContent>
               </Tabs>
             </div>
