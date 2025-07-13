@@ -7,6 +7,7 @@ import { CustomerFilters } from "@/components/Customers/CustomerFilters";
 import { CustomerCard } from "@/components/Customers/CustomerCard";
 import { AddCustomerDialog } from "@/components/Customers/AddCustomerDialog";
 import { CustomerDetailsDialog } from "@/components/Customers/CustomerDetailsDialog";
+import { BlacklistDialog } from "@/components/Customers/BlacklistDialog";
 import { Customer } from "@/types";
 import { Plus } from "lucide-react";
 
@@ -23,7 +24,8 @@ const sampleCustomers: Customer[] = [
     address: "الرياض، حي النخيل، شارع الملك فهد",
     rating: 5,
     totalRentals: 12,
-    documents: []
+    documents: [],
+    blacklisted: false
   },
   {
     id: "2", 
@@ -36,7 +38,8 @@ const sampleCustomers: Customer[] = [
     address: "جدة، حي الروضة، طريق الملك عبدالعزيز",
     rating: 4,
     totalRentals: 8,
-    documents: []
+    documents: [],
+    blacklisted: false
   },
   {
     id: "3",
@@ -48,7 +51,10 @@ const sampleCustomers: Customer[] = [
     address: "الدمام، حي الفيصلية، شارع الأمير محمد",
     rating: 3,
     totalRentals: 5,
-    documents: []
+    documents: [],
+    blacklisted: true,
+    blacklistReason: "تأخير متكرر في إرجاع المركبات وعدم الاستجابة للمكالمات",
+    blacklistDate: new Date(2024, 0, 15)
   },
   {
     id: "4",
@@ -61,7 +67,8 @@ const sampleCustomers: Customer[] = [
     address: "المدينة المنورة، حي العنبرية، شارع العوالي",
     rating: 5,
     totalRentals: 15,
-    documents: []
+    documents: [],
+    blacklisted: false
   },
   {
     id: "5",
@@ -73,7 +80,8 @@ const sampleCustomers: Customer[] = [
     address: "الطائف، حي الشفا، طريق الملك فيصل",
     rating: 2,
     totalRentals: 3,
-    documents: []
+    documents: [],
+    blacklisted: false
   },
   {
     id: "6",
@@ -86,7 +94,8 @@ const sampleCustomers: Customer[] = [
     address: "أبها، حي الضباب، شارع الملك خالد",
     rating: 4,
     totalRentals: 7,
-    documents: []
+    documents: [],
+    blacklisted: false
   }
 ];
 
@@ -95,6 +104,7 @@ export default function Customers() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [showBlacklistDialog, setShowBlacklistDialog] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Filter states
@@ -102,6 +112,7 @@ export default function Customers() {
   const [ratingFilter, setRatingFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [documentFilter, setDocumentFilter] = useState("all");
+  const [blacklistFilter, setBlacklistFilter] = useState("all");
 
   // Filter customers based on search and filters
   const filteredCustomers = useMemo(() => {
@@ -128,10 +139,15 @@ export default function Customers() {
       if (documentFilter === "valid") matchesDocument = daysUntilExpiry > 30;
       else if (documentFilter === "expiring") matchesDocument = daysUntilExpiry <= 30 && daysUntilExpiry >= 0;
       else if (documentFilter === "expired") matchesDocument = daysUntilExpiry < 0;
+
+      // Blacklist filter
+      const matchesBlacklist = blacklistFilter === "all" ||
+                              (blacklistFilter === "normal" && !customer.blacklisted) ||
+                              (blacklistFilter === "blacklisted" && customer.blacklisted);
       
-      return matchesSearch && matchesRating && matchesStatus && matchesDocument;
+      return matchesSearch && matchesRating && matchesStatus && matchesDocument && matchesBlacklist;
     });
-  }, [customers, searchTerm, ratingFilter, statusFilter, documentFilter]);
+  }, [customers, searchTerm, ratingFilter, statusFilter, documentFilter, blacklistFilter]);
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -167,6 +183,27 @@ export default function Customers() {
   const handleViewCustomer = (customer: Customer) => {
     setSelectedCustomer(customer);
     setShowDetailsDialog(true);
+  };
+
+  const handleBlacklistCustomer = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setShowBlacklistDialog(true);
+  };
+
+  const handleBlacklist = (customerId: string, reason: string) => {
+    setCustomers(customers.map(customer => 
+      customer.id === customerId 
+        ? { ...customer, blacklisted: true, blacklistReason: reason, blacklistDate: new Date() }
+        : customer
+    ));
+  };
+
+  const handleRemoveFromBlacklist = (customerId: string) => {
+    setCustomers(customers.map(customer => 
+      customer.id === customerId 
+        ? { ...customer, blacklisted: false, blacklistReason: undefined, blacklistDate: undefined }
+        : customer
+    ));
   };
 
   return (
@@ -206,6 +243,8 @@ export default function Customers() {
               onStatusChange={setStatusFilter}
               documentFilter={documentFilter}
               onDocumentChange={setDocumentFilter}
+              blacklistFilter={blacklistFilter}
+              onBlacklistChange={setBlacklistFilter}
             />
 
             {/* Customer Grid */}
@@ -216,6 +255,7 @@ export default function Customers() {
                   customer={customer}
                   onEdit={handleEditCustomer}
                   onView={handleViewCustomer}
+                  onBlacklist={handleBlacklistCustomer}
                 />
               ))}
             </div>
@@ -232,6 +272,7 @@ export default function Customers() {
                     setRatingFilter("all");
                     setStatusFilter("all");
                     setDocumentFilter("all");
+                    setBlacklistFilter("all");
                   }}
                 >
                   مسح الفلاتر
@@ -254,6 +295,14 @@ export default function Customers() {
         open={showDetailsDialog}
         onOpenChange={setShowDetailsDialog}
         onEdit={handleEditCustomer}
+      />
+
+      <BlacklistDialog
+        customer={selectedCustomer}
+        open={showBlacklistDialog}
+        onOpenChange={setShowBlacklistDialog}
+        onBlacklist={handleBlacklist}
+        onRemoveFromBlacklist={handleRemoveFromBlacklist}
       />
     </div>
   );

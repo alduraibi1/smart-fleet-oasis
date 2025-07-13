@@ -41,6 +41,9 @@ export interface Customer {
   rating: number;
   totalRentals: number;
   documents: Document[];
+  blacklisted: boolean;
+  blacklistReason?: string;
+  blacklistDate?: Date;
 }
 
 export interface RentalContract {

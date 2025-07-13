@@ -48,6 +48,7 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
       licenseExpiry: formData.licenseExpiry!,
       totalRentals: 0,
       documents: [],
+      blacklisted: false,
     };
 
     onAdd(newCustomer);

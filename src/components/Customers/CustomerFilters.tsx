@@ -12,6 +12,8 @@ interface CustomerFiltersProps {
   onStatusChange: (value: string) => void;
   documentFilter: string;
   onDocumentChange: (value: string) => void;
+  blacklistFilter: string;
+  onBlacklistChange: (value: string) => void;
 }
 
 export const CustomerFilters = ({
@@ -22,7 +24,9 @@ export const CustomerFilters = ({
   statusFilter,
   onStatusChange,
   documentFilter,
-  onDocumentChange
+  onDocumentChange,
+  blacklistFilter,
+  onBlacklistChange
 }: CustomerFiltersProps) => {
   return (
     <Card className="mb-6">
@@ -74,6 +78,17 @@ export const CustomerFilters = ({
                 <SelectItem value="valid">مستندات صالحة</SelectItem>
                 <SelectItem value="expiring">تنتهي قريباً</SelectItem>
                 <SelectItem value="expired">منتهية الصلاحية</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={blacklistFilter} onValueChange={onBlacklistChange}>
+              <SelectTrigger className="w-full lg:w-48">
+                <SelectValue placeholder="القائمة السوداء" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع العملاء</SelectItem>
+                <SelectItem value="normal">عملاء عاديين</SelectItem>
+                <SelectItem value="blacklisted">قائمة سوداء</SelectItem>
               </SelectContent>
             </Select>
           </div>

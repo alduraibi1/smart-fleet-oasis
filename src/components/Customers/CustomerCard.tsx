@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Customer } from "@/types";
-import { Phone, Mail, Star, Calendar, FileText, Edit } from "lucide-react";
+import { Phone, Mail, Star, Calendar, FileText, Edit, Ban, Shield } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -11,9 +11,10 @@ interface CustomerCardProps {
   customer: Customer;
   onEdit: (customer: Customer) => void;
   onView: (customer: Customer) => void;
+  onBlacklist: (customer: Customer) => void;
 }
 
-export const CustomerCard = ({ customer, onEdit, onView }: CustomerCardProps) => {
+export const CustomerCard = ({ customer, onEdit, onView, onBlacklist }: CustomerCardProps) => {
   const getDocumentStatus = () => {
     const licenseExpiry = new Date(customer.licenseExpiry);
     const today = new Date();
@@ -39,7 +40,7 @@ export const CustomerCard = ({ customer, onEdit, onView }: CustomerCardProps) =>
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+    <Card className={`hover:shadow-lg transition-shadow cursor-pointer group ${customer.blacklisted ? 'border-red-500 bg-red-50/50' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -62,6 +63,11 @@ export const CustomerCard = ({ customer, onEdit, onView }: CustomerCardProps) =>
             <Badge variant={documentStatus.color as any}>
               {documentStatus.text}
             </Badge>
+            {customer.blacklisted && (
+              <Badge variant="destructive">
+                قائمة سوداء
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -110,6 +116,20 @@ export const CustomerCard = ({ customer, onEdit, onView }: CustomerCardProps) =>
             }}
           >
             <Edit className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant={customer.blacklisted ? "default" : "destructive"}
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onBlacklist(customer);
+            }}
+          >
+            {customer.blacklisted ? (
+              <Shield className="h-4 w-4" />
+            ) : (
+              <Ban className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </CardContent>
