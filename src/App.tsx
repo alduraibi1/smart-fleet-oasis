@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Vehicles from "./pages/Vehicles";
 import Contracts from "./pages/Contracts";
 import Customers from "./pages/Customers";
+import Maintenance from "./pages/Maintenance";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,7 +25,7 @@ const App = () => (
           {/* Placeholder routes for future modules */}
           <Route path="/contracts" element={<Contracts />} />
           <Route path="/customers" element={<Customers />} />
-          <Route path="/maintenance" element={<div className="p-8 text-center">صفحة الصيانة قيد التطوير</div>} />
+          <Route path="/maintenance" element={<Maintenance />} />
           <Route path="/inventory" element={<div className="p-8 text-center">صفحة المخزون قيد التطوير</div>} />
           <Route path="/accounting" element={<div className="p-8 text-center">النظام المحاسبي قيد التطوير</div>} />
           <Route path="/hr" element={<div className="p-8 text-center">الموارد البشرية قيد التطوير</div>} />
