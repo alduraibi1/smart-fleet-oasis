@@ -1,6 +1,6 @@
 import {
   Car, Calendar, Settings, Users, Database, 
-  DollarSign, Home, BarChart3, TrendingUp, Building2, Wrench, Shield, Bell
+  DollarSign, Home, BarChart3, TrendingUp, Building2, Wrench, Shield, Bell, UserCheck
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -52,6 +52,12 @@ export const menuSections: MenuSection[] = [
         title: 'العملاء',
         icon: Users,
         href: '/customers',
+        badge: undefined
+      },
+      {
+        title: 'إدارة الملاك',
+        icon: UserCheck,
+        href: '/owners',
         badge: undefined
       }
     ]

@@ -18,6 +18,7 @@ import HR from "./pages/HR";
 import Reports from "./pages/Reports";
 import SystemManagement from "./pages/SystemManagement";
 import NotificationSettings from "./pages/NotificationSettings";
+import Owners from "./pages/Owners";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/reports" element={<Reports />} />
               <Route path="/system-management" element={<SystemManagement />} />
               <Route path="/notification-settings" element={<NotificationSettings />} />
+              <Route path="/owners" element={<Owners />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

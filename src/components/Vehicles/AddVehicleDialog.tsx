@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { VehicleOwner, VehicleDocument, VehicleImage } from '@/types/vehicle';
+import { useOwners } from '@/hooks/useOwners';
 
 const vehicleSchema = z.object({
   plateNumber: z.string().min(1, 'رقم اللوحة مطلوب'),
@@ -52,36 +53,8 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
   const [documents, setDocuments] = useState<VehicleDocument[]>([]);
   const [images, setImages] = useState<VehicleImage[]>([]);
 
-  // Mock owners data - في التطبيق الحقيقي يأتي من API
-  const owners: VehicleOwner[] = [
-    {
-      id: '1',
-      name: 'أحمد محمد علي',
-      phone: '+970-599-123456',
-      email: 'ahmed@example.com',
-      nationalId: '123456789',
-      address: 'غزة، الرمال',
-      isActive: true
-    },
-    {
-      id: '2',
-      name: 'محمد أحمد سالم',
-      phone: '+970-599-654321',
-      email: 'mohammed@example.com',
-      nationalId: '987654321',
-      address: 'رام الله، البيرة',
-      isActive: true
-    },
-    {
-      id: '3',
-      name: 'سارة خالد محمود',
-      phone: '+970-599-111222',
-      email: 'sara@example.com',
-      nationalId: '456789123',
-      address: 'نابلس، البلدة القديمة',
-      isActive: true
-    }
-  ];
+  // Get owners from the useOwners hook
+  const { owners } = useOwners();
 
   const form = useForm<z.infer<typeof vehicleSchema>>({
     resolver: zodResolver(vehicleSchema),
@@ -557,7 +530,7 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {owners.map((owner) => (
+                          {owners.filter(owner => owner.is_active).map((owner) => (
                             <SelectItem key={owner.id} value={owner.id}>
                               <div className="flex items-center gap-2">
                                 <User className="h-4 w-4" />
@@ -576,7 +549,7 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {owners.map((owner) => (
+                  {owners.filter(owner => owner.is_active).map((owner) => (
                     <Card key={owner.id} className="cursor-pointer hover:bg-muted/50">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-sm flex items-center gap-2">
@@ -585,10 +558,10 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-1">
-                        <p className="text-sm text-muted-foreground">📞 {owner.phone}</p>
-                        <p className="text-sm text-muted-foreground">📧 {owner.email}</p>
-                        <p className="text-sm text-muted-foreground">🆔 {owner.nationalId}</p>
-                        <p className="text-sm text-muted-foreground">📍 {owner.address}</p>
+                        <p className="text-sm text-muted-foreground">📞 {owner.phone || 'غير محدد'}</p>
+                        <p className="text-sm text-muted-foreground">📧 {owner.email || 'غير محدد'}</p>
+                        <p className="text-sm text-muted-foreground">🆔 {owner.national_id || 'غير محدد'}</p>
+                        <p className="text-sm text-muted-foreground">📍 {owner.address || 'غير محدد'}</p>
                       </CardContent>
                     </Card>
                   ))}
