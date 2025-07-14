@@ -100,10 +100,10 @@ const contractsData = [
 ];
 
 const statusConfig = {
-  active: { label: 'نشط', color: 'bg-rental-success text-white' },
-  expired: { label: 'منتهي الصلاحية', color: 'bg-rental-danger text-white' },
-  pending: { label: 'في الانتظار', color: 'bg-rental-warning text-white' },
-  completed: { label: 'مكتمل', color: 'bg-rental-secondary text-white' }
+  active: { label: 'نشط', color: 'bg-success text-success-foreground' },
+  expired: { label: 'منتهي الصلاحية', color: 'bg-destructive text-destructive-foreground' },
+  pending: { label: 'في الانتظار', color: 'bg-warning text-warning-foreground' },
+  completed: { label: 'مكتمل', color: 'bg-secondary text-secondary-foreground' }
 };
 
 const contractTypeConfig = {
@@ -190,10 +190,10 @@ const Contracts = () => {
                         <CardTitle className="text-sm font-medium text-muted-foreground">
                           العقود النشطة
                         </CardTitle>
-                        <FileText className="h-4 w-4 text-rental-success" />
+                        <FileText className="h-4 w-4 text-success" />
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold text-rental-success">{activeContracts}</div>
+                        <div className="text-2xl font-bold text-success">{activeContracts}</div>
                       </CardContent>
                     </Card>
 
@@ -202,10 +202,10 @@ const Contracts = () => {
                         <CardTitle className="text-sm font-medium text-muted-foreground">
                           العقود المنتهية
                         </CardTitle>
-                        <Calendar className="h-4 w-4 text-rental-danger" />
+                        <Calendar className="h-4 w-4 text-destructive" />
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold text-rental-danger">{expiredContracts}</div>
+                        <div className="text-2xl font-bold text-destructive">{expiredContracts}</div>
                       </CardContent>
                     </Card>
 
@@ -214,10 +214,10 @@ const Contracts = () => {
                         <CardTitle className="text-sm font-medium text-muted-foreground">
                           في الانتظار
                         </CardTitle>
-                        <Car className="h-4 w-4 text-rental-warning" />
+                        <Car className="h-4 w-4 text-warning" />
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold text-rental-warning">{pendingContracts}</div>
+                        <div className="text-2xl font-bold text-warning">{pendingContracts}</div>
                       </CardContent>
                     </Card>
 
@@ -226,10 +226,10 @@ const Contracts = () => {
                         <CardTitle className="text-sm font-medium text-muted-foreground">
                           إجمالي الإيرادات
                         </CardTitle>
-                        <User className="h-4 w-4 text-rental-primary" />
+                        <User className="h-4 w-4 text-primary" />
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold text-rental-primary">
+                        <div className="text-2xl font-bold text-primary">
                           {totalRevenue.toLocaleString()} ر.س
                         </div>
                       </CardContent>
@@ -351,7 +351,7 @@ const Contracts = () => {
                                       <VehicleReturnDialog contractId={contract.id} />
                                     )}
                                     {contract.status === 'expired' && (
-                                      <Button variant="ghost" size="sm" className="text-rental-primary">
+                                      <Button variant="ghost" size="sm" className="text-primary">
                                         <Calendar className="h-4 w-4" />
                                       </Button>
                                     )}

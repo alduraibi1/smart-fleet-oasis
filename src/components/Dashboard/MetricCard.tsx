@@ -21,10 +21,10 @@ export default function MetricCard({
   color = 'primary' 
 }: MetricCardProps) {
   const colorClasses = {
-    primary: 'text-rental-primary',
-    success: 'text-rental-success',
-    warning: 'text-rental-warning',
-    danger: 'text-rental-danger'
+    primary: 'text-primary',
+    success: 'text-success',
+    warning: 'text-warning',
+    danger: 'text-destructive'
   };
 
   return (
@@ -38,7 +38,7 @@ export default function MetricCard({
       <CardContent>
         <div className="text-2xl font-bold mb-1">{value}</div>
         {trend && (
-          <p className={`text-xs ${trend.isPositive ? 'text-rental-success' : 'text-rental-danger'}`}>
+          <p className={`text-xs ${trend.isPositive ? 'text-success' : 'text-destructive'}`}>
             {trend.isPositive ? '+' : ''}{trend.value}% من الشهر الماضي
           </p>
         )}
