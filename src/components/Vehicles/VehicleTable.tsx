@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Vehicle } from '@/types/vehicle';
+import { Vehicle } from '@/types/vehicles';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +18,7 @@ interface VehicleTableProps {
 }
 
 export default function VehicleTable({ vehicles }: VehicleTableProps) {
-  const [sortField, setSortField] = useState<keyof Vehicle>('plateNumber');
+  const [sortField, setSortField] = useState<keyof Vehicle>('plate_number');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const getStatusBadge = (status: string) => {
@@ -72,13 +72,13 @@ export default function VehicleTable({ vehicles }: VehicleTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <SortableHeader field="plateNumber">رقم اللوحة</SortableHeader>
+            <SortableHeader field="plate_number">رقم اللوحة</SortableHeader>
             <SortableHeader field="brand">الماركة والموديل</SortableHeader>
             <SortableHeader field="year">السنة</SortableHeader>
             <SortableHeader field="color">اللون</SortableHeader>
             <TableHead>الحالة</TableHead>
             <TableHead>المالك</TableHead>
-            <SortableHeader field="dailyRate">السعر اليومي</SortableHeader>
+            <SortableHeader field="daily_rate">السعر اليومي</SortableHeader>
             <SortableHeader field="mileage">الكيلومترات</SortableHeader>
             <TableHead>الإجراءات</TableHead>
           </TableRow>
@@ -88,15 +88,10 @@ export default function VehicleTable({ vehicles }: VehicleTableProps) {
             const statusBadge = getStatusBadge(vehicle.status);
             return (
               <TableRow key={vehicle.id}>
-                <TableCell className="font-medium">{vehicle.plateNumber}</TableCell>
+                <TableCell className="font-medium">{vehicle.plate_number}</TableCell>
                 <TableCell>
                   <div>
                     <div className="font-medium">{vehicle.brand} {vehicle.model}</div>
-                    {vehicle.currentRental && (
-                      <div className="text-xs text-muted-foreground">
-                        مؤجرة لـ: {vehicle.currentRental.customerName}
-                      </div>
-                    )}
                   </div>
                 </TableCell>
                 <TableCell>{vehicle.year}</TableCell>
@@ -108,22 +103,17 @@ export default function VehicleTable({ vehicles }: VehicleTableProps) {
                 </TableCell>
                 <TableCell>
                   <div className="text-sm">
-                    <div className="font-medium">{vehicle.owner.name}</div>
-                    <div className="text-muted-foreground">{vehicle.owner.phone}</div>
+                    <div className="font-medium">{vehicle.owner?.name || 'غير محدد'}</div>
+                    <div className="text-muted-foreground">{vehicle.owner?.phone || ''}</div>
                   </div>
                 </TableCell>
-                <TableCell>₪{vehicle.dailyRate}</TableCell>
+                <TableCell>{vehicle.daily_rate} ريال</TableCell>
                 <TableCell>{vehicle.mileage.toLocaleString()}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    <EnhancedVehicleDetailsDialog 
-                      vehicle={vehicle}
-                      trigger={
-                        <Button size="sm" variant="ghost">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      }
-                    />
+                    <Button size="sm" variant="ghost">
+                      <Eye className="h-4 w-4" />
+                    </Button>
                     <Button size="sm" variant="ghost">
                       <Edit className="h-4 w-4" />
                     </Button>

@@ -1,4 +1,4 @@
-import { Vehicle } from '@/types/vehicle';
+import { Vehicle } from '@/types/vehicles';
 import { Car, Edit, Eye, User, FileText, AlertCircle, Calendar, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -94,7 +94,7 @@ export default function VehicleGrid({ vehicles }: VehicleGridProps) {
               </div>
               <div className="absolute bottom-4 left-4">
                 <Badge variant="secondary" className="bg-white/90 text-primary">
-                  {vehicle.dailyRate} ₪/يوم
+                  {vehicle.daily_rate} ريال/يوم
                 </Badge>
               </div>
             </div>
@@ -114,7 +114,7 @@ export default function VehicleGrid({ vehicles }: VehicleGridProps) {
                     </CardTitle>
                     <p className="text-sm text-muted-foreground flex items-center gap-2">
                       <span className="font-mono bg-muted/50 px-2 py-0.5 rounded text-xs">
-                        {vehicle.plateNumber}
+                        {vehicle.plate_number}
                       </span>
                       <span>•</span>
                       <span>{vehicle.year}</span>
@@ -165,33 +165,22 @@ export default function VehicleGrid({ vehicles }: VehicleGridProps) {
                 </div>
               </div>
 
-              {/* Current Rental Info */}
-              {vehicle.currentRental && (
+              {/* Vehicle Status Info */}
+              {vehicle.status === 'rented' && (
                 <div className="bg-warning/10 p-3 rounded-lg border border-warning/20">
                   <div className="flex items-center gap-2 mb-1">
                     <Calendar className="w-4 h-4 text-warning" />
                     <span className="text-sm font-medium text-warning">مؤجرة حالياً</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    العميل: {vehicle.currentRental.customerName}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    حتى: {new Date(vehicle.currentRental.endDate).toLocaleDateString('ar')}
-                  </p>
                 </div>
               )}
 
               {/* Action Buttons */}
               <div className="flex gap-2 pt-2">
-                <EnhancedVehicleDetailsDialog 
-                  vehicle={vehicle} 
-                  trigger={
-                    <Button variant="outline" size="sm" className="flex-1 gap-1">
-                      <Eye className="w-4 h-4" />
-                      <span className="hidden sm:inline">عرض</span>
-                    </Button>
-                  }
-                />
+                <Button variant="outline" size="sm" className="flex-1 gap-1">
+                  <Eye className="w-4 h-4" />
+                  <span className="hidden sm:inline">عرض</span>
+                </Button>
                 <Button variant="outline" size="sm" className="flex-1 gap-1">
                   <Edit className="w-4 h-4" />
                   <span className="hidden sm:inline">تعديل</span>
