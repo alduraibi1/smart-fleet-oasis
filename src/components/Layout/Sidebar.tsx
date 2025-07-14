@@ -174,25 +174,29 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         >
           <style>{`
             nav::-webkit-scrollbar {
-              width: 8px;
+              width: 12px;
             }
             nav::-webkit-scrollbar-track {
-              background: transparent;
-              border-radius: 10px;
+              background: hsl(var(--muted) / 0.3);
+              border-radius: 8px;
               margin: 8px 0;
+              border: 1px solid hsl(var(--border) / 0.2);
             }
             nav::-webkit-scrollbar-thumb {
-              background: hsl(var(--muted-foreground) / 0.3);
-              border-radius: 10px;
+              background: linear-gradient(135deg, hsl(var(--primary) / 0.6), hsl(var(--primary) / 0.4));
+              border-radius: 8px;
+              border: 2px solid hsl(var(--background));
               transition: all 0.3s ease;
-              border: 1px solid transparent;
+              box-shadow: 0 2px 4px hsl(var(--primary) / 0.2);
             }
             nav::-webkit-scrollbar-thumb:hover {
-              background: hsl(var(--muted-foreground) / 0.5);
-              transform: scaleY(1.1);
+              background: linear-gradient(135deg, hsl(var(--primary) / 0.8), hsl(var(--primary) / 0.6));
+              transform: scaleY(1.05);
+              box-shadow: 0 4px 8px hsl(var(--primary) / 0.3);
             }
             nav::-webkit-scrollbar-thumb:active {
-              background: hsl(var(--primary) / 0.6);
+              background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
+              transform: scaleY(0.95);
             }
             nav::-webkit-scrollbar-corner {
               background: transparent;
