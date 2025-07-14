@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Car, Calendar, Settings, Users, Database, 
   DollarSign, Home, X, Bell, ChevronDown, ChevronLeft,
-  BarChart3, PieChart, TrendingUp, Building2, Wrench
+  BarChart3, PieChart, TrendingUp, Building2, Wrench, Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -87,6 +87,18 @@ const menuSections = [
         icon: Users,
         href: '/hr',
         badge: null
+      }
+    ]
+  },
+  {
+    title: 'إدارة النظام',
+    icon: Shield,
+    items: [
+      {
+        title: 'إدارة النظام والصلاحيات',
+        icon: Shield,
+        href: '/system-management',
+        badge: { count: 2, variant: 'secondary' as const }
       }
     ]
   }
