@@ -18,6 +18,8 @@ import { ExecutiveDashboard } from "@/components/Accounting/ExecutiveDashboard";
 import { VehicleProfitabilityReport } from "@/components/Accounting/VehicleProfitability/VehicleProfitabilityReport";
 import { OwnerProfitabilityReport } from "@/components/Accounting/OwnerProfitability/OwnerProfitabilityReport";
 import { VouchersManagement } from "@/components/Accounting/VouchersManagement/VouchersManagement";
+import { InvoiceManagement } from "@/components/Accounting/IntegratedInvoicing/InvoiceManagement";
+import { CostTracking } from "@/components/Accounting/IntegratedCosts/CostTracking";
 
 export default function Accounting() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -56,16 +58,18 @@ export default function Accounting() {
               </div>
 
               <Tabs defaultValue="overview" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-6 lg:grid-cols-12">
+                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 xl:grid-cols-14">
                   <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
+                  <TabsTrigger value="invoices">الفواتير</TabsTrigger>
+                  <TabsTrigger value="vouchers">السندات</TabsTrigger>
+                  <TabsTrigger value="costs">التكاليف</TabsTrigger>
+                  <TabsTrigger value="vehicle-profitability">ربحية المركبات</TabsTrigger>
+                  <TabsTrigger value="owner-profitability">أرباح المالكين</TabsTrigger>
                   <TabsTrigger value="revenue-expense">الإيرادات</TabsTrigger>
                   <TabsTrigger value="cash-flow">التدفق النقدي</TabsTrigger>
                   <TabsTrigger value="assets">الأصول</TabsTrigger>
                   <TabsTrigger value="receivables">المدينة</TabsTrigger>
                   <TabsTrigger value="payables">الدائنة</TabsTrigger>
-                  <TabsTrigger value="vehicle-profitability">ربحية المركبات</TabsTrigger>
-                  <TabsTrigger value="owner-profitability">أرباح المالكين</TabsTrigger>
-                  <TabsTrigger value="vouchers">إدارة السندات</TabsTrigger>
                   <TabsTrigger value="tax">الضرائب</TabsTrigger>
                   <TabsTrigger value="kpis">مؤشرات الأداء</TabsTrigger>
                   <TabsTrigger value="forecasting">التنبؤات</TabsTrigger>
@@ -73,6 +77,18 @@ export default function Accounting() {
 
                 <TabsContent value="overview" className="space-y-6">
                   <AccountingOverview />
+                </TabsContent>
+
+                <TabsContent value="invoices" className="space-y-6">
+                  <InvoiceManagement />
+                </TabsContent>
+
+                <TabsContent value="vouchers" className="space-y-6">
+                  <VouchersManagement />
+                </TabsContent>
+
+                <TabsContent value="costs" className="space-y-6">
+                  <CostTracking />
                 </TabsContent>
 
                 <TabsContent value="revenue-expense" className="space-y-6">
@@ -103,9 +119,6 @@ export default function Accounting() {
                   <OwnerProfitabilityReport />
                 </TabsContent>
 
-                <TabsContent value="vouchers" className="space-y-6">
-                  <VouchersManagement />
-                </TabsContent>
 
                 <TabsContent value="tax" className="space-y-6">
                   <TaxManagement />

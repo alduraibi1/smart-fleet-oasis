@@ -253,8 +253,108 @@ export interface DashboardMetrics {
   pendingMaintenance: number;
 }
 
-// ====================== ACCOUNTING SYSTEM TYPES ======================
+// ====================== INTEGRATED ACCOUNTING SYSTEM ======================
 
+// Chart of Accounts - دليل الحسابات
+export interface ChartOfAccounts {
+  id: string;
+  accountCode: string;
+  accountName: string;
+  accountType: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+  parentAccountId?: string;
+  isActive: boolean;
+  balance: number;
+  description?: string;
+}
+
+// Journal Entries - القيود اليومية  
+export interface JournalEntry {
+  id: string;
+  entryNumber: string;
+  date: Date;
+  description: string;
+  referenceType: 'contract' | 'maintenance' | 'purchase' | 'payment' | 'adjustment';
+  referenceId: string;
+  referenceNumber: string;
+  totalDebit: number;
+  totalCredit: number;
+  status: 'draft' | 'posted' | 'reversed';
+  entryDetails: JournalEntryDetail[];
+  createdBy: string;
+  createdAt: Date;
+  postedAt?: Date;
+}
+
+export interface JournalEntryDetail {
+  id: string;
+  journalEntryId: string;
+  accountId: string;
+  accountCode: string;
+  accountName: string;
+  debitAmount: number;
+  creditAmount: number;
+  description?: string;
+}
+
+// Integrated Invoice System - نظام الفواتير المتكامل
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  invoiceType: 'rental' | 'maintenance' | 'purchase' | 'additional_charges';
+  
+  // Customer/Vendor Details
+  customerId?: string;
+  customerName: string;
+  customerPhone: string;
+  customerAddress?: string;
+  vendorId?: string;
+  vendorName?: string;
+  
+  // Invoice Details
+  invoiceDate: Date;
+  dueDate: Date;
+  currency: 'SAR';
+  subtotal: number;
+  vatAmount: number;
+  vatRate: number;
+  discountAmount: number;
+  totalAmount: number;
+  
+  // Reference Details
+  contractId?: string;
+  vehicleId?: string;
+  plateNumber?: string;
+  maintenanceId?: string;
+  
+  // Payment Status
+  status: 'draft' | 'sent' | 'paid' | 'partial' | 'overdue' | 'cancelled';
+  paidAmount: number;
+  remainingAmount: number;
+  paymentTerms: string;
+  
+  // Line Items
+  lineItems: InvoiceLineItem[];
+  
+  // Approval & Administrative
+  approvedBy?: string;
+  issuedBy: string;
+  issuedAt: Date;
+  sentAt?: Date;
+  notes?: string;
+}
+
+export interface InvoiceLineItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  vatRate: number;
+  vatAmount: number;
+  accountId: string; // للربط مع دليل الحسابات
+}
+
+// Enhanced Owner Interface
 export interface Owner {
   id: string;
   name: string;
@@ -265,87 +365,123 @@ export interface Owner {
   bankAccount?: string;
   iban?: string;
   contractDate: Date;
-  commissionRate: number; // نسبة العمولة %
+  commissionRate: number;
   totalVehicles: number;
-  totalRevenue: number;
-  totalCommission: number;
+  accountId: string; // ربط مع دليل الحسابات
   active: boolean;
   documents: Document[];
+  
+  // Financial Summary
+  totalRevenue: number;
+  totalCommission: number;
+  paidCommission: number;
+  pendingCommission: number;
+  lastPaymentDate?: Date;
+  paymentFrequency: 'monthly' | 'quarterly' | 'annual';
 }
 
+// Enhanced Payment Receipt - سندات القبض المحدثة
 export interface PaymentReceipt {
   id: string;
   receiptNumber: string;
-  contractId: string;
+  
+  // Invoice Reference
+  invoiceId?: string;
+  invoiceNumber?: string;
+  contractId?: string;
+  
+  // Customer Details
   customerId: string;
   customerName: string;
-  vehicleId: string;
-  plateNumber: string;
+  vehicleId?: string;
+  plateNumber?: string;
   
   // Payment Details
   amount: number;
-  paymentMethod: 'cash' | 'transfer' | 'credit_card' | 'check';
+  paymentMethod: 'cash' | 'bank_transfer' | 'credit_card' | 'check' | 'pos';
   paymentDate: Date;
-  dueDate?: Date;
   
   // Reference Details
   referenceNumber?: string;
   checkNumber?: string;
   bankDetails?: string;
+  transactionId?: string;
   
-  // Classification
-  type: 'rental_payment' | 'security_deposit' | 'additional_charges' | 'penalty' | 'refund';
-  category: 'revenue' | 'deposit' | 'other';
+  // Classification & Accounting
+  type: 'rental_payment' | 'security_deposit' | 'additional_charges' | 'penalty' | 'refund' | 'advance_payment';
+  accountId: string; // للربط مع دليل الحسابات
   
-  // Status & Notes
-  status: 'pending' | 'confirmed' | 'cancelled';
-  notes?: string;
+  // Status & Processing
+  status: 'pending' | 'confirmed' | 'deposited' | 'cancelled' | 'returned';
+  journalEntryId?: string; // ربط مع القيد المحاسبي
   
   // Administrative
   issuedBy: string;
   issuedAt: Date;
+  confirmedBy?: string;
+  confirmedAt?: Date;
+  depositedAt?: Date;
   printedAt?: Date;
   emailSentAt?: Date;
+  notes?: string;
 }
 
+// Enhanced Payment Voucher - سندات الصرف المحدثة
 export interface PaymentVoucher {
   id: string;
   voucherNumber: string;
   
-  // Recipient Details
-  recipientType: 'owner' | 'supplier' | 'mechanic' | 'employee' | 'other';
+  // Vendor/Payee Details
+  recipientType: 'owner' | 'supplier' | 'mechanic' | 'employee' | 'vendor' | 'service_provider' | 'other';
   recipientId?: string;
   recipientName: string;
+  recipientPhone?: string;
+  recipientAccount?: string;
   
   // Payment Details
   amount: number;
-  paymentMethod: 'cash' | 'transfer' | 'check';
+  paymentMethod: 'cash' | 'bank_transfer' | 'check' | 'pos';
   paymentDate: Date;
+  currency: 'SAR';
   
-  // Classification
-  expenseCategory: 'maintenance' | 'fuel' | 'insurance' | 'owner_commission' | 'salary' | 'office_expenses' | 'other';
+  // Invoice Reference
+  invoiceId?: string;
+  invoiceNumber?: string;
+  
+  // Classification & Accounting
+  expenseCategory: 'maintenance' | 'fuel' | 'insurance' | 'owner_commission' | 'salary' | 'office_expenses' | 'parts_purchase' | 'oil_purchase' | 'service_fees' | 'other';
   expenseType: 'operational' | 'capital' | 'administrative';
+  accountId: string; // للربط مع دليل الحسابات
   
   // Reference Details
   referenceNumber?: string;
-  invoiceNumber?: string;
   checkNumber?: string;
   bankDetails?: string;
+  transactionId?: string;
   
   // Related Records
   vehicleId?: string;
   contractId?: string;
   maintenanceId?: string;
+  purchaseOrderId?: string;
   
-  // Status & Notes
-  status: 'pending' | 'paid' | 'cancelled';
-  description: string;
-  notes?: string;
+  // Status & Processing
+  status: 'draft' | 'pending_approval' | 'approved' | 'paid' | 'cancelled' | 'rejected';
+  journalEntryId?: string; // ربط مع القيد المحاسبي
+  
+  // Approval Workflow
+  requestedBy: string;
+  approvedBy?: string;
+  approvalDate?: Date;
+  approvalNotes?: string;
+  requiresHigherApproval: boolean;
   
   // Administrative
-  approvedBy?: string;
+  description: string;
+  notes?: string;
   issuedBy: string;
   issuedAt: Date;
+  paidAt?: Date;
   printedAt?: Date;
 }
 
