@@ -580,6 +580,301 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_documents: {
+        Row: {
+          expiry_date: string | null
+          file_name: string | null
+          file_url: string | null
+          id: string
+          name: string
+          status: string
+          type: string
+          upload_date: string
+          uploaded_by: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          expiry_date?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          name: string
+          status?: string
+          type: string
+          upload_date?: string
+          uploaded_by?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          expiry_date?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          name?: string
+          status?: string
+          type?: string
+          upload_date?: string
+          uploaded_by?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_documents_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_images: {
+        Row: {
+          description: string | null
+          id: string
+          type: string
+          upload_date: string
+          uploaded_by: string | null
+          url: string
+          vehicle_id: string
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          type?: string
+          upload_date?: string
+          uploaded_by?: string | null
+          url: string
+          vehicle_id: string
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          type?: string
+          upload_date?: string
+          uploaded_by?: string | null
+          url?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_images_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_location: {
+        Row: {
+          address: string | null
+          id: string
+          is_tracked: boolean
+          last_updated: string | null
+          latitude: number | null
+          longitude: number | null
+          vehicle_id: string
+        }
+        Insert: {
+          address?: string | null
+          id?: string
+          is_tracked?: boolean
+          last_updated?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          vehicle_id: string
+        }
+        Update: {
+          address?: string | null
+          id?: string
+          is_tracked?: boolean
+          last_updated?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_location_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_maintenance: {
+        Row: {
+          completed_date: string | null
+          cost: number | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          maintenance_type: string
+          notes: string | null
+          parts_used: string[] | null
+          scheduled_date: string | null
+          status: string
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          completed_date?: string | null
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          maintenance_type: string
+          notes?: string | null
+          parts_used?: string[] | null
+          scheduled_date?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          completed_date?: string | null
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          maintenance_type?: string
+          notes?: string | null
+          parts_used?: string[] | null
+          scheduled_date?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_maintenance_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_owners: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          national_id: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          national_id?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          national_id?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vehicles: {
+        Row: {
+          brand: string
+          chassis_number: string | null
+          color: string
+          created_at: string
+          created_by: string | null
+          daily_rate: number
+          engine_number: string | null
+          features: string[] | null
+          fuel_type: string
+          id: string
+          mileage: number
+          model: string
+          notes: string | null
+          owner_id: string | null
+          plate_number: string
+          seating_capacity: number
+          status: string
+          transmission: string
+          updated_at: string
+          vin: string | null
+          year: number
+        }
+        Insert: {
+          brand: string
+          chassis_number?: string | null
+          color: string
+          created_at?: string
+          created_by?: string | null
+          daily_rate?: number
+          engine_number?: string | null
+          features?: string[] | null
+          fuel_type?: string
+          id?: string
+          mileage?: number
+          model: string
+          notes?: string | null
+          owner_id?: string | null
+          plate_number: string
+          seating_capacity?: number
+          status?: string
+          transmission?: string
+          updated_at?: string
+          vin?: string | null
+          year: number
+        }
+        Update: {
+          brand?: string
+          chassis_number?: string | null
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          daily_rate?: number
+          engine_number?: string | null
+          features?: string[] | null
+          fuel_type?: string
+          id?: string
+          mileage?: number
+          model?: string
+          notes?: string | null
+          owner_id?: string | null
+          plate_number?: string
+          seating_capacity?: number
+          status?: string
+          transmission?: string
+          updated_at?: string
+          vin?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_vehicles_owner"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vouchers: {
         Row: {
           amount: number

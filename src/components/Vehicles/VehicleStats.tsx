@@ -1,23 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Car, CheckCircle, Clock, Wrench, DollarSign, TrendingUp, Gauge } from 'lucide-react';
-import { Vehicle } from '@/types/vehicle';
+import { VehicleStats as VehicleStatsType } from '@/types/vehicles';
 
 interface VehicleStatsProps {
-  vehicles: Vehicle[];
+  stats: VehicleStatsType;
 }
 
-export default function VehicleStats({ vehicles }: VehicleStatsProps) {
-  const stats = {
-    total: vehicles.length,
-    available: vehicles.filter(v => v.status === 'available').length,
-    rented: vehicles.filter(v => v.status === 'rented').length,
-    maintenance: vehicles.filter(v => v.status === 'maintenance').length,
-    totalRevenue: vehicles
-      .filter(v => v.status === 'rented')
-      .reduce((sum, v) => sum + v.dailyRate, 0),
-    averageRate: vehicles.length > 0 ? Math.round(vehicles.reduce((sum, v) => sum + v.dailyRate, 0) / vehicles.length) : 0,
-    utilizationRate: vehicles.length > 0 ? Math.round((vehicles.filter(v => v.status === 'rented').length / vehicles.length) * 100) : 0
-  };
+export default function VehicleStats({ stats }: VehicleStatsProps) {
 
   const statCards = [
     {
@@ -53,20 +42,28 @@ export default function VehicleStats({ vehicles }: VehicleStatsProps) {
       description: 'خارج الخدمة مؤقتاً'
     },
     {
-      title: 'الإيرادات اليومية',
-      value: `${stats.totalRevenue.toLocaleString()} ₪`,
+      title: 'خارج الخدمة',
+      value: stats.out_of_service,
+      icon: Wrench,
+      color: 'text-destructive',
+      bgColor: 'bg-destructive/10',
+      description: 'مركبات غير جاهزة'
+    },
+    {
+      title: 'إجمالي القيمة',
+      value: `${stats.total_value.toLocaleString()} ريال`,
       icon: DollarSign,
       color: 'text-success',
       bgColor: 'bg-success/10',
-      description: 'من المركبات المؤجرة'
+      description: 'معدل السعر اليومي'
     },
     {
-      title: 'معدل الاستخدام',
-      value: `${stats.utilizationRate}%`,
+      title: 'متوسط السعر',
+      value: `${Math.round(stats.avg_daily_rate)} ريال`,
       icon: TrendingUp,
       color: 'text-primary',
       bgColor: 'bg-primary/10',
-      description: 'كفاءة الأسطول'
+      description: 'سعر يومي متوسط'
     }
   ];
 

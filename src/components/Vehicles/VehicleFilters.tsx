@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Filter, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -11,54 +11,49 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { VehicleFilters as VehicleFiltersType } from '@/types/vehicles';
 
 interface VehicleFiltersProps {
-  onFiltersChange: (filters: VehicleFilters) => void;
+  filters: VehicleFiltersType;
+  onFiltersChange: (filters: VehicleFiltersType) => void;
+  brands: string[];
+  loading?: boolean;
 }
 
-export interface VehicleFilters {
-  search: string;
-  status: string;
-  brand: string;
-  minPrice: string;
-  maxPrice: string;
-  year: string;
-}
-
-export default function VehicleFilters({ onFiltersChange }: VehicleFiltersProps) {
-  const [filters, setFilters] = useState<VehicleFilters>({
-    search: '',
-    status: '',
-    brand: '',
-    minPrice: '',
-    maxPrice: '',
-    year: ''
-  });
-
+export default function VehicleFilters({ 
+  filters, 
+  onFiltersChange, 
+  brands, 
+  loading = false 
+}: VehicleFiltersProps) {
+  const [localFilters, setLocalFilters] = useState<VehicleFiltersType>(filters);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const updateFilter = (key: keyof VehicleFilters, value: string) => {
-    const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
+  useEffect(() => {
+    setLocalFilters(filters);
+  }, [filters]);
+
+  const updateFilter = (key: keyof VehicleFiltersType, value: string | number | undefined) => {
+    const newFilters = { ...localFilters, [key]: value === '' ? undefined : value };
+    setLocalFilters(newFilters);
     onFiltersChange(newFilters);
   };
 
   const clearFilters = () => {
-    const emptyFilters: VehicleFilters = {
+    const emptyFilters: VehicleFiltersType = {
       search: '',
       status: '',
       brand: '',
-      minPrice: '',
-      maxPrice: '',
-      year: ''
+      minPrice: undefined,
+      maxPrice: undefined,
+      minYear: undefined,
+      maxYear: undefined,
     };
-    setFilters(emptyFilters);
+    setLocalFilters(emptyFilters);
     onFiltersChange(emptyFilters);
   };
 
-  const activeFiltersCount = Object.values(filters).filter(v => v !== '').length;
-
-  const brands = ['تويوتا', 'هيونداي', 'نيسان', 'كيا', 'مازدا', 'فولكس واجن'];
+  const activeFiltersCount = Object.values(localFilters).filter(v => v !== '' && v !== undefined).length;
   const statuses = [
     { value: 'available', label: 'متاحة' },
     { value: 'rented', label: 'مؤجرة' },
@@ -76,8 +71,9 @@ export default function VehicleFilters({ onFiltersChange }: VehicleFiltersProps)
             <Input
               placeholder="البحث في المركبات (رقم اللوحة، الماركة، الموديل)..."
               className="pr-10"
-              value={filters.search}
+              value={localFilters.search || ''}
               onChange={(e) => updateFilter('search', e.target.value)}
+              disabled={loading}
             />
           </div>
 
@@ -114,7 +110,7 @@ export default function VehicleFilters({ onFiltersChange }: VehicleFiltersProps)
           {/* Advanced Filters */}
           {showAdvanced && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 pt-4 border-t">
-              <Select value={filters.status} onValueChange={(value) => updateFilter('status', value)}>
+              <Select value={localFilters.status || ''} onValueChange={(value) => updateFilter('status', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="حالة المركبة" />
                 </SelectTrigger>
@@ -127,7 +123,7 @@ export default function VehicleFilters({ onFiltersChange }: VehicleFiltersProps)
                 </SelectContent>
               </Select>
 
-              <Select value={filters.brand} onValueChange={(value) => updateFilter('brand', value)}>
+              <Select value={localFilters.brand || ''} onValueChange={(value) => updateFilter('brand', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="الماركة" />
                 </SelectTrigger>
@@ -141,24 +137,35 @@ export default function VehicleFilters({ onFiltersChange }: VehicleFiltersProps)
               </Select>
 
               <Input
-                placeholder="أقل سعر (ش.ج)"
-                value={filters.minPrice}
-                onChange={(e) => updateFilter('minPrice', e.target.value)}
+                placeholder="أقل سعر (ريال)"
+                value={localFilters.minPrice?.toString() || ''}
+                onChange={(e) => updateFilter('minPrice', parseFloat(e.target.value) || undefined)}
                 type="number"
+                disabled={loading}
               />
 
               <Input
-                placeholder="أعلى سعر (ش.ج)"
-                value={filters.maxPrice}
-                onChange={(e) => updateFilter('maxPrice', e.target.value)}
+                placeholder="أعلى سعر (ريال)"
+                value={localFilters.maxPrice?.toString() || ''}
+                onChange={(e) => updateFilter('maxPrice', parseFloat(e.target.value) || undefined)}
                 type="number"
+                disabled={loading}
               />
 
               <Input
-                placeholder="سنة الصنع"
-                value={filters.year}
-                onChange={(e) => updateFilter('year', e.target.value)}
+                placeholder="من سنة"
+                value={localFilters.minYear?.toString() || ''}
+                onChange={(e) => updateFilter('minYear', parseInt(e.target.value) || undefined)}
                 type="number"
+                disabled={loading}
+              />
+
+              <Input
+                placeholder="إلى سنة"
+                value={localFilters.maxYear?.toString() || ''}
+                onChange={(e) => updateFilter('maxYear', parseInt(e.target.value) || undefined)}
+                type="number"
+                disabled={loading}
               />
             </div>
           )}

@@ -3,34 +3,38 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import AddVehicleDialog from './AddVehicleDialog';
-import { Vehicle } from '@/types/vehicle';
+import { Vehicle } from '@/types/vehicles';
 
 interface VehicleActionsProps {
   vehicles: Vehicle[];
   viewMode: 'grid' | 'table';
   onViewModeChange: (mode: 'grid' | 'table') => void;
-  onVehicleAdded: (vehicle: Vehicle) => void;
+  onVehicleAdded: (vehicleData: any) => void;
+  onUpdateVehicle: (id: string, data: Partial<Vehicle>) => Promise<void>;
+  onDeleteVehicle: (id: string) => Promise<void>;
 }
 
 export default function VehicleActions({ 
   vehicles, 
   viewMode, 
   onViewModeChange, 
-  onVehicleAdded 
+  onVehicleAdded,
+  onUpdateVehicle,
+  onDeleteVehicle
 }: VehicleActionsProps) {
   const handleExport = () => {
     // Create CSV data
     const csvData = vehicles.map(vehicle => ({
-      'رقم اللوحة': vehicle.plateNumber,
+      'رقم اللوحة': vehicle.plate_number,
       'الماركة': vehicle.brand,
       'الموديل': vehicle.model,
       'السنة': vehicle.year,
       'اللون': vehicle.color,
       'الحالة': vehicle.status,
-      'السعر اليومي': vehicle.dailyRate,
+      'السعر اليومي': vehicle.daily_rate,
       'الكيلومترات': vehicle.mileage,
-      'المالك': vehicle.owner.name,
-      'هاتف المالك': vehicle.owner.phone
+      'المالك': vehicle.owner?.name || 'غير محدد',
+      'هاتف المالك': vehicle.owner?.phone || 'غير محدد'
     }));
 
     // Convert to CSV string
@@ -57,14 +61,16 @@ export default function VehicleActions({
     const alerts = [];
     
     // Maintenance due
-    const maintenanceDue = vehicles.filter(v => v.maintenance.status === 'overdue').length;
+    const maintenanceDue = vehicles.filter(v => 
+      v.maintenance && v.maintenance.some(m => m.status === 'overdue')
+    ).length;
     if (maintenanceDue > 0) {
       alerts.push({ type: 'maintenance', count: maintenanceDue, text: 'مركبات تحتاج صيانة' });
     }
 
     // Documents expiring
     const docsExpiring = vehicles.filter(v => 
-      v.documents.some(doc => doc.status === 'near_expiry' || doc.status === 'expired')
+      v.documents && v.documents.some(doc => doc.status === 'near_expiry' || doc.status === 'expired')
     ).length;
     if (docsExpiring > 0) {
       alerts.push({ type: 'documents', count: docsExpiring, text: 'مستندات تنتهي صلاحيتها' });
