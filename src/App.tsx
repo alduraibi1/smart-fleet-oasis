@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import Index from "./pages/Index";
 import Vehicles from "./pages/Vehicles";
 import Contracts from "./pages/Contracts";
@@ -20,26 +21,27 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/vehicles" element={<Vehicles />} />
-          {/* Placeholder routes for future modules */}
-          <Route path="/contracts" element={<Contracts />} />
-          <Route path="/customers" element={<Customers />} />
-          <Route path="/maintenance" element={<Maintenance />} />
-          <Route path="/inventory" element={<Inventory />} />
-          <Route path="/accounting" element={<Accounting />} />
-          <Route path="/hr" element={<HR />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/system-management" element={<SystemManagement />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider defaultTheme="system" storageKey="rental-ui-theme">
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/vehicles" element={<Vehicles />} />
+            <Route path="/contracts" element={<Contracts />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/maintenance" element={<Maintenance />} />
+            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/accounting" element={<Accounting />} />
+            <Route path="/hr" element={<HR />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/system-management" element={<SystemManagement />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

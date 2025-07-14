@@ -4,6 +4,7 @@ import { Menu, User, Bell, Search, Settings, LogOut, Moon, Sun } from 'lucide-re
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -38,10 +39,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
         {/* User actions */}
         <div className="flex items-center gap-2">
           {/* Theme Toggle */}
-          <Button variant="ghost" size="icon" className="hover:scale-105 transition-transform">
-            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          </Button>
+          <ThemeToggle />
 
           {/* Notifications */}
           <div className="relative">
