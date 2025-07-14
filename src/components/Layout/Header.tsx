@@ -12,7 +12,7 @@ interface HeaderProps {
 
 export default function Header({ onMenuClick }: HeaderProps) {
   return (
-    <header className="bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 sticky top-0 z-40 shadow-sm">
+    <header className="backdrop-glass border-b border-border/60 px-6 py-4 sticky top-0 z-50 shadow-soft">
       <div className="flex items-center justify-between">
         {/* Mobile menu button and search */}
         <div className="flex items-center gap-4">
@@ -20,35 +20,37 @@ export default function Header({ onMenuClick }: HeaderProps) {
             variant="ghost"
             size="sm"
             onClick={onMenuClick}
-            className="lg:hidden hover:scale-105 transition-transform"
+            className="lg:hidden btn-scale focus-glow"
           >
             <Menu className="h-5 w-5" />
           </Button>
           
           <div className="hidden md:block">
             <div className="relative group">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
               <Input
                 placeholder="بحث في النظام..."
-                className="pr-10 w-80 focus:w-96 transition-all duration-300"
+                className="pr-10 w-80 focus:w-96 transition-all duration-500 focus-glow bg-card/50 backdrop-blur-sm border-border/60"
               />
             </div>
           </div>
         </div>
 
         {/* User actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {/* Theme Toggle */}
-          <ThemeToggle />
+          <div className="btn-scale">
+            <ThemeToggle />
+          </div>
 
           {/* Notifications */}
           <div className="relative">
-            <Button variant="ghost" size="icon" className="hover:scale-105 transition-transform">
+            <Button variant="ghost" size="icon" className="btn-scale hover-glow relative">
               <Bell className="h-4 w-4" />
             </Button>
             <Badge 
               variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse"
+              className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse loading-pulse"
             >
               3
             </Badge>
@@ -57,27 +59,27 @@ export default function Header({ onMenuClick }: HeaderProps) {
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-2 hover:scale-105 transition-transform">
+              <Button variant="ghost" className="gap-3 btn-scale hover-glow p-2">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium">أحمد محمد</p>
+                  <p className="text-sm font-medium text-foreground">أحمد محمد</p>
                   <p className="text-xs text-muted-foreground">مدير النظام</p>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-variant text-primary-foreground flex items-center justify-center shadow-medium">
                   <User className="h-4 w-4" />
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem className="gap-2">
-                <User className="w-4 h-4" />
+            <DropdownMenuContent align="end" className="w-56 backdrop-glass border-border/60 shadow-strong">
+              <DropdownMenuItem className="gap-3 hover-glow">
+                <User className="w-4 h-4 text-primary" />
                 الملف الشخصي
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2">
-                <Settings className="w-4 h-4" />
+              <DropdownMenuItem className="gap-3 hover-glow">
+                <Settings className="w-4 h-4 text-primary" />
                 الإعدادات
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2 text-destructive">
+              <DropdownMenuSeparator className="bg-border/60" />
+              <DropdownMenuItem className="gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive">
                 <LogOut className="w-4 h-4" />
                 تسجيل الخروج
               </DropdownMenuItem>
