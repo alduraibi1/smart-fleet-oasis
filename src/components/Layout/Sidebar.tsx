@@ -3,59 +3,92 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Car, Calendar, Settings, Users, Database, 
-  DollarSign, Home, Menu, X, Bell
+  DollarSign, Home, X, Bell, ChevronDown, ChevronLeft,
+  BarChart3, PieChart, TrendingUp, Building2, Wrench
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
-const menuItems = [
+const menuSections = [
   {
-    title: 'لوحة التحكم',
+    title: 'الرئيسية',
     icon: Home,
-    href: '/',
-    section: 'main'
+    items: [
+      {
+        title: 'لوحة التحكم',
+        icon: BarChart3,
+        href: '/',
+        badge: null
+      }
+    ]
   },
   {
-    title: 'إدارة المركبات',
+    title: 'إدارة الأسطول',
     icon: Car,
-    href: '/vehicles',
-    section: 'rental'
+    items: [
+      {
+        title: 'إدارة المركبات',
+        icon: Car,
+        href: '/vehicles',
+        badge: { count: 12, variant: 'default' as const }
+      },
+      {
+        title: 'العقود والإيجار',
+        icon: Calendar,
+        href: '/contracts',
+        badge: { count: 5, variant: 'secondary' as const }
+      },
+      {
+        title: 'العملاء',
+        icon: Users,
+        href: '/customers',
+        badge: null
+      }
+    ]
   },
   {
-    title: 'العقود والإيجار',
-    icon: Calendar,
-    href: '/contracts',
-    section: 'rental'
+    title: 'الصيانة والمخزون',
+    icon: Wrench,
+    items: [
+      {
+        title: 'الصيانة',
+        icon: Settings,
+        href: '/maintenance',
+        badge: { count: 3, variant: 'destructive' as const }
+      },
+      {
+        title: 'المخزون وقطع الغيار',
+        icon: Database,
+        href: '/inventory',
+        badge: { count: 8, variant: 'secondary' as const }
+      }
+    ]
   },
   {
-    title: 'العملاء',
-    icon: Users,
-    href: '/customers',
-    section: 'rental'
-  },
-  {
-    title: 'الصيانة',
-    icon: Settings,
-    href: '/maintenance',
-    section: 'maintenance'
-  },
-  {
-    title: 'المخزون وقطع الغيار',
-    icon: Database,
-    href: '/inventory',
-    section: 'maintenance'
-  },
-  {
-    title: 'النظام المحاسبي',
-    icon: DollarSign,
-    href: '/accounting',
-    section: 'finance'
-  },
-  {
-    title: 'الموارد البشرية',
-    icon: Users,
-    href: '/hr',
-    section: 'hr'
+    title: 'المالية والإدارة',
+    icon: Building2,
+    items: [
+      {
+        title: 'النظام المحاسبي',
+        icon: DollarSign,
+        href: '/accounting',
+        badge: null
+      },
+      {
+        title: 'التقارير المالية',
+        icon: TrendingUp,
+        href: '/reports',
+        badge: null
+      },
+      {
+        title: 'الموارد البشرية',
+        icon: Users,
+        href: '/hr',
+        badge: null
+      }
+    ]
   }
 ];
 
@@ -66,6 +99,17 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation();
+  const [expandedSections, setExpandedSections] = useState<string[]>([
+    'الرئيسية', 'إدارة الأسطول'
+  ]);
+
+  const toggleSection = (sectionTitle: string) => {
+    setExpandedSections(prev => 
+      prev.includes(sectionTitle)
+        ? prev.filter(s => s !== sectionTitle)
+        : [...prev, sectionTitle]
+    );
+  };
 
   return (
     <>
@@ -84,49 +128,120 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         isOpen ? "translate-x-0" : "translate-x-full"
       )}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <h1 className="text-xl font-bold text-rental-primary">
-            نظام إدارة تأجير المركبات
-          </h1>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="lg:hidden"
-          >
-            <X className="h-5 w-5" />
-          </Button>
+        <div className="flex flex-col p-6 border-b border-border bg-gradient-to-br from-primary/5 to-primary/10">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                <Car className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <h1 className="text-lg font-bold text-foreground">
+                CarRent Pro
+              </h1>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="lg:hidden h-8 w-8 rounded-lg"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            نظام إدارة تأجير المركبات المتطور
+          </p>
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-2">
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.href;
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+          {menuSections.map((section) => {
+            const isExpanded = expandedSections.includes(section.title);
+            
             return (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={onClose}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
-                  "hover:bg-accent hover:text-accent-foreground",
-                  isActive 
-                    ? "bg-primary text-primary-foreground" 
-                    : "text-muted-foreground"
+              <div key={section.title} className="space-y-1">
+                {/* Section Header */}
+                <Button
+                  variant="ghost"
+                  onClick={() => toggleSection(section.title)}
+                  className={cn(
+                    "w-full justify-between h-10 px-3 rounded-lg",
+                    "text-sm font-medium text-muted-foreground",
+                    "hover:bg-accent hover:text-accent-foreground"
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <section.icon className="h-4 w-4" />
+                    <span>{section.title}</span>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronLeft className="h-4 w-4" />
+                  )}
+                </Button>
+
+                {/* Section Items */}
+                {isExpanded && (
+                  <div className="space-y-1 pr-2">
+                    {section.items.map((item) => {
+                      const isActive = location.pathname === item.href;
+                      
+                      return (
+                        <Link
+                          key={item.href}
+                          to={item.href}
+                          onClick={onClose}
+                          className={cn(
+                            "flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg transition-all duration-200",
+                            "hover:bg-accent hover:text-accent-foreground",
+                            "border border-transparent hover:border-border",
+                            isActive 
+                              ? "bg-primary text-primary-foreground shadow-sm border-primary/20" 
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <item.icon className="h-4 w-4" />
+                            <span className="font-medium text-sm">{item.title}</span>
+                          </div>
+                          {item.badge && (
+                            <Badge 
+                              variant={item.badge.variant}
+                              className="h-5 px-2 text-xs"
+                            >
+                              {item.badge.count}
+                            </Badge>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
                 )}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="font-medium">{item.title}</span>
-              </Link>
+
+                {/* Separator after each section except the last */}
+                {section !== menuSections[menuSections.length - 1] && (
+                  <Separator className="my-2" />
+                )}
+              </div>
             );
           })}
         </nav>
 
-        {/* Notifications Panel */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Bell className="h-4 w-4" />
-            <span>5 تنبيهات جديدة</span>
+        {/* Footer */}
+        <div className="p-4 border-t border-border bg-muted/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                <Bell className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-medium text-foreground">التنبيهات</span>
+                <span className="text-xs text-muted-foreground">5 تنبيهات جديدة</span>
+              </div>
+            </div>
+            <Badge variant="destructive" className="h-5 px-2 text-xs">
+              5
+            </Badge>
           </div>
         </div>
       </div>
