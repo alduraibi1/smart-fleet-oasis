@@ -15,6 +15,9 @@ import { TaxManagement } from "@/components/Accounting/TaxManagement";
 import { FinancialKPIs } from "@/components/Accounting/FinancialKPIs";
 import { FinancialForecasting } from "@/components/Accounting/FinancialForecasting";
 import { ExecutiveDashboard } from "@/components/Accounting/ExecutiveDashboard";
+import { VehicleProfitabilityReport } from "@/components/Accounting/VehicleProfitability/VehicleProfitabilityReport";
+import { OwnerProfitabilityReport } from "@/components/Accounting/OwnerProfitability/OwnerProfitabilityReport";
+import { VouchersManagement } from "@/components/Accounting/VouchersManagement/VouchersManagement";
 
 export default function Accounting() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -53,17 +56,19 @@ export default function Accounting() {
               </div>
 
               <Tabs defaultValue="overview" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10">
+                <TabsList className="grid w-full grid-cols-6 lg:grid-cols-12">
                   <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
                   <TabsTrigger value="revenue-expense">الإيرادات</TabsTrigger>
                   <TabsTrigger value="cash-flow">التدفق النقدي</TabsTrigger>
                   <TabsTrigger value="assets">الأصول</TabsTrigger>
                   <TabsTrigger value="receivables">المدينة</TabsTrigger>
                   <TabsTrigger value="payables">الدائنة</TabsTrigger>
+                  <TabsTrigger value="vehicle-profitability">ربحية المركبات</TabsTrigger>
+                  <TabsTrigger value="owner-profitability">أرباح المالكين</TabsTrigger>
+                  <TabsTrigger value="vouchers">إدارة السندات</TabsTrigger>
                   <TabsTrigger value="tax">الضرائب</TabsTrigger>
                   <TabsTrigger value="kpis">مؤشرات الأداء</TabsTrigger>
                   <TabsTrigger value="forecasting">التنبؤات</TabsTrigger>
-                  <TabsTrigger value="executive">لوحة المدير</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-6">
@@ -88,6 +93,18 @@ export default function Accounting() {
 
                 <TabsContent value="payables" className="space-y-6">
                   <AccountsPayable />
+                </TabsContent>
+
+                <TabsContent value="vehicle-profitability" className="space-y-6">
+                  <VehicleProfitabilityReport />
+                </TabsContent>
+
+                <TabsContent value="owner-profitability" className="space-y-6">
+                  <OwnerProfitabilityReport />
+                </TabsContent>
+
+                <TabsContent value="vouchers" className="space-y-6">
+                  <VouchersManagement />
                 </TabsContent>
 
                 <TabsContent value="tax" className="space-y-6">

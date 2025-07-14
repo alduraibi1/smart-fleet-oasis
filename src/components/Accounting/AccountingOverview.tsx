@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown, DollarSign, PieChart, Car, Wrench, Receipt, F
 import { Badge } from "@/components/ui/badge";
 import { CreatePaymentReceiptDialog } from "./PaymentReceipts/CreatePaymentReceiptDialog";
 import { CreatePaymentVoucherDialog } from "./PaymentVouchers/CreatePaymentVoucherDialog";
+import { CreateDiscountVoucherDialog } from "./DiscountVouchers/CreateDiscountVoucherDialog";
 
 export function AccountingOverview() {
   // Mock data - في التطبيق الحقيقي ستأتي من قاعدة البيانات
@@ -154,6 +155,7 @@ export function AccountingOverview() {
           <div className="flex gap-4 flex-wrap">
             <CreatePaymentReceiptDialog />
             <CreatePaymentVoucherDialog />
+            <CreateDiscountVoucherDialog />
           </div>
         </CardContent>
       </Card>
