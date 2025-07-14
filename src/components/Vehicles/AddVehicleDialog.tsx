@@ -355,19 +355,6 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="engineNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>رقم المحرك</FormLabel>
-                        <FormControl>
-                          <Input placeholder="ENG123456" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
 
                   <FormField
                     control={form.control}
