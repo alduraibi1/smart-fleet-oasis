@@ -1,0 +1,558 @@
+import { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { FileText, Calendar, DollarSign, User, Car, CreditCard, Printer, Mail, Save, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+export function CreatePaymentVoucherDialog() {
+  const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    recipientType: "",
+    recipientId: "",
+    recipientName: "",
+    amount: "",
+    paymentMethod: "",
+    paymentDate: new Date().toISOString().split('T')[0],
+    expenseCategory: "",
+    expenseType: "",
+    description: "",
+    referenceNumber: "",
+    invoiceNumber: "",
+    checkNumber: "",
+    bankDetails: "",
+    vehicleId: "",
+    contractId: "",
+    maintenanceId: "",
+    notes: ""
+  });
+
+  const { toast } = useToast();
+
+  // Mock data - في التطبيق الحقيقي ستأتي من قاعدة البيانات
+  const mockOwners = [
+    { id: "1", name: "محمد أحمد الفهد", phone: "0501234567" },
+    { id: "2", name: "عبدالله سالم القحطاني", phone: "0512345678" },
+    { id: "3", name: "فاطمة عبدالرحمن الغامدي", phone: "0523456789" }
+  ];
+
+  const mockSuppliers = [
+    { id: "1", name: "متجر قطع الغيار الذهبي", phone: "0501111111" },
+    { id: "2", name: "ورشة الماهر للصيانة", phone: "0502222222" },
+    { id: "3", name: "مؤسسة الوقود المتميز", phone: "0503333333" }
+  ];
+
+  const mockMechanics = [
+    { id: "1", name: "علي محمد النجار", phone: "0505555555" },
+    { id: "2", name: "خالد أحمد السليم", phone: "0506666666" },
+    { id: "3", name: "سعد عبدالله الحربي", phone: "0507777777" }
+  ];
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('ar-SA', {
+      style: 'currency',
+      currency: 'SAR',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const generateVoucherNumber = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `VOC-${year}${month}${day}-${random}`;
+  };
+
+  const getRecipientList = () => {
+    switch (formData.recipientType) {
+      case 'owner':
+        return mockOwners;
+      case 'supplier':
+        return mockSuppliers;
+      case 'mechanic':
+        return mockMechanics;
+      default:
+        return [];
+    }
+  };
+
+  const handleRecipientSelect = (recipientId: string) => {
+    const recipients = getRecipientList();
+    const recipient = recipients.find(r => r.id === recipientId);
+    if (recipient) {
+      setFormData(prev => ({
+        ...prev,
+        recipientId,
+        recipientName: recipient.name
+      }));
+    }
+  };
+
+  const handleSave = () => {
+    if (!formData.recipientType || !formData.recipientName || !formData.amount || 
+        !formData.paymentMethod || !formData.expenseCategory || !formData.description) {
+      toast({
+        title: "خطأ في البيانات",
+        description: "يرجى ملء جميع الحقول المطلوبة",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // في التطبيق الحقيقي سيتم حفظ البيانات في قاعدة البيانات
+    toast({
+      title: "تم إنشاء سند الصرف",
+      description: `تم إنشاء سند الصرف رقم ${generateVoucherNumber()} بنجاح`,
+      variant: "default"
+    });
+
+    setOpen(false);
+    // Reset form
+    setFormData({
+      recipientType: "",
+      recipientId: "",
+      recipientName: "",
+      amount: "",
+      paymentMethod: "",
+      paymentDate: new Date().toISOString().split('T')[0],
+      expenseCategory: "",
+      expenseType: "",
+      description: "",
+      referenceNumber: "",
+      invoiceNumber: "",
+      checkNumber: "",
+      bankDetails: "",
+      vehicleId: "",
+      contractId: "",
+      maintenanceId: "",
+      notes: ""
+    });
+  };
+
+  const requiresApproval = () => {
+    const amount = Number(formData.amount);
+    return amount > 5000; // يتطلب موافقة إذا كان المبلغ أكبر من 5000 ريال
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="gap-2">
+          <FileText className="h-4 w-4" />
+          إنشاء سند صرف
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            إنشاء سند صرف جديد
+          </DialogTitle>
+          <DialogDescription>
+            إصدار سند صرف للمدفوعات والمصروفات
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column - Form */}
+          <div className="space-y-4">
+            {/* Recipient Details */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  معلومات المستفيد
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="recipientType">نوع المستفيد</Label>
+                  <Select onValueChange={(value) => setFormData(prev => ({ ...prev, recipientType: value, recipientId: "", recipientName: "" }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر نوع المستفيد" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="owner">مالك مركبة</SelectItem>
+                      <SelectItem value="supplier">مورد</SelectItem>
+                      <SelectItem value="mechanic">فني صيانة</SelectItem>
+                      <SelectItem value="employee">موظف</SelectItem>
+                      <SelectItem value="other">أخرى</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.recipientType && formData.recipientType !== 'other' && (
+                  <div>
+                    <Label htmlFor="recipient">اختيار المستفيد</Label>
+                    <Select onValueChange={handleRecipientSelect}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر المستفيد" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getRecipientList().map((recipient) => (
+                          <SelectItem key={recipient.id} value={recipient.id}>
+                            {recipient.name} ({recipient.phone})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {formData.recipientType === 'other' && (
+                  <div>
+                    <Label htmlFor="recipientName">اسم المستفيد</Label>
+                    <Input
+                      id="recipientName"
+                      value={formData.recipientName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, recipientName: e.target.value }))}
+                      placeholder="أدخل اسم المستفيد"
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Payment Details */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  تفاصيل الدفع
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="amount">المبلغ (ريال سعودي)</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      value={formData.amount}
+                      onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                      placeholder="0.00"
+                    />
+                    {requiresApproval() && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <AlertCircle className="h-3 w-3 text-orange-500" />
+                        <span className="text-xs text-orange-600">يتطلب موافقة إدارية</span>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="paymentDate">تاريخ الدفع</Label>
+                    <Input
+                      id="paymentDate"
+                      type="date"
+                      value={formData.paymentDate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, paymentDate: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="paymentMethod">طريقة الدفع</Label>
+                  <Select onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر طريقة الدفع" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">نقداً</SelectItem>
+                      <SelectItem value="transfer">تحويل بنكي</SelectItem>
+                      <SelectItem value="check">شيك</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="description">وصف الدفعة</Label>
+                  <Input
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="وصف مختصر للدفعة"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Expense Classification */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">تصنيف المصروف</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="expenseCategory">فئة المصروف</Label>
+                  <Select onValueChange={(value) => setFormData(prev => ({ ...prev, expenseCategory: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر فئة المصروف" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="maintenance">صيانة</SelectItem>
+                      <SelectItem value="fuel">وقود</SelectItem>
+                      <SelectItem value="insurance">تأمين</SelectItem>
+                      <SelectItem value="owner_commission">عمولة مالك</SelectItem>
+                      <SelectItem value="salary">راتب</SelectItem>
+                      <SelectItem value="office_expenses">مصروفات مكتبية</SelectItem>
+                      <SelectItem value="other">أخرى</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="expenseType">نوع المصروف</Label>
+                  <Select onValueChange={(value) => setFormData(prev => ({ ...prev, expenseType: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر نوع المصروف" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="operational">تشغيلي</SelectItem>
+                      <SelectItem value="capital">رأسمالي</SelectItem>
+                      <SelectItem value="administrative">إداري</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Reference Details */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  تفاصيل المرجع (اختياري)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="referenceNumber">رقم المرجع</Label>
+                    <Input
+                      id="referenceNumber"
+                      value={formData.referenceNumber}
+                      onChange={(e) => setFormData(prev => ({ ...prev, referenceNumber: e.target.value }))}
+                      placeholder="رقم المرجع"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="invoiceNumber">رقم الفاتورة</Label>
+                    <Input
+                      id="invoiceNumber"
+                      value={formData.invoiceNumber}
+                      onChange={(e) => setFormData(prev => ({ ...prev, invoiceNumber: e.target.value }))}
+                      placeholder="رقم الفاتورة"
+                    />
+                  </div>
+                </div>
+
+                {formData.paymentMethod === 'check' && (
+                  <div>
+                    <Label htmlFor="checkNumber">رقم الشيك</Label>
+                    <Input
+                      id="checkNumber"
+                      value={formData.checkNumber}
+                      onChange={(e) => setFormData(prev => ({ ...prev, checkNumber: e.target.value }))}
+                      placeholder="رقم الشيك"
+                    />
+                  </div>
+                )}
+
+                {formData.paymentMethod === 'transfer' && (
+                  <div>
+                    <Label htmlFor="bankDetails">تفاصيل البنك</Label>
+                    <Input
+                      id="bankDetails"
+                      value={formData.bankDetails}
+                      onChange={(e) => setFormData(prev => ({ ...prev, bankDetails: e.target.value }))}
+                      placeholder="اسم البنك وتفاصيل إضافية"
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Notes */}
+            <div>
+              <Label htmlFor="notes">ملاحظات إضافية</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="أي ملاحظات إضافية..."
+                rows={3}
+              />
+            </div>
+          </div>
+
+          {/* Right Column - Preview */}
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-center">معاينة سند الصرف</CardTitle>
+                <CardDescription className="text-center">
+                  رقم السند: {generateVoucherNumber()}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Header */}
+                <div className="text-center border-b pb-4">
+                  <h3 className="text-lg font-bold">سند صرف</h3>
+                  <p className="text-sm text-muted-foreground">شركة تأجير المركبات</p>
+                  <p className="text-xs text-muted-foreground">تاريخ الإصدار: {new Date().toLocaleDateString('ar-SA')}</p>
+                </div>
+
+                {/* Recipient Info */}
+                {formData.recipientName && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">المستفيد:</span>
+                      <span className="text-sm font-medium">{formData.recipientName}</span>
+                    </div>
+                    {formData.recipientType && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">النوع:</span>
+                        <Badge variant="outline">
+                          {formData.recipientType === 'owner' ? 'مالك مركبة' :
+                           formData.recipientType === 'supplier' ? 'مورد' :
+                           formData.recipientType === 'mechanic' ? 'فني صيانة' :
+                           formData.recipientType === 'employee' ? 'موظف' : 'أخرى'}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Payment Details */}
+                <div className="border rounded-lg p-3 bg-muted/20">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">المبلغ المدفوع:</span>
+                      <span className="text-lg font-bold text-destructive">
+                        {formData.amount ? formatCurrency(Number(formData.amount)) : "0 ريال"}
+                      </span>
+                    </div>
+                    {requiresApproval() && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">الحالة:</span>
+                        <Badge variant="outline" className="text-orange-600 border-orange-600">
+                          يتطلب موافقة
+                        </Badge>
+                      </div>
+                    )}
+                    {formData.paymentMethod && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">طريقة الدفع:</span>
+                        <Badge variant="outline">
+                          {formData.paymentMethod === 'cash' ? 'نقداً' :
+                           formData.paymentMethod === 'transfer' ? 'تحويل بنكي' :
+                           formData.paymentMethod === 'check' ? 'شيك' : ''}
+                        </Badge>
+                      </div>
+                    )}
+                    {formData.description && (
+                      <div className="pt-2">
+                        <span className="text-sm text-muted-foreground">الوصف:</span>
+                        <p className="text-sm font-medium mt-1">{formData.description}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Expense Classification */}
+                {(formData.expenseCategory || formData.expenseType) && (
+                  <div className="space-y-2 pt-2 border-t">
+                    {formData.expenseCategory && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">فئة المصروف:</span>
+                        <Badge variant="secondary">
+                          {formData.expenseCategory === 'maintenance' ? 'صيانة' :
+                           formData.expenseCategory === 'fuel' ? 'وقود' :
+                           formData.expenseCategory === 'insurance' ? 'تأمين' :
+                           formData.expenseCategory === 'owner_commission' ? 'عمولة مالك' :
+                           formData.expenseCategory === 'salary' ? 'راتب' :
+                           formData.expenseCategory === 'office_expenses' ? 'مصروفات مكتبية' : 'أخرى'}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Reference Details */}
+                {(formData.referenceNumber || formData.invoiceNumber || formData.checkNumber) && (
+                  <div className="space-y-2 pt-2 border-t">
+                    {formData.referenceNumber && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">رقم المرجع:</span>
+                        <span className="text-sm font-medium">{formData.referenceNumber}</span>
+                      </div>
+                    )}
+                    {formData.invoiceNumber && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">رقم الفاتورة:</span>
+                        <span className="text-sm font-medium">{formData.invoiceNumber}</span>
+                      </div>
+                    )}
+                    {formData.checkNumber && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">رقم الشيك:</span>
+                        <span className="text-sm font-medium">{formData.checkNumber}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Notes */}
+                {formData.notes && (
+                  <div className="pt-2 border-t">
+                    <p className="text-sm text-muted-foreground mb-1">ملاحظات:</p>
+                    <p className="text-sm">{formData.notes}</p>
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div className="pt-4 border-t text-center space-y-2">
+                  <p className="text-xs text-muted-foreground">توقيع المستلم: _______________</p>
+                  <p className="text-xs text-muted-foreground">توقيع المحاسب: _______________</p>
+                  <p className="text-xs text-muted-foreground">
+                    هذا السند يؤكد صرف المبلغ المذكور أعلاه
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-between pt-4 border-t">
+          <div className="flex gap-2">
+            <Button variant="outline" className="gap-2">
+              <Printer className="h-4 w-4" />
+              طباعة
+            </Button>
+            <Button variant="outline" className="gap-2">
+              <Mail className="h-4 w-4" />
+              إرسال بريد إلكتروني
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              إلغاء
+            </Button>
+            <Button onClick={handleSave} className="gap-2">
+              <Save className="h-4 w-4" />
+              حفظ وإصدار السند
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

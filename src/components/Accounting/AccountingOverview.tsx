@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, DollarSign, PieChart, Car, Wrench } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, PieChart, Car, Wrench, Receipt, FileText, Users, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { CreatePaymentReceiptDialog } from "./PaymentReceipts/CreatePaymentReceiptDialog";
+import { CreatePaymentVoucherDialog } from "./PaymentVouchers/CreatePaymentVoucherDialog";
 
 export function AccountingOverview() {
   // Mock data - في التطبيق الحقيقي ستأتي من قاعدة البيانات
@@ -140,6 +142,22 @@ export function AccountingOverview() {
         </Card>
       </div>
 
+      {/* Financial Documents */}
+      <Card>
+        <CardHeader>
+          <CardTitle>السندات المالية</CardTitle>
+          <CardDescription>
+            إصدار وإدارة سندات القبض والصرف والخصم
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4 flex-wrap">
+            <CreatePaymentReceiptDialog />
+            <CreatePaymentVoucherDialog />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Quick Actions */}
       <Card>
         <CardHeader>
@@ -149,15 +167,23 @@ export function AccountingOverview() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
               <div className="text-center space-y-2">
-                <TrendingUp className="h-8 w-8 mx-auto text-primary" />
-                <h3 className="font-medium">تقرير الأرباح الشهري</h3>
-                <p className="text-sm text-muted-foreground">عرض تفصيلي للأرباح والخسائر</p>
+                <Car className="h-8 w-8 mx-auto text-primary" />
+                <h3 className="font-medium">ربحية المركبات</h3>
+                <p className="text-sm text-muted-foreground">تحليل ربحية كل مركبة</p>
               </div>
             </Card>
             
+            <Card className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
+              <div className="text-center space-y-2">
+                <Users className="h-8 w-8 mx-auto text-primary" />
+                <h3 className="font-medium">أرباح المالكين</h3>
+                <p className="text-sm text-muted-foreground">تقرير أرباح وعمولات المالكين</p>
+              </div>
+            </Card>
+
             <Card className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
               <div className="text-center space-y-2">
                 <DollarSign className="h-8 w-8 mx-auto text-primary" />
@@ -168,9 +194,9 @@ export function AccountingOverview() {
             
             <Card className="p-4 hover:bg-muted/50 cursor-pointer transition-colors">
               <div className="text-center space-y-2">
-                <PieChart className="h-8 w-8 mx-auto text-primary" />
-                <h3 className="font-medium">تحليل الربحية</h3>
-                <p className="text-sm text-muted-foreground">تحليل ربحية كل مركبة</p>
+                <Target className="h-8 w-8 mx-auto text-primary" />
+                <h3 className="font-medium">مؤشرات الأداء</h3>
+                <p className="text-sm text-muted-foreground">تحليل KPIs والأهداف</p>
               </div>
             </Card>
           </div>

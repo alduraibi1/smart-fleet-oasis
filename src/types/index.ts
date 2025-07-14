@@ -252,3 +252,245 @@ export interface DashboardMetrics {
   activeContracts: number;
   pendingMaintenance: number;
 }
+
+// ====================== ACCOUNTING SYSTEM TYPES ======================
+
+export interface Owner {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  nationalId: string;
+  address: string;
+  bankAccount?: string;
+  iban?: string;
+  contractDate: Date;
+  commissionRate: number; // نسبة العمولة %
+  totalVehicles: number;
+  totalRevenue: number;
+  totalCommission: number;
+  active: boolean;
+  documents: Document[];
+}
+
+export interface PaymentReceipt {
+  id: string;
+  receiptNumber: string;
+  contractId: string;
+  customerId: string;
+  customerName: string;
+  vehicleId: string;
+  plateNumber: string;
+  
+  // Payment Details
+  amount: number;
+  paymentMethod: 'cash' | 'transfer' | 'credit_card' | 'check';
+  paymentDate: Date;
+  dueDate?: Date;
+  
+  // Reference Details
+  referenceNumber?: string;
+  checkNumber?: string;
+  bankDetails?: string;
+  
+  // Classification
+  type: 'rental_payment' | 'security_deposit' | 'additional_charges' | 'penalty' | 'refund';
+  category: 'revenue' | 'deposit' | 'other';
+  
+  // Status & Notes
+  status: 'pending' | 'confirmed' | 'cancelled';
+  notes?: string;
+  
+  // Administrative
+  issuedBy: string;
+  issuedAt: Date;
+  printedAt?: Date;
+  emailSentAt?: Date;
+}
+
+export interface PaymentVoucher {
+  id: string;
+  voucherNumber: string;
+  
+  // Recipient Details
+  recipientType: 'owner' | 'supplier' | 'mechanic' | 'employee' | 'other';
+  recipientId?: string;
+  recipientName: string;
+  
+  // Payment Details
+  amount: number;
+  paymentMethod: 'cash' | 'transfer' | 'check';
+  paymentDate: Date;
+  
+  // Classification
+  expenseCategory: 'maintenance' | 'fuel' | 'insurance' | 'owner_commission' | 'salary' | 'office_expenses' | 'other';
+  expenseType: 'operational' | 'capital' | 'administrative';
+  
+  // Reference Details
+  referenceNumber?: string;
+  invoiceNumber?: string;
+  checkNumber?: string;
+  bankDetails?: string;
+  
+  // Related Records
+  vehicleId?: string;
+  contractId?: string;
+  maintenanceId?: string;
+  
+  // Status & Notes
+  status: 'pending' | 'paid' | 'cancelled';
+  description: string;
+  notes?: string;
+  
+  // Administrative
+  approvedBy?: string;
+  issuedBy: string;
+  issuedAt: Date;
+  printedAt?: Date;
+}
+
+export interface DiscountVoucher {
+  id: string;
+  voucherNumber: string;
+  contractId: string;
+  customerId: string;
+  customerName: string;
+  
+  // Discount Details
+  discountAmount: number;
+  discountPercentage?: number;
+  originalAmount: number;
+  finalAmount: number;
+  
+  // Classification
+  discountType: 'early_payment' | 'long_term_rental' | 'loyalty_customer' | 'promotional' | 'compensation' | 'other';
+  discountReason: string;
+  
+  // Approval & Authorization
+  approvedBy: string;
+  approvalDate: Date;
+  requiresHigherApproval: boolean;
+  
+  // Status & Notes
+  status: 'pending' | 'approved' | 'applied' | 'cancelled';
+  notes?: string;
+  
+  // Administrative
+  issuedBy: string;
+  issuedAt: Date;
+  appliedAt?: Date;
+}
+
+export interface VehicleProfitability {
+  vehicleId: string;
+  plateNumber: string;
+  brand: string;
+  model: string;
+  ownerId: string;
+  ownerName: string;
+  
+  // Revenue Breakdown
+  rentalRevenue: number;
+  additionalChargesRevenue: number;
+  totalRevenue: number;
+  
+  // Expense Breakdown
+  maintenanceCosts: number;
+  fuelCosts: number;
+  insuranceCosts: number;
+  depreciationCosts: number;
+  ownerCommission: number;
+  otherExpenses: number;
+  totalExpenses: number;
+  
+  // Profitability Metrics
+  grossProfit: number;
+  netProfit: number;
+  profitMargin: number;
+  roi: number; // Return on Investment
+  
+  // Operational Metrics
+  utilization: number; // نسبة الاستخدام
+  averageDailyRate: number;
+  totalRentalDays: number;
+  revenuePerDay: number;
+  
+  // Time Period
+  periodStart: Date;
+  periodEnd: Date;
+  
+  // Status
+  isActive: boolean;
+  lastUpdated: Date;
+}
+
+export interface OwnerProfitability {
+  ownerId: string;
+  ownerName: string;
+  
+  // Fleet Overview
+  totalVehicles: number;
+  activeVehicles: number;
+  
+  // Revenue Details
+  totalRevenue: number;
+  averageRevenuePerVehicle: number;
+  bestPerformingVehicle: string;
+  worstPerformingVehicle: string;
+  
+  // Commission & Payments
+  totalCommission: number;
+  paidCommission: number;
+  pendingCommission: number;
+  commissionRate: number;
+  
+  // Performance Metrics
+  fleetUtilization: number;
+  totalProfitGenerated: number;
+  averageProfitPerVehicle: number;
+  
+  // Vehicle Performance List
+  vehiclePerformance: VehicleProfitability[];
+  
+  // Time Period
+  periodStart: Date;
+  periodEnd: Date;
+  
+  // Payment History
+  lastPaymentDate?: Date;
+  paymentFrequency: 'monthly' | 'quarterly' | 'annual';
+}
+
+export interface AccountingTransaction {
+  id: string;
+  date: Date;
+  type: 'receipt' | 'voucher' | 'discount';
+  referenceId: string; // ID of related receipt/voucher/discount
+  referenceNumber: string;
+  
+  // Transaction Details
+  description: string;
+  amount: number;
+  
+  // Classification
+  accountType: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+  accountCategory: string;
+  
+  // Related Entities
+  vehicleId?: string;
+  customerId?: string;
+  ownerId?: string;
+  contractId?: string;
+  
+  // Double Entry
+  debitAccount: string;
+  creditAccount: string;
+  
+  // Status
+  status: 'pending' | 'posted' | 'cancelled';
+  
+  // Administrative
+  createdBy: string;
+  createdAt: Date;
+  postedAt?: Date;
+}
