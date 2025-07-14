@@ -14,7 +14,358 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chart_of_accounts: {
+        Row: {
+          account_code: string
+          account_name: string
+          account_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          parent_account_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_code: string
+          account_name: string
+          account_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          parent_account_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_code?: string
+          account_name?: string
+          account_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          parent_account_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chart_of_accounts_parent_account_id_fkey"
+            columns: ["parent_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      digital_signatures: {
+        Row: {
+          document_id: string
+          document_type: string
+          id: string
+          ip_address: unknown | null
+          signature_data: string | null
+          signature_hash: string | null
+          signed_at: string
+          signer_name: string
+          signer_role: string
+          user_agent: string | null
+        }
+        Insert: {
+          document_id: string
+          document_type: string
+          id?: string
+          ip_address?: unknown | null
+          signature_data?: string | null
+          signature_hash?: string | null
+          signed_at?: string
+          signer_name: string
+          signer_role: string
+          user_agent?: string | null
+        }
+        Update: {
+          document_id?: string
+          document_type?: string
+          id?: string
+          ip_address?: unknown | null
+          signature_data?: string | null
+          signature_hash?: string | null
+          signed_at?: string
+          signer_name?: string
+          signer_role?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      invoice_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          line_order: number
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id: string
+          line_order: number
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          line_order?: number
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          contract_id: string | null
+          created_at: string
+          created_by: string | null
+          customer_address: string | null
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          discount_amount: number
+          due_date: string
+          id: string
+          invoice_date: string
+          invoice_number: string
+          notes: string | null
+          paid_amount: number
+          status: string
+          subtotal: number
+          tax_amount: number
+          terms_conditions: string | null
+          total_amount: number
+          updated_at: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_address?: string | null
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          discount_amount?: number
+          due_date: string
+          id?: string
+          invoice_date: string
+          invoice_number: string
+          notes?: string | null
+          paid_amount?: number
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          terms_conditions?: string | null
+          total_amount?: number
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_address?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          discount_amount?: number
+          due_date?: string
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          notes?: string | null
+          paid_amount?: number
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          terms_conditions?: string | null
+          total_amount?: number
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Relationships: []
+      }
+      journal_entries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          entry_date: string
+          entry_number: string
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description: string
+          entry_date: string
+          entry_number: string
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          entry_date?: string
+          entry_number?: string
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      journal_entry_lines: {
+        Row: {
+          account_id: string
+          created_at: string
+          credit_amount: number | null
+          debit_amount: number | null
+          description: string | null
+          id: string
+          journal_entry_id: string
+          line_order: number
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          credit_amount?: number | null
+          debit_amount?: number | null
+          description?: string | null
+          id?: string
+          journal_entry_id: string
+          line_order: number
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          credit_amount?: number | null
+          debit_amount?: number | null
+          description?: string | null
+          id?: string
+          journal_entry_id?: string
+          line_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entry_lines_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entry_lines_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vouchers: {
+        Row: {
+          amount: number
+          approval_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          bank_account: string | null
+          beneficiary_name: string
+          beneficiary_type: string
+          check_number: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          payment_method: string | null
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          updated_at: string
+          voucher_date: string
+          voucher_number: string
+          voucher_type: string
+        }
+        Insert: {
+          amount: number
+          approval_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_account?: string | null
+          beneficiary_name: string
+          beneficiary_type: string
+          check_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          payment_method?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          updated_at?: string
+          voucher_date: string
+          voucher_number: string
+          voucher_type: string
+        }
+        Update: {
+          amount?: number
+          approval_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_account?: string | null
+          beneficiary_name?: string
+          beneficiary_type?: string
+          check_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          payment_method?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          updated_at?: string
+          voucher_date?: string
+          voucher_number?: string
+          voucher_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

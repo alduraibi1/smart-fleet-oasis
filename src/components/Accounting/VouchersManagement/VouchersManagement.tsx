@@ -22,7 +22,8 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  Plus
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -31,6 +32,9 @@ export function VouchersManagement() {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
+  const [isCreateReceiptOpen, setIsCreateReceiptOpen] = useState(false);
+  const [isCreatePaymentOpen, setIsCreatePaymentOpen] = useState(false);
+  const [isCreateDiscountOpen, setIsCreateDiscountOpen] = useState(false);
 
   // Mock data - في التطبيق الحقيقي ستأتي من قاعدة البيانات
   const paymentReceipts = [
@@ -203,6 +207,32 @@ export function VouchersManagement() {
           <p className="text-muted-foreground">عرض وإدارة جميع السندات المصدرة في النظام</p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            onClick={() => setIsCreateReceiptOpen(true)}
+            size="sm" 
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            سند قبض
+          </Button>
+          <Button 
+            onClick={() => setIsCreatePaymentOpen(true)}
+            variant="outline" 
+            size="sm" 
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            سند صرف
+          </Button>
+          <Button 
+            onClick={() => setIsCreateDiscountOpen(true)}
+            variant="outline" 
+            size="sm" 
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            سند خصم
+          </Button>
           <Button variant="outline" size="sm" className="gap-2">
             <Download className="h-4 w-4" />
             تصدير جميع السندات
@@ -589,6 +619,7 @@ export function VouchersManagement() {
           </Card>
         </TabsContent>
       </Tabs>
+
     </div>
   );
 }

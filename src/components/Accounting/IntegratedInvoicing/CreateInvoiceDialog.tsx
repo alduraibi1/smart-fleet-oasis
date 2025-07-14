@@ -15,6 +15,7 @@ import { ar } from "date-fns/locale";
 import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CreateInvoiceDialogProps {
   open: boolean;
@@ -123,7 +124,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
 
   const { subtotal, totalVat, totalAmount } = calculateTotals();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!invoiceType || !customerId || lineItems.some(item => !item.description)) {
       toast({
         title: "خطأ في البيانات",
@@ -133,28 +134,85 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
       return;
     }
 
-    // Here you would save the invoice to the database
-    console.log("Creating invoice:", {
-      invoiceType,
-      customerId,
-      contractId,
-      vehicleId,
-      invoiceDate,
-      dueDate,
-      lineItems,
-      discountAmount,
-      subtotal,
-      totalVat,
-      totalAmount,
-      notes
-    });
+    try {
+      // Generate invoice number
+      const invoiceNumber = `INV-${Date.now()}`;
+      
+      // Get customer info
+      const selectedCustomer = customers.find(c => c.id === customerId);
+      
+      // Create invoice
+      const { data: invoice, error: invoiceError } = await supabase
+        .from('invoices')
+        .insert({
+          invoice_number: invoiceNumber,
+          invoice_date: invoiceDate.toISOString().split('T')[0],
+          due_date: dueDate.toISOString().split('T')[0],
+          customer_name: selectedCustomer?.name || '',
+          customer_phone: selectedCustomer?.phone || null,
+          contract_id: contractId || null,
+          vehicle_id: vehicleId || null,
+          subtotal,
+          tax_amount: totalVat,
+          discount_amount: discountAmount,
+          total_amount: totalAmount,
+          notes: notes || null,
+          status: 'draft'
+        })
+        .select()
+        .single();
 
-    toast({
-      title: "تم إنشاء الفاتورة",
-      description: "تم إنشاء الفاتورة بنجاح"
-    });
+      if (invoiceError) throw invoiceError;
 
-    onOpenChange(false);
+      // Create invoice items
+      const invoiceItems = lineItems
+        .filter(item => item.description.trim() !== '')
+        .map((item, index) => ({
+          invoice_id: invoice.id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          total_price: item.totalPrice + item.vatAmount,
+          line_order: index + 1
+        }));
+
+      if (invoiceItems.length > 0) {
+        const { error: itemsError } = await supabase
+          .from('invoice_items')
+          .insert(invoiceItems);
+
+        if (itemsError) throw itemsError;
+      }
+
+      // Create journal entry for accounting
+      const { error: journalError } = await supabase
+        .from('journal_entries')
+        .insert({
+          entry_number: `JE-${invoiceNumber}`,
+          entry_date: invoiceDate.toISOString().split('T')[0],
+          description: `فاتورة رقم ${invoiceNumber} - ${selectedCustomer?.name}`,
+          reference_type: 'invoice',
+          reference_id: invoice.id,
+          total_amount: totalAmount,
+          status: 'draft'
+        });
+
+      if (journalError) throw journalError;
+
+      toast({
+        title: "تم إنشاء الفاتورة",
+        description: `تم إنشاء الفاتورة رقم ${invoiceNumber} بنجاح`
+      });
+
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+      toast({
+        title: "خطأ في إنشاء الفاتورة",
+        description: "حدث خطأ أثناء إنشاء الفاتورة. يرجى المحاولة مرة أخرى.",
+        variant: "destructive"
+      });
+    }
   };
 
   const formatCurrency = (amount: number) => {
