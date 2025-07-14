@@ -165,74 +165,122 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-          {menuSections.map((section) => {
+        <nav className="flex-1 overflow-y-auto p-4 space-y-3">
+          {menuSections.map((section, sectionIndex) => {
             const isExpanded = expandedSections.includes(section.title);
             
             return (
-              <div key={section.title} className="space-y-1">
+              <div key={section.title} className="space-y-2">
                 {/* Section Header */}
                 <Button
                   variant="ghost"
                   onClick={() => toggleSection(section.title)}
                   className={cn(
-                    "w-full justify-between h-10 px-3 rounded-lg",
-                    "text-sm font-medium text-muted-foreground",
-                    "hover:bg-accent hover:text-accent-foreground"
+                    "w-full justify-between h-11 px-4 rounded-xl",
+                    "text-sm font-semibold transition-all duration-300",
+                    "hover:bg-accent/80 hover:text-accent-foreground hover:shadow-md",
+                    "border border-transparent hover:border-border/50",
+                    isExpanded 
+                      ? "bg-accent/50 text-accent-foreground shadow-sm" 
+                      : "text-muted-foreground"
                   )}
                 >
-                  <div className="flex items-center gap-2">
-                    <section.icon className="h-4 w-4" />
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "p-1.5 rounded-lg transition-colors duration-300",
+                      isExpanded ? "bg-primary/20 text-primary" : "bg-muted/50"
+                    )}>
+                      <section.icon className="h-4 w-4" />
+                    </div>
                     <span>{section.title}</span>
                   </div>
-                  {isExpanded ? (
+                  <div className={cn(
+                    "transition-transform duration-300",
+                    isExpanded ? "rotate-180" : "rotate-0"
+                  )}>
                     <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronLeft className="h-4 w-4" />
-                  )}
+                  </div>
                 </Button>
 
                 {/* Section Items */}
-                {isExpanded && (
-                  <div className="space-y-1 pr-2">
-                    {section.items.map((item) => {
-                      const isActive = location.pathname === item.href;
-                      
-                      return (
-                        <Link
-                          key={item.href}
-                          to={item.href}
-                          onClick={onClose}
-                          className={cn(
-                            "flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg transition-all duration-200",
-                            "hover:bg-accent hover:text-accent-foreground",
-                            "border border-transparent hover:border-border",
+                <div className={cn(
+                  "space-y-1 transition-all duration-300 overflow-hidden",
+                  isExpanded 
+                    ? "max-h-96 opacity-100 pr-2" 
+                    : "max-h-0 opacity-0"
+                )}>
+                  {section.items.map((item, itemIndex) => {
+                    const isActive = location.pathname === item.href;
+                    
+                    return (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        onClick={onClose}
+                        className={cn(
+                          "flex items-center justify-between gap-3 px-4 py-3 rounded-xl",
+                          "transition-all duration-300 transform hover:scale-[1.02]",
+                          "hover:bg-accent/60 hover:text-accent-foreground hover:shadow-md",
+                          "border border-transparent hover:border-border/30",
+                          "group relative overflow-hidden",
+                          isActive 
+                            ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg border-primary/20 scale-[1.02]" 
+                            : "text-muted-foreground"
+                        )}
+                        style={{
+                          animationDelay: `${itemIndex * 50}ms`
+                        }}
+                      >
+                        {/* Background animation */}
+                        <div className={cn(
+                          "absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5",
+                          "transform transition-transform duration-300 scale-x-0 group-hover:scale-x-100",
+                          "origin-left"
+                        )} />
+                        
+                        <div className="flex items-center gap-3 relative z-10">
+                          <div className={cn(
+                            "p-1.5 rounded-lg transition-all duration-300",
                             isActive 
-                              ? "bg-primary text-primary-foreground shadow-sm border-primary/20" 
-                              : "text-muted-foreground"
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
+                              ? "bg-white/20 text-white shadow-sm" 
+                              : "bg-muted/30 group-hover:bg-primary/20 group-hover:text-primary"
+                          )}>
                             <item.icon className="h-4 w-4" />
-                            <span className="font-medium text-sm">{item.title}</span>
                           </div>
-                          {item.badge && (
-                            <Badge 
-                              variant={item.badge.variant}
-                              className="h-5 px-2 text-xs"
-                            >
-                              {item.badge.count}
-                            </Badge>
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
+                          <span className="font-medium text-sm">{item.title}</span>
+                        </div>
+                        
+                        {item.badge && (
+                          <Badge 
+                            variant={isActive ? "secondary" : item.badge.variant}
+                            className={cn(
+                              "h-6 px-2.5 text-xs font-semibold transition-all duration-300 relative z-10",
+                              isActive 
+                                ? "bg-white/20 text-white border-white/30" 
+                                : "shadow-sm"
+                            )}
+                          >
+                            {item.badge.count}
+                          </Badge>
+                        )}
+                        
+                        {/* Active indicator */}
+                        {isActive && (
+                          <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-white/40 rounded-r-full" />
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
 
                 {/* Separator after each section except the last */}
-                {section !== menuSections[menuSections.length - 1] && (
-                  <Separator className="my-2" />
+                {sectionIndex !== menuSections.length - 1 && (
+                  <div className="relative">
+                    <Separator className="my-4 bg-gradient-to-r from-transparent via-border to-transparent" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-2 h-2 bg-muted rounded-full" />
+                    </div>
+                  </div>
                 )}
               </div>
             );
