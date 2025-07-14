@@ -165,7 +165,39 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-3">
+        <nav 
+          className="flex-1 overflow-y-auto p-4 space-y-3"
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'hsl(var(--muted-foreground) / 0.3) transparent',
+          }}
+        >
+          <style>{`
+            nav::-webkit-scrollbar {
+              width: 8px;
+            }
+            nav::-webkit-scrollbar-track {
+              background: transparent;
+              border-radius: 10px;
+              margin: 8px 0;
+            }
+            nav::-webkit-scrollbar-thumb {
+              background: hsl(var(--muted-foreground) / 0.3);
+              border-radius: 10px;
+              transition: all 0.3s ease;
+              border: 1px solid transparent;
+            }
+            nav::-webkit-scrollbar-thumb:hover {
+              background: hsl(var(--muted-foreground) / 0.5);
+              transform: scaleY(1.1);
+            }
+            nav::-webkit-scrollbar-thumb:active {
+              background: hsl(var(--primary) / 0.6);
+            }
+            nav::-webkit-scrollbar-corner {
+              background: transparent;
+            }
+          `}</style>
           {menuSections.map((section, sectionIndex) => {
             const isExpanded = expandedSections.includes(section.title);
             
