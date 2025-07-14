@@ -112,7 +112,7 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation();
   const [expandedSections, setExpandedSections] = useState<string[]>([
-    'الرئيسية', 'إدارة الأسطول'
+    'الرئيسية', 'إدارة الأسطول', 'إدارة النظام'
   ]);
 
   const toggleSection = (sectionTitle: string) => {
