@@ -196,11 +196,16 @@ export default function AuthPage() {
                 </TabsTrigger>
               </TabsList>
 
-              {error && (
-                <Alert variant="destructive" className="mb-4">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>
+            {error === "Email not confirmed" 
+              ? "يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك قبل تسجيل الدخول"
+              : error
+            }
+          </AlertDescription>
+        </Alert>
+      )}
 
               {/* تسجيل الدخول */}
               <TabsContent value="login">
