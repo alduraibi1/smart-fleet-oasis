@@ -15,6 +15,7 @@ import Inventory from "./pages/Inventory";
 import HR from "./pages/HR";
 import Reports from "./pages/Reports";
 import SystemManagement from "./pages/SystemManagement";
+import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/hr" element={<HR />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/system-management" element={<SystemManagement />} />
+            <Route path="/notification-settings" element={<NotificationSettings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

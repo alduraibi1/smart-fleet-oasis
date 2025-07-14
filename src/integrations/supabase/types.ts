@@ -297,6 +297,134 @@ export type Database = {
           },
         ]
       }
+      notification_history: {
+        Row: {
+          delivery_method: string
+          error_message: string | null
+          id: string
+          notification_id: string
+          recipient_info: Json | null
+          sent_at: string
+          status: string
+        }
+        Insert: {
+          delivery_method: string
+          error_message?: string | null
+          id?: string
+          notification_id: string
+          recipient_info?: Json | null
+          sent_at?: string
+          status?: string
+        }
+        Update: {
+          delivery_method?: string
+          error_message?: string | null
+          id?: string
+          notification_id?: string
+          recipient_info?: Json | null
+          sent_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_history_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_settings: {
+        Row: {
+          advance_days: number | null
+          created_at: string
+          email_enabled: boolean | null
+          enabled: boolean | null
+          id: string
+          notification_type: string
+          push_enabled: boolean | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          advance_days?: number | null
+          created_at?: string
+          email_enabled?: boolean | null
+          enabled?: boolean | null
+          id?: string
+          notification_type: string
+          push_enabled?: boolean | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          advance_days?: number | null
+          created_at?: string
+          email_enabled?: boolean | null
+          enabled?: boolean | null
+          id?: string
+          notification_type?: string
+          push_enabled?: boolean | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          action_required: boolean | null
+          auto_generated: boolean | null
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          reference_id: string | null
+          reference_type: string | null
+          scheduled_for: string | null
+          severity: string
+          status: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          action_required?: boolean | null
+          auto_generated?: boolean | null
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          scheduled_for?: string | null
+          severity?: string
+          status?: string
+          title: string
+          type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          action_required?: boolean | null
+          auto_generated?: boolean | null
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          scheduled_for?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       vouchers: {
         Row: {
           amount: number

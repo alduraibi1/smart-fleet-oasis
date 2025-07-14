@@ -1,10 +1,10 @@
 
 import { Button } from '@/components/ui/button';
-import { Menu, User, Bell, Search, Settings, LogOut, Moon, Sun } from 'lucide-react';
+import { Menu, User, Search, Settings, LogOut } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import NotificationCenter from '@/components/Notifications/NotificationCenter';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -44,17 +44,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </div>
 
           {/* Notifications */}
-          <div className="relative">
-            <Button variant="ghost" size="icon" className="btn-scale hover-glow relative">
-              <Bell className="h-4 w-4" />
-            </Button>
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center animate-pulse loading-pulse"
-            >
-              3
-            </Badge>
-          </div>
+          <NotificationCenter />
           
           {/* User Menu */}
           <DropdownMenu>

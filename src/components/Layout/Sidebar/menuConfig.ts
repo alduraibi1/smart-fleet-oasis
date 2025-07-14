@@ -1,6 +1,6 @@
 import {
   Car, Calendar, Settings, Users, Database, 
-  DollarSign, Home, BarChart3, TrendingUp, Building2, Wrench, Shield
+  DollarSign, Home, BarChart3, TrendingUp, Building2, Wrench, Shield, Bell
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -107,6 +107,12 @@ export const menuSections: MenuSection[] = [
         icon: Shield,
         href: '/system-management',
         badge: { count: 2, variant: 'secondary' as const }
+      },
+      {
+        title: 'إعدادات الإشعارات',
+        icon: Bell,
+        href: '/notification-settings',
+        badge: undefined
       }
     ]
   }
