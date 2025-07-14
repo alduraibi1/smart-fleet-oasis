@@ -4,8 +4,10 @@ import MetricCard from './MetricCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 export default function DashboardOverview() {
+  const navigate = useNavigate();
   const metrics = [
     {
       title: 'إجمالي المركبات',
@@ -62,7 +64,12 @@ export default function DashboardOverview() {
           نظرة عامة شاملة على أداء شركتك وأهم المؤشرات
         </p>
         <div className="mt-6 animate-bounce-in">
-          <Button variant="glass" size="lg" className="gap-2">
+          <Button 
+            variant="glass" 
+            size="lg" 
+            className="gap-2"
+            onClick={() => navigate('/reports')}
+          >
             <TrendingUp className="w-5 h-5" />
             عرض التقارير التفصيلية
           </Button>
@@ -155,6 +162,7 @@ export default function DashboardOverview() {
             <Button 
               variant="outline" 
               className="h-auto p-6 flex-col gap-3 interactive-hover border-primary/20 hover:border-primary/50"
+              onClick={() => navigate('/vehicles')}
             >
               <Car className="h-8 w-8 text-primary" />
               <span className="text-sm font-medium">إضافة مركبة</span>
@@ -162,6 +170,7 @@ export default function DashboardOverview() {
             <Button 
               variant="outline" 
               className="h-auto p-6 flex-col gap-3 interactive-hover border-success/20 hover:border-success/50"
+              onClick={() => navigate('/contracts')}
             >
               <Calendar className="h-8 w-8 text-success" />
               <span className="text-sm font-medium">عقد جديد</span>
@@ -169,6 +178,7 @@ export default function DashboardOverview() {
             <Button 
               variant="outline" 
               className="h-auto p-6 flex-col gap-3 interactive-hover border-warning/20 hover:border-warning/50"
+              onClick={() => navigate('/customers')}
             >
               <Users className="h-8 w-8 text-warning" />
               <span className="text-sm font-medium">عميل جديد</span>
@@ -176,6 +186,7 @@ export default function DashboardOverview() {
             <Button 
               variant="outline" 
               className="h-auto p-6 flex-col gap-3 interactive-hover border-info/20 hover:border-info/50"
+              onClick={() => navigate('/maintenance')}
             >
               <Settings className="h-8 w-8 text-info" />
               <span className="text-sm font-medium">طلب صيانة</span>

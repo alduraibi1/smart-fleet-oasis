@@ -1275,7 +1275,7 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
                 >
                   حفظ كمسودة
                 </Button>
-                <Button type="submit" className="bg-rental-primary hover:bg-rental-primary/90">
+                <Button type="submit" className="bg-primary hover:bg-primary-hover">
                   إضافة العميل
                 </Button>
               </div>

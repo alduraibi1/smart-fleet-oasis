@@ -393,7 +393,7 @@ export default function AddContractDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-rental-primary hover:bg-rental-primary/90">
+        <Button className="bg-primary hover:bg-primary-hover">
           <Plus className="h-4 w-4 ml-2" />
           عقد جديد
         </Button>
@@ -1267,7 +1267,7 @@ export default function AddContractDialog() {
             </Button>
             <Button
               onClick={handleSubmit}
-              className="bg-rental-primary hover:bg-rental-primary/90"
+              className="bg-primary hover:bg-primary-hover"
             >
               إنشاء العقد
             </Button>

@@ -166,7 +166,7 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="text-rental-primary">
+        <Button variant="outline" size="sm" className="text-primary">
           <ArrowLeft className="h-4 w-4 ml-1" />
           إرجاع المركبة
         </Button>
@@ -193,7 +193,7 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   currentStep >= step
-                    ? 'bg-rental-primary text-white'
+                    ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-muted-foreground'
                 }`}
               >
@@ -202,7 +202,7 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
               {step < 3 && (
                 <div
                   className={`h-1 flex-1 mx-2 ${
-                    currentStep > step ? 'bg-rental-primary' : 'bg-muted'
+                    currentStep > step ? 'bg-primary' : 'bg-muted'
                   }`}
                 />
               )}
@@ -572,11 +572,11 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
           </Button>
           
           {currentStep < 3 ? (
-            <Button onClick={nextStep} className="bg-rental-primary hover:bg-rental-primary/90">
+            <Button onClick={nextStep} className="bg-primary hover:bg-primary-hover">
               التالي
             </Button>
           ) : (
-            <Button onClick={handleSubmit} className="bg-rental-primary hover:bg-rental-primary/90">
+            <Button onClick={handleSubmit} className="bg-primary hover:bg-primary-hover">
               إنهاء الإرجاع
             </Button>
           )}
