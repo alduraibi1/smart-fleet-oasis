@@ -25,7 +25,7 @@ import {
 import Sidebar from '@/components/Layout/Sidebar';
 import Header from '@/components/Layout/Header';
 import { ContractsOverview } from '@/components/Contracts/ContractsOverview';
-import { ContractAnalytics } from '@/components/Contracts/ContractAnalytics';
+import { ContractsAnalytics } from '@/components/Contracts/ContractsAnalytics';
 import { FinancialReports } from '@/components/Contracts/FinancialReports';
 import { ContractLifecycle } from '@/components/Contracts/ContractLifecycle';
 import { DigitalSignatures } from '@/components/Contracts/DigitalSignatures';
@@ -128,7 +128,7 @@ const Contracts = () => {
                 </TabsList>
 
                 <TabsContent value="analytics" className="space-y-6">
-                  <ContractAnalytics contracts={contracts} />
+                  <ContractsAnalytics />
                 </TabsContent>
 
                 <TabsContent value="reports" className="space-y-6">
