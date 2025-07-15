@@ -40,19 +40,31 @@ export const SaudiValidation = {
       const cleaned = value.replace(/\D/g, '');
       
       if (cleaned.length === 0) return '';
-      if (cleaned.length < 10) return 'رقم الهوية يجب أن يكون 10 أرقام';
-      if (cleaned.length > 10) return 'رقم الهوية يجب أن يكون 10 أرقام فقط';
+      if (cleaned.length < 10) return 'رقم الهوية/الإقامة يجب أن يكون 10 أرقام';
+      if (cleaned.length > 10) return 'رقم الهوية/الإقامة يجب أن يكون 10 أرقام فقط';
       
       const firstDigit = cleaned[0];
       if (firstDigit !== '1' && firstDigit !== '2') {
-        return 'رقم الهوية يجب أن يبدأ بـ 1 (مواطن) أو 2 (مقيم)';
+        return 'رقم الهوية يجب أن يبدأ بـ 1 (مواطن سعودي) أو 2 (مقيم)';
       }
       
       if (!SaudiValidation.nationalId.validate(cleaned)) {
-        return 'رقم الهوية غير صحيح';
+        const type = firstDigit === '1' ? 'الهوية السعودية' : 'رقم الإقامة';
+        return `${type} غير صحيح`;
       }
       
       return '';
+    },
+
+    // Helper function to get ID type
+    getIdType: (value: string): 'saudi' | 'resident' | 'invalid' => {
+      const cleaned = value.replace(/\D/g, '');
+      if (cleaned.length !== 10) return 'invalid';
+      
+      const firstDigit = cleaned[0];
+      if (firstDigit === '1') return 'saudi';
+      if (firstDigit === '2') return 'resident';
+      return 'invalid';
     }
   },
 

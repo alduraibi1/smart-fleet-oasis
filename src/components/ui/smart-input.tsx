@@ -192,7 +192,7 @@ const SmartInput = React.forwardRef<HTMLInputElement, SmartInputProps>(
           <div className="text-xs text-muted-foreground">
             {(() => {
               const helpTexts = {
-                nationalId: "يجب أن يبدأ بـ 1 (مواطن) أو 2 (مقيم) ويتكون من 10 أرقام",
+                nationalId: "رقم الهوية السعودية: يبدأ بـ 1 (مواطن) | رقم الإقامة: يبدأ بـ 2 (مقيم)",
                 mobileNumber: "يجب أن يبدأ بـ 5 ويتكون من 10 أرقام",
                 plateNumber: "الشكل الجديد: 3 أحرف + 4 أرقام",
                 vin: "17 حرف/رقم (لا يحتوي على I, O, Q)",
