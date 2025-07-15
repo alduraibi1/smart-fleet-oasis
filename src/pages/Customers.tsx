@@ -333,6 +333,7 @@ export default function Customers() {
               onRefresh={handleRefresh}
               totalCount={customers.length}
               filteredCount={filteredCustomers.length}
+              customers={customers}
             />
 
             {/* Bulk Actions */}
