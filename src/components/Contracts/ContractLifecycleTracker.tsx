@@ -1,410 +1,175 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
+  Calendar, 
   CheckCircle, 
   Clock, 
   AlertTriangle, 
-  FileText, 
-  UserCheck, 
   Car, 
-  Calendar,
-  ArrowRight,
-  MoreHorizontal,
-  Bell,
-  Eye,
-  Edit,
-  MessageSquare
+  FileText, 
+  CreditCard,
+  PenTool,
+  Archive
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-interface ContractStage {
-  id: string;
-  name: string;
-  description: string;
-  status: 'completed' | 'current' | 'pending' | 'warning';
-  completedAt?: string;
-  estimatedDuration: number;
-  actualDuration?: number;
-  responsible?: string;
-  notes?: string;
-  documents?: string[];
-}
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 interface ContractLifecycleTrackerProps {
-  contractId: string;
-  contractNumber?: string;
-  currentStage?: string;
-  autoProgress?: boolean;
+  contract: any;
+  onStageUpdate: (contractId: string, stage: string) => void;
 }
 
-export function ContractLifecycleTracker({ 
-  contractId, 
-  contractNumber = "CR-2024-001", 
-  currentStage = "active",
-  autoProgress = true 
-}: ContractLifecycleTrackerProps) {
-  
-  const [stages, setStages] = useState<ContractStage[]>([
-    {
-      id: 'request',
-      name: 'طلب جديد',
-      description: 'تم استلام طلب العقد وبدء المراجعة الأولية',
-      status: 'completed',
-      completedAt: '2024-01-15T10:00:00Z',
-      estimatedDuration: 1,
-      actualDuration: 0.5,
-      responsible: 'أحمد محمد',
-      documents: ['طلب_العقد.pdf', 'هوية_العميل.pdf']
-    },
-    {
-      id: 'verification',
-      name: 'التحقق والمراجعة',
-      description: 'مراجعة بيانات العميل والتحقق من الوثائق المطلوبة',
-      status: 'completed',
-      completedAt: '2024-01-16T14:30:00Z',
-      estimatedDuration: 2,
-      actualDuration: 1.5,
-      responsible: 'فاطمة علي',
-      documents: ['تقرير_التحقق.pdf', 'الموافقة_المبدئية.pdf']
-    },
-    {
-      id: 'approval',
-      name: 'الموافقة',
-      description: 'موافقة الإدارة على العقد وشروطه',
-      status: 'completed',
-      completedAt: '2024-01-17T09:15:00Z',
-      estimatedDuration: 1,
-      actualDuration: 0.8,
-      responsible: 'محمد السالم',
-      documents: ['موافقة_الإدارة.pdf']
-    },
-    {
-      id: 'signing',
-      name: 'التوقيع',
-      description: 'توقيع العقد من جميع الأطراف',
-      status: 'completed',
-      completedAt: '2024-01-18T11:00:00Z',
-      estimatedDuration: 1,
-      actualDuration: 1.2,
-      responsible: 'سارة أحمد',
-      documents: ['العقد_الموقع.pdf', 'نسخة_العميل.pdf']
-    },
-    {
-      id: 'active',
-      name: 'عقد نشط',
-      description: 'العقد ساري المفعول والمركبة قيد الاستخدام',
-      status: 'current',
-      estimatedDuration: 30,
-      responsible: 'قسم المتابعة',
-      notes: 'المتابعة الدورية للعقد والتأكد من سير العملية بسلاسة'
-    },
-    {
-      id: 'reminder',
-      name: 'تذكير بالانتهاء',
-      description: 'إرسال تذكيرات للعميل قبل انتهاء العقد',
-      status: 'pending',
-      estimatedDuration: 3,
-      responsible: 'قسم خدمة العملاء'
-    },
-    {
-      id: 'return',
-      name: 'إرجاع المركبة',
-      description: 'استلام المركبة وفحصها وإنهاء الإجراءات',
-      status: 'pending',
-      estimatedDuration: 1,
-      responsible: 'قسم الاستلام'
-    },
-    {
-      id: 'completed',
-      name: 'مكتمل',
-      description: 'تم إنهاء العقد بنجاح وإغلاق الملف',
-      status: 'pending',
-      estimatedDuration: 0.5,
-      responsible: 'الأرشيف'
-    }
-  ]);
+const stages = [
+  { id: 'draft', name: 'مسودة', icon: FileText, color: 'bg-gray-500' },
+  { id: 'signed', name: 'موقع', icon: PenTool, color: 'bg-blue-500' },
+  { id: 'active', name: 'نشط', icon: CheckCircle, color: 'bg-green-500' },
+  { id: 'payment_due', name: 'استحقاق دفع', icon: CreditCard, color: 'bg-yellow-500' },
+  { id: 'completed', name: 'مكتمل', icon: Archive, color: 'bg-purple-500' },
+  { id: 'cancelled', name: 'ملغي', icon: AlertTriangle, color: 'bg-red-500' }
+];
 
-  const [selectedStage, setSelectedStage] = useState<string>('active');
-  const [showTimeline, setShowTimeline] = useState(true);
-
-  const getStageProgress = () => {
-    const completedStages = stages.filter(s => s.status === 'completed').length;
-    const totalStages = stages.length;
-    return (completedStages / totalStages) * 100;
-  };
+export const ContractLifecycleTracker = ({ contract, onStageUpdate }: ContractLifecycleTrackerProps) => {
+  const [currentStage, setCurrentStage] = useState(contract?.status || 'draft');
 
   const getCurrentStageIndex = () => {
-    return stages.findIndex(s => s.status === 'current');
+    return stages.findIndex(stage => stage.id === currentStage);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const getProgressPercentage = () => {
+    const currentIndex = getCurrentStageIndex();
+    return ((currentIndex + 1) / stages.length) * 100;
   };
 
-  const getStageIcon = (stage: ContractStage) => {
-    switch (stage.id) {
-      case 'request':
-        return <FileText className="h-4 w-4" />;
-      case 'verification':
-        return <UserCheck className="h-4 w-4" />;
-      case 'approval':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'signing':
-        return <Edit className="h-4 w-4" />;
-      case 'active':
-        return <Car className="h-4 w-4" />;
-      case 'reminder':
-        return <Bell className="h-4 w-4" />;
-      case 'return':
-        return <Calendar className="h-4 w-4" />;
-      case 'completed':
-        return <CheckCircle className="h-4 w-4" />;
-      default:
-        return <Clock className="h-4 w-4" />;
-    }
+  const handleStageChange = (newStage: string) => {
+    setCurrentStage(newStage);
+    onStageUpdate(contract.id, newStage);
   };
 
-  const getStageColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'text-green-600 bg-green-100 border-green-200';
-      case 'current':
-        return 'text-blue-600 bg-blue-100 border-blue-200';
-      case 'warning':
-        return 'text-yellow-600 bg-yellow-100 border-yellow-200';
-      default:
-        return 'text-gray-600 bg-gray-100 border-gray-200';
-    }
+  const getDaysRemaining = () => {
+    if (!contract?.end_date) return null;
+    const endDate = new Date(contract.end_date);
+    const today = new Date();
+    const diffTime = endDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   };
+
+  const daysRemaining = getDaysRemaining();
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row gap-4 justify-between items-start">
-        <div>
-          <h2 className="text-2xl font-bold">تتبع دورة حياة العقد</h2>
-          <p className="text-muted-foreground mt-1">
-            تتبع مفصل لجميع مراحل العقد {contractNumber}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={() => setShowTimeline(!showTimeline)}>
-            {showTimeline ? 'إخفاء' : 'عرض'} الجدول الزمني
-          </Button>
-          <Badge variant="outline" className="bg-primary/10">
-            {Math.round(getStageProgress())}% مكتمل
-          </Badge>
-        </div>
-      </div>
-
-      {/* Progress Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            نظرة عامة على التقدم
-          </CardTitle>
-          <CardDescription>
-            المرحلة الحالية: {stages[getCurrentStageIndex()]?.name || 'غير محدد'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between text-sm">
-              <span>التقدم الإجمالي</span>
-              <span>{Math.round(getStageProgress())}%</span>
-            </div>
-            <Progress value={getStageProgress()} className="h-3" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
-                  {stages.filter(s => s.status === 'completed').length}
-                </div>
-                <div className="text-sm text-muted-foreground">مراحل مكتملة</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">1</div>
-                <div className="text-sm text-muted-foreground">مرحلة حالية</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-600">
-                  {stages.filter(s => s.status === 'pending').length}
-                </div>
-                <div className="text-sm text-muted-foreground">مراحل قادمة</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
-                  {stages.length}
-                </div>
-                <div className="text-sm text-muted-foreground">إجمالي المراحل</div>
-              </div>
-            </div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Calendar className="h-5 w-5" />
+          تتبع دورة حياة العقد - {contract?.contract_number}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Progress Overview */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>التقدم الإجمالي</span>
+            <span>{Math.round(getProgressPercentage())}%</span>
           </div>
-        </CardContent>
-      </Card>
+          <Progress value={getProgressPercentage()} className="h-2" />
+        </div>
 
-      {/* Timeline View */}
-      {showTimeline && (
-        <Card>
-          <CardHeader>
-            <CardTitle>الجدول الزمني للمراحل</CardTitle>
-            <CardDescription>تسلسل زمني مفصل لجميع مراحل العقد</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="relative">
-              {/* Timeline Line */}
-              <div className="absolute right-8 top-8 bottom-8 w-0.5 bg-border"></div>
-              
-              <div className="space-y-6">
-                {stages.map((stage, index) => (
-                  <div 
-                    key={stage.id} 
-                    className={cn(
-                      "relative flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-all",
-                      selectedStage === stage.id ? "bg-primary/5 border-primary/20" : "hover:bg-muted/50",
-                      stage.status === 'current' && "bg-blue-50 border-blue-200"
-                    )}
-                    onClick={() => setSelectedStage(stage.id)}
-                  >
-                    {/* Timeline Node */}
-                    <div className={cn(
-                      "absolute -right-2 w-4 h-4 rounded-full border-2 bg-background z-10",
-                      getStageColor(stage.status).includes('green') && "border-green-500 bg-green-500",
-                      getStageColor(stage.status).includes('blue') && "border-blue-500 bg-blue-500",
-                      getStageColor(stage.status).includes('yellow') && "border-yellow-500 bg-yellow-500",
-                      getStageColor(stage.status).includes('gray') && "border-gray-300 bg-gray-100"
-                    )}></div>
-                    
-                    {/* Stage Icon */}
-                    <div className={cn(
-                      "flex items-center justify-center w-10 h-10 rounded-full border",
-                      getStageColor(stage.status)
-                    )}>
-                      {getStageIcon(stage)}
-                    </div>
+        {/* Contract Info */}
+        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+          <div>
+            <span className="text-sm text-muted-foreground">تاريخ البداية</span>
+            <p className="font-medium">
+              {contract?.start_date ? format(new Date(contract.start_date), 'PPP', { locale: ar }) : 'غير محدد'}
+            </p>
+          </div>
+          <div>
+            <span className="text-sm text-muted-foreground">تاريخ الانتهاء</span>
+            <p className="font-medium">
+              {contract?.end_date ? format(new Date(contract.end_date), 'PPP', { locale: ar }) : 'غير محدد'}
+            </p>
+          </div>
+          <div>
+            <span className="text-sm text-muted-foreground">المبلغ الإجمالي</span>
+            <p className="font-medium">{contract?.total_amount?.toLocaleString()} ريال</p>
+          </div>
+          <div>
+            <span className="text-sm text-muted-foreground">الأيام المتبقية</span>
+            <p className="font-medium flex items-center gap-1">
+              {daysRemaining !== null ? (
+                <>
+                  <Clock className="h-4 w-4" />
+                  {daysRemaining > 0 ? `${daysRemaining} يوم` : 'منتهي'}
+                </>
+              ) : 'غير محدد'}
+            </p>
+          </div>
+        </div>
 
-                    {/* Stage Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg">{stage.name}</h3>
-                          <p className="text-muted-foreground text-sm mt-1">
-                            {stage.description}
-                          </p>
-                          
-                          {/* Stage Details */}
-                          <div className="mt-3 space-y-2">
-                            {stage.responsible && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <UserCheck className="h-4 w-4 text-muted-foreground" />
-                                <span>المسؤول: {stage.responsible}</span>
-                              </div>
-                            )}
-                            
-                            {stage.completedAt && (
-                              <div className="flex items-center gap-2 text-sm text-green-600">
-                                <CheckCircle className="h-4 w-4" />
-                                <span>اكتمل في: {formatDate(stage.completedAt)}</span>
-                              </div>
-                            )}
-                            
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-4 w-4" />
-                                <span>المدة المقدرة: {stage.estimatedDuration} يوم</span>
-                              </div>
-                              {stage.actualDuration && (
-                                <div className="flex items-center gap-1">
-                                  <span>المدة الفعلية: {stage.actualDuration} يوم</span>
-                                </div>
-                              )}
-                            </div>
-                            
-                            {stage.documents && stage.documents.length > 0 && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <FileText className="h-4 w-4 text-muted-foreground" />
-                                <span>المستندات: {stage.documents.length}</span>
-                                <Button variant="ghost" size="sm" className="h-6 px-2">
-                                  <Eye className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            )}
-                            
-                            {stage.notes && (
-                              <div className="bg-muted/50 p-3 rounded text-sm mt-2">
-                                <div className="flex items-start gap-2">
-                                  <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5" />
-                                  <span>{stage.notes}</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+        {/* Stages Timeline */}
+        <div className="space-y-4">
+          <h4 className="font-medium">مراحل العقد</h4>
+          <div className="space-y-3">
+            {stages.map((stage, index) => {
+              const isActive = stage.id === currentStage;
+              const isCompleted = getCurrentStageIndex() > index;
+              const Icon = stage.icon;
 
-                        {/* Stage Status Badge */}
-                        <Badge variant={
-                          stage.status === 'completed' ? 'default' :
-                          stage.status === 'current' ? 'default' :
-                          stage.status === 'warning' ? 'destructive' : 'secondary'
-                        }>
-                          {stage.status === 'completed' ? 'مكتمل' :
-                           stage.status === 'current' ? 'جاري' :
-                           stage.status === 'warning' ? 'تحذير' : 'قادم'}
+              return (
+                <div key={stage.id} className="flex items-center gap-3">
+                  <div className={`
+                    p-2 rounded-full flex items-center justify-center
+                    ${isActive ? stage.color + ' text-white' : isCompleted ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}
+                  `}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className={`font-medium ${isActive ? 'text-primary' : isCompleted ? 'text-green-600' : 'text-muted-foreground'}`}>
+                        {stage.name}
+                      </span>
+                      {isActive && (
+                        <Badge variant="default" className="text-xs">
+                          مرحلة حالية
                         </Badge>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      )}
+                      {isCompleted && (
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Stage Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>إجراءات سريعة</CardTitle>
-          <CardDescription>إجراءات متاحة للمرحلة الحالية</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            <Button size="sm" className="gap-2">
-              <Edit className="h-4 w-4" />
-              تحديث المرحلة
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2">
-              <MessageSquare className="h-4 w-4" />
-              إضافة ملاحظة
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2">
-              <FileText className="h-4 w-4" />
-              رفع مستند
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Bell className="h-4 w-4" />
-              إرسال تذكير
-            </Button>
+                  {!isCompleted && !isActive && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleStageChange(stage.id)}
+                      className="text-xs"
+                    >
+                      انتقال
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 gap-2 pt-4 border-t">
+          <Button variant="outline" size="sm" className="text-xs">
+            <Car className="h-4 w-4 mr-1" />
+            تفاصيل المركبة
+          </Button>
+          <Button variant="outline" size="sm" className="text-xs">
+            <FileText className="h-4 w-4 mr-1" />
+            المستندات
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
-}
+};

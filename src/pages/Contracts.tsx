@@ -135,7 +135,10 @@ const Contracts = () => {
                 </TabsContent>
 
                 <TabsContent value="tracker" className="space-y-6">
-                  <ContractLifecycleTracker contractId="sample-id" />
+                  <ContractLifecycleTracker 
+                    contract={contracts[0] || { id: 'sample-id', contract_number: 'C001' }} 
+                    onStageUpdate={(contractId, stage) => console.log('Stage update:', contractId, stage)}
+                  />
                 </TabsContent>
 
                 <TabsContent value="search" className="space-y-6">
