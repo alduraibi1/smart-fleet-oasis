@@ -110,7 +110,7 @@ export interface Customer {
   updated_at: string;
   created_by?: string;
   
-  // الحقول القديمة للتوافق مع المكونات الحالية
+  // الحقول للتوافق مع المكونات الحالية
   nationalId: string;
   licenseNumber: string;
   licenseExpiry: Date;
@@ -124,28 +124,9 @@ export interface CustomerGuarantor {
   id: string;
   customer_id: string;
   name: string;
-  name_english?: string;
   phone: string;
-  phone_secondary?: string;
-  email?: string;
   national_id: string;
-  nationality: string;
-  date_of_birth?: string;
   relation: string;
-  job_title?: string;
-  company?: string;
-  work_phone?: string;
-  monthly_income?: number;
-  address?: string;
-  city?: string;
-  district?: string;
-  postal_code?: string;
-  country: string;
-  license_number?: string;
-  license_expiry?: string;
-  bank_name?: string;
-  account_number?: string;
-  notes?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -157,12 +138,8 @@ export interface CustomerDocument {
   document_type: string;
   document_name: string;
   file_url?: string;
-  file_name?: string;
   expiry_date?: string;
   status: string;
-  notes?: string;
-  uploaded_by?: string;
-  upload_date: string;
   created_at: string;
   updated_at: string;
 }
