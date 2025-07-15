@@ -29,6 +29,10 @@ import { ContractsAnalytics } from '@/components/Contracts/ContractsAnalytics';
 import { ContractLifecycle } from '@/components/Contracts/ContractLifecycle';
 import { DigitalSignatures } from '@/components/Contracts/DigitalSignatures';
 import { AutomatedContracts } from '@/components/Contracts/AutomatedContracts';
+import { AdvancedDashboard } from '@/components/Contracts/AdvancedDashboard';
+import { ContractLifecycleTracker } from '@/components/Contracts/ContractLifecycleTracker';
+import { AdvancedSearchFilter } from '@/components/Contracts/AdvancedSearchFilter';
+import { SmartNotifications } from '@/components/Contracts/SmartNotifications';
 import { useContracts } from '@/hooks/useContracts';
 
 const statusConfig = {
@@ -109,21 +113,42 @@ const Contracts = () => {
                 </div>
               </div>
 
-              <Tabs defaultValue="overview" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-6">
+              <Tabs defaultValue="dashboard" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-8">
+                  <TabsTrigger value="dashboard">لوحة التحكم</TabsTrigger>
                   <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
-                  <TabsTrigger value="classic">الإدارة التقليدية</TabsTrigger>
-                  <TabsTrigger value="analytics">تحليل العقود</TabsTrigger>
-                  <TabsTrigger value="lifecycle">دورة الحياة</TabsTrigger>
+                  <TabsTrigger value="tracker">تتبع دورة الحياة</TabsTrigger>
+                  <TabsTrigger value="search">البحث المتقدم</TabsTrigger>
+                  <TabsTrigger value="notifications">الإشعارات</TabsTrigger>
+                  <TabsTrigger value="analytics">التحليلات</TabsTrigger>
                   <TabsTrigger value="signatures">التوقيع الإلكتروني</TabsTrigger>
                   <TabsTrigger value="automation">العقود الذكية</TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="dashboard" className="space-y-6">
+                  <AdvancedDashboard contracts={contracts} stats={stats} />
+                </TabsContent>
 
                 <TabsContent value="overview" className="space-y-6">
                   <ContractsOverview />
                 </TabsContent>
 
-                <TabsContent value="classic" className="space-y-6">
+                <TabsContent value="tracker" className="space-y-6">
+                  <ContractLifecycleTracker contractId="sample-id" />
+                </TabsContent>
+
+                <TabsContent value="search" className="space-y-6">
+                  <AdvancedSearchFilter 
+                    onFiltersChange={(filters) => console.log('Filters:', filters)}
+                    onExport={(format) => console.log('Export:', format)}
+                  />
+                </TabsContent>
+
+                <TabsContent value="notifications" className="space-y-6">
+                  <SmartNotifications />
+                </TabsContent>
+
+                <TabsContent value="classic" className="space-y-6" style={{ display: 'none' }}>
                   {/* الإدارة التقليدية الموجودة */}
                    {/* Summary Cards */}
                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
