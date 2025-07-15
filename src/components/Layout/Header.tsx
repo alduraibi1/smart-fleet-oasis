@@ -26,9 +26,21 @@ export default function Header({ onMenuClick }: HeaderProps) {
             <Menu className="h-5 w-5" />
           </Button>
           
-          {/* Logo - visible on mobile */}
-          <div className="lg:hidden">
-            <Logo size="sm" />
+          {/* Logo - visible on all screens */}
+          <div className="flex-shrink-0">
+            <Logo 
+              size="sm" 
+              variant="glow"
+              animated={true}
+              className="hidden sm:block"
+            />
+            <Logo 
+              size="xs" 
+              showText={false}
+              variant="glow"
+              animated={true}
+              className="sm:hidden"
+            />
           </div>
           
           <div className="hidden md:block">

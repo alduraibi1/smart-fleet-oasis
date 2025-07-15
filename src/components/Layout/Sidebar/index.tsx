@@ -41,22 +41,22 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         "lg:relative lg:translate-x-0 lg:z-0 lg:w-72",
         isOpen ? "translate-x-0" : "translate-x-full"
       )}>
-        {/* Header */}
-        <div className="flex flex-col p-6 border-b border-border/60 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent backdrop-blur-sm">
-          <div className="flex items-center justify-between mb-3">
-            <Logo size="md" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="lg:hidden h-9 w-9 rounded-xl btn-scale hover-glow"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground font-medium">
-            نظام إدارة تأجير المركبات المتطور
-          </p>
+        {/* Header with Logo and Close button */}
+        <div className="flex items-center justify-between p-6 border-b border-border bg-gradient-to-r from-primary/5 to-primary-hover/5">
+          <Logo 
+            size="lg" 
+            variant="glow"
+            animated={true}
+            className="flex-1"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="lg:hidden hover:bg-primary/10 transition-colors duration-300"
+          >
+            <X className="h-5 w-5 text-muted-foreground hover:text-primary" />
+          </Button>
         </div>
 
         {/* Navigation */}

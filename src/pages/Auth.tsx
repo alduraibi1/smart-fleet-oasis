@@ -164,14 +164,21 @@ export default function AuthPage() {
       </div>
 
       <div className="relative w-full max-w-md">
-        {/* شعار وعنوان */}
-        <div className="text-center mb-8 fade-in">
-          <div className="flex justify-center mb-4">
-            <Logo size="xl" />
+        {/* Header with Logo */}
+        <div className="text-center mb-12">
+          <div className="relative">
+            <Logo 
+              size="xl" 
+              variant="glow"
+              animated={true}
+              className="mx-auto mb-6"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-primary-hover/20 blur-3xl -z-10" />
           </div>
-          <p className="text-muted-foreground mt-2">
-            نظام إدارة تأجير المركبات المتطور
-          </p>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-foreground">مرحباً بك في الدرايبي</h2>
+            <p className="text-muted-foreground">نظام إدارة تأجير المركبات المتطور</p>
+          </div>
         </div>
 
         <Card className="card-premium shadow-strong border-border/60 scale-in">
