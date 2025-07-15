@@ -2,14 +2,13 @@ import { useState } from 'react';
 import Sidebar from '@/components/Layout/Sidebar';
 import Header from '@/components/Layout/Header';
 import { ContractsHeader } from '@/components/Contracts/ContractsHeader';
-import { ContractsLayout } from '@/components/Contracts/ContractsLayout';
 import { ContractsStats } from '@/components/Contracts/ContractsStats';
 import { ContractsTable } from '@/components/Contracts/ContractsTable';
 import { useContracts } from '@/hooks/useContracts';
 
-const Contracts = () => {
+const ContractsSimple = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { contracts, loading, stats, fetchContracts } = useContracts();
+  const { contracts, loading, stats } = useContracts();
 
   return (
     <div className="min-h-screen bg-background">
@@ -25,22 +24,16 @@ const Contracts = () => {
           <main className="flex-1 overflow-y-auto p-6">
             <div className="max-w-7xl mx-auto space-y-6">
               {/* Page Header */}
-              <ContractsHeader />
+              <ContractsHeader 
+                title="إدارة العقود"
+                description="إدارة بسيطة للعقود وتتبع الحالات"
+              />
 
               {/* Statistics Cards */}
               <ContractsStats stats={stats} />
 
-              {/* Main Content Layout with Tabs */}
-              <ContractsLayout 
-                contracts={contracts} 
-                stats={stats} 
-                onRefresh={fetchContracts}
-              />
-
-              {/* Classic Table View - Hidden by default but available */}
-              <div className="mt-8" style={{ display: 'none' }}>
-                <ContractsTable contracts={contracts} loading={loading} />
-              </div>
+              {/* Contracts Table */}
+              <ContractsTable contracts={contracts} loading={loading} />
             </div>
           </main>
         </div>
@@ -49,4 +42,4 @@ const Contracts = () => {
   );
 };
 
-export default Contracts;
+export default ContractsSimple;
