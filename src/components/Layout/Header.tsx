@@ -6,12 +6,22 @@ import { Logo } from '@/components/ui/logo';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import NotificationCenter from '@/components/Notifications/NotificationCenter';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   onMenuClick: () => void;
 }
 
 export default function Header({ onMenuClick }: HeaderProps) {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
   return (
     <header className="backdrop-glass border-b border-border/60 px-6 py-4 sticky top-0 z-50 shadow-soft">
       <div className="flex items-center justify-between">
@@ -69,8 +79,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-3 btn-scale hover-glow p-2">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-foreground">أحمد محمد</p>
-                  <p className="text-xs text-muted-foreground">مدير النظام</p>
+                  <p className="text-sm font-medium text-foreground">{user?.user_metadata?.full_name || user?.email}</p>
+                  <p className="text-xs text-muted-foreground">مستخدم النظام</p>
                 </div>
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-variant text-primary-foreground flex items-center justify-center shadow-medium">
                   <User className="h-4 w-4" />
@@ -87,7 +97,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
                 الإعدادات
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border/60" />
-              <DropdownMenuItem className="gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive">
+              <DropdownMenuItem 
+                className="gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={handleSignOut}
+              >
                 <LogOut className="w-4 h-4" />
                 تسجيل الخروج
               </DropdownMenuItem>
