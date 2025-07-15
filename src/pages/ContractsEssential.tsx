@@ -5,17 +5,19 @@ import { ContractsHeader } from '@/components/Contracts/ContractsHeader';
 import { ContractsStats } from '@/components/Contracts/ContractsStats';
 import { ContractsTable } from '@/components/Contracts/ContractsTable';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useContracts } from '@/hooks/useContracts';
 import { 
   DollarSign, 
   TrendingUp, 
   Clock, 
-  AlertTriangle,
-  FileText
+  Users, 
+  FileText,
+  AlertTriangle
 } from "lucide-react";
 
-const Contracts = () => {
+const ContractsEssential = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { contracts, loading, stats } = useContracts();
 
@@ -50,11 +52,11 @@ const Contracts = () => {
             <div className="max-w-7xl mx-auto space-y-6">
               {/* Page Header */}
               <ContractsHeader 
-                title="إدارة العقود"
-                description="إدارة بسيطة وعملية للعقود مع التركيز على البيانات المالية"
+                title="إدارة العقود الأساسية"
+                description="إدارة مبسطة وعملية للعقود مع التركيز على البيانات المالية"
               />
 
-              {/* البيانات المالية الأساسية */}
+              {/* إحصائيات العقود الأساسية */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card className="border-l-4 border-l-green-500">
                   <CardHeader className="pb-2">
@@ -171,7 +173,7 @@ const Contracts = () => {
                 </Card>
               )}
 
-              {/* جدول العقود */}
+              {/* جدول العقود الأساسي */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -183,6 +185,44 @@ const Contracts = () => {
                   <ContractsTable contracts={contracts} loading={loading} />
                 </CardContent>
               </Card>
+
+              {/* إحصائيات سريعة */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">متوسط قيمة العقد</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-xl font-bold">
+                      {contracts.length > 0 ? 
+                        Math.round(financialData.totalRevenue / contracts.length).toLocaleString() : 0
+                      } ريال
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">العقود النشطة</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-xl font-bold">
+                      {contracts.filter(c => c.status === 'active').length}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">العقود المكتملة</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-xl font-bold">
+                      {contracts.filter(c => c.status === 'completed').length}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </main>
         </div>
@@ -191,4 +231,4 @@ const Contracts = () => {
   );
 };
 
-export default Contracts;
+export default ContractsEssential;
