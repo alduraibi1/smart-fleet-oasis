@@ -208,9 +208,9 @@ export function AdvancedSearchFilter({
       if (Array.isArray(currentValue)) {
         return {
           ...prev,
-          [key]: currentValue.includes(value) 
-            ? currentValue.filter((item: string) => item !== value)
-            : [...currentValue, value]
+          [key]: (currentValue as string[]).includes(value) 
+            ? (currentValue as string[]).filter((item: string) => item !== value)
+            : [...(currentValue as string[]), value]
         };
       }
       return prev;
