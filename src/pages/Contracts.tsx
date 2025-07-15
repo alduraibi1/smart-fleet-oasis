@@ -33,6 +33,7 @@ import { AdvancedDashboard } from '@/components/Contracts/AdvancedDashboard';
 import { ContractLifecycleTracker } from '@/components/Contracts/ContractLifecycleTracker';
 import { AdvancedSearchFilter } from '@/components/Contracts/AdvancedSearchFilter';
 import { SmartNotifications } from '@/components/Contracts/SmartNotifications';
+import { ContractStatusManager } from '@/components/Contracts/ContractStatusManager';
 import { useContracts } from '@/hooks/useContracts';
 
 const statusConfig = {
@@ -146,6 +147,30 @@ const Contracts = () => {
 
                 <TabsContent value="notifications" className="space-y-6">
                   <SmartNotifications />
+                </TabsContent>
+
+                <TabsContent value="status-manager" className="space-y-6">
+                  <div className="grid gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>إدارة حالة العقود</CardTitle>
+                        <p className="text-muted-foreground">
+                          إدارة شاملة لحالات العقود وتتبع دورة الحياة
+                        </p>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {filteredContracts.slice(0, 5).map((contract) => (
+                            <ContractStatusManager
+                              key={contract.id}
+                              contract={contract}
+                              onStatusChange={() => fetchContracts()}
+                            />
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="classic" className="space-y-6" style={{ display: 'none' }}>
@@ -311,24 +336,19 @@ const Contracts = () => {
                                        {statusConfig[contract.status].label}
                                      </Badge>
                                    </TableCell>
-                                   <TableCell>
-                                     <div className="flex items-center gap-2">
-                                       <Button variant="ghost" size="sm">
-                                         <Eye className="h-4 w-4" />
-                                       </Button>
-                                       <Button variant="ghost" size="sm">
-                                         <Edit className="h-4 w-4" />
-                                       </Button>
-                                       {contract.status === 'active' && (
-                                         <VehicleReturnDialog contractId={contract.id} />
-                                       )}
-                                       {contract.status === 'expired' && (
-                                         <Button variant="ghost" size="sm" className="text-primary">
-                                           <Calendar className="h-4 w-4" />
-                                         </Button>
-                                       )}
-                                     </div>
-                                   </TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center gap-2">
+                                        <Button variant="ghost" size="sm">
+                                          <Eye className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="sm">
+                                          <Edit className="h-4 w-4" />
+                                        </Button>
+                                        {contract.status === 'active' && (
+                                          <VehicleReturnDialog contractId={contract.id} />
+                                        )}
+                                      </div>
+                                    </TableCell>
                                  </TableRow>
                                ))
                              )}

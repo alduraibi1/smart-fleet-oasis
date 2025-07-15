@@ -52,31 +52,8 @@ interface ReturnFormData {
   inspectorName: string;
 }
 
-// Mock active contracts
-const activeContracts = [
-  {
-    id: 'C001',
-    customerName: 'أحمد محمد علي',
-    vehicleModel: 'تويوتا كامري 2023',
-    vehiclePlate: 'أ ب ج 1234',
-    startDate: '2024-01-15',
-    endDate: '2024-07-15',
-    dailyRate: 150,
-    startMileage: 25000,
-    status: 'active'
-  },
-  {
-    id: 'C002',
-    customerName: 'فاطمة أحمد',
-    vehicleModel: 'نيسان التيما 2022',
-    vehiclePlate: 'هـ و ز 5678',
-    startDate: '2024-02-01',
-    endDate: '2024-08-01',
-    dailyRate: 130,
-    startMileage: 30000,
-    status: 'active'
-  },
-];
+// Import useContracts hook for real data
+import { useContracts } from '@/hooks/useContracts';
 
 const conditionOptions = {
   excellent: { label: 'ممتاز', color: 'bg-green-100 text-green-800' },
@@ -92,6 +69,7 @@ interface VehicleReturnDialogProps {
 export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogProps) {
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const { contracts, completeContract } = useContracts();
   const [formData, setFormData] = useState<ReturnFormData>({
     contractId: contractId || '',
     returnDate: new Date().toISOString().split('T')[0],
@@ -120,6 +98,19 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
   const [returnImages, setReturnImages] = useState<File[]>([]);
   const { toast } = useToast();
 
+  // Get active contracts for the dropdown
+  const activeContracts = contracts.filter(c => c.status === 'active').map(c => ({
+    id: c.id,
+    customerName: c.customer?.name || 'غير محدد',
+    vehicleModel: `${c.vehicle?.brand} ${c.vehicle?.model} ${c.vehicle?.year}`,
+    vehiclePlate: c.vehicle?.plate_number || 'غير محدد',
+    startDate: c.start_date,
+    endDate: c.end_date,
+    dailyRate: c.daily_rate,
+    startMileage: c.mileage_start || 0,
+    status: c.status
+  }));
+
   const selectedContract = activeContracts.find(c => c.id === formData.contractId);
 
   const calculateTotalCharges = () => {
@@ -134,7 +125,7 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
     return Math.max(0, securityDeposit - totalCharges);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.contractId || !formData.inspectorName || !formData.customerSignature) {
       toast({
         variant: "destructive",
@@ -144,15 +135,47 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
       return;
     }
 
-    // Here you would typically save the return data to your backend
-    toast({
-      title: "تم إرجاع المركبة بنجاح",
-      description: "تم إنشاء تقرير الإرجاع وتحديث حالة العقد",
-    });
-    
-    setOpen(false);
-    setCurrentStep(1);
-    // Reset form data
+    try {
+      const returnData = {
+        actual_return_date: `${formData.returnDate}T${formData.returnTime}:00`,
+        mileage_end: formData.currentMileage,
+        fuel_level_end: formData.fuelLevel.toString(),
+        additional_charges: calculateTotalCharges(),
+        notes: `${formData.returnNotes}\n\nفحص المركبة:\n${Object.entries(formData.condition).map(([part, condition]) => `${part}: ${condition}`).join('\n')}\n\nالمفتش: ${formData.inspectorName}\n\nالأضرار: ${formData.damageNotes}`,
+      };
+
+      await completeContract(formData.contractId, returnData);
+      setOpen(false);
+      setCurrentStep(1);
+      // Reset form data
+      setFormData({
+        contractId: contractId || '',
+        returnDate: new Date().toISOString().split('T')[0],
+        returnTime: new Date().toTimeString().slice(0, 5),
+        currentMileage: 0,
+        fuelLevel: 100,
+        condition: {
+          exterior: 'excellent',
+          interior: 'excellent',
+          tires: 'excellent',
+          engine: 'excellent',
+        },
+        damageNotes: '',
+        additionalCharges: {
+          lateFee: 0,
+          fuelCharge: 0,
+          damageFee: 0,
+          cleaningFee: 0,
+          other: 0,
+          otherDescription: '',
+        },
+        returnNotes: '',
+        customerSignature: false,
+        inspectorName: '',
+      });
+    } catch (error) {
+      // Error is already handled in the hook
+    }
   };
 
   const nextStep = () => {

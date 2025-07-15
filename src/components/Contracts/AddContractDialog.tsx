@@ -27,6 +27,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useVehicles } from '@/hooks/useVehicles';
 import { useContracts } from '@/hooks/useContracts';
+import { 
+  ValidationDisplay, 
+  ValidationBadge, 
+  useContractValidation,
+  ContractValidationErrors 
+} from './ContractValidation';
 
 
 const staff = [
@@ -168,7 +174,9 @@ export default function AddContractDialog() {
   
   const [documents, setDocuments] = useState<File[]>([]);
   const [inspectionImages, setInspectionImages] = useState<File[]>([]);
+  const [validationErrors, setValidationErrors] = useState<ContractValidationErrors>([]);
   const { toast } = useToast();
+  const { validateContract } = useContractValidation();
 
   // Hooks for data fetching
   const { customers } = useCustomers();
@@ -213,14 +221,29 @@ export default function AddContractDialog() {
   };
 
   const handleSubmit = async () => {
-    if (!formData.customerId || !formData.vehicleId || !formData.startDate || !formData.endDate) {
+    // Validate contract data
+    const contractData = {
+      customer_id: formData.customerId,
+      vehicle_id: formData.vehicleId,
+      start_date: formData.startDate,
+      end_date: formData.endDate,
+      daily_rate: formData.dailyRate,
+      total_amount: formData.totalAmount,
+    };
+
+    const validation = validateContract(contractData);
+    
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
       toast({
         variant: "destructive",
         title: "خطأ في البيانات",
-        description: "يرجى ملء جميع الحقول المطلوبة في التبويبات الأساسية",
+        description: "يرجى تصحيح الأخطاء الموجودة في النموذج",
       });
       return;
     }
+
+    setValidationErrors([]);
 
     try {
       const contractData = {
@@ -327,6 +350,9 @@ export default function AddContractDialog() {
             املأ البيانات التالية لإنشاء عقد إيجار شامل ومتكامل
           </DialogDescription>
         </DialogHeader>
+
+        {/* Validation Errors Display */}
+        <ValidationDisplay errors={validationErrors} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-6">
