@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { CalendarIcon, Search, Filter, X, SlidersHorizontal, Users, MapPin, Star } from 'lucide-react';
-import { CustomerFilters } from '@/types/index';
+import { CustomerFilters } from './EnhancedCustomerFilters';
 import { cn } from '@/lib/utils';
 
 interface AdvancedSearchDialogProps {

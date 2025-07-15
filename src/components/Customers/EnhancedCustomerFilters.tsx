@@ -36,6 +36,12 @@ export interface CustomerFilters {
   city?: string;
   nationality?: string;
   customerSource?: string;
+  gender?: string;
+  maritalStatus?: string;
+  minRentals?: number;
+  maxRentals?: number;
+  district?: string;
+  country?: string;
   dateFrom?: Date;
   dateTo?: Date;
 }
