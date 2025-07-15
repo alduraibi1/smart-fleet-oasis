@@ -12,6 +12,8 @@ export interface SmartInputProps extends React.ComponentProps<"input"> {
   showSuggestions?: boolean
   onValidationChange?: (isValid: boolean, errorMessage: string) => void
   required?: boolean
+  // For nationality-linked validation
+  nationality?: string
 }
 
 const SmartInput = React.forwardRef<HTMLInputElement, SmartInputProps>(
@@ -26,6 +28,7 @@ const SmartInput = React.forwardRef<HTMLInputElement, SmartInputProps>(
     required = false,
     onChange,
     value = "",
+    nationality,
     ...props 
   }, ref) => {
     const [internalValue, setInternalValue] = React.useState(value?.toString() || "")
@@ -39,37 +42,50 @@ const SmartInput = React.forwardRef<HTMLInputElement, SmartInputProps>(
       return SaudiValidation[validationType]
     }
 
-    // Update validation when value changes
-    React.useEffect(() => {
-      const currentValue = value?.toString() || internalValue
-      
-      if (!validationType) {
-        setValidationStatus('empty')
-        setErrorMessage("")
-        setSuggestions([])
-        onValidationChange?.(true, "")
-        return
-      }
+  // Update validation when value changes
+  React.useEffect(() => {
+    const currentValue = value?.toString() || internalValue
+    
+    if (!validationType) {
+      setValidationStatus('empty')
+      setErrorMessage("")
+      setSuggestions([])
+      onValidationChange?.(true, "")
+      return
+    }
 
-      const validator = getValidator()
-      if (!validator) return
-
-      const status = getValidationStatus(currentValue, validator.validate)
-      const error = validator.getErrorMessage ? validator.getErrorMessage(currentValue) : ""
+    // Use enhanced validation for national ID with nationality context
+    if (validationType === 'nationalId' && nationality) {
+      const result = SaudiValidation.validateNationalIdWithNationality(currentValue, nationality)
+      const status = currentValue.trim().length === 0 ? 'empty' : (result.isValid ? 'valid' : 'invalid')
       
       setValidationStatus(status)
-      setErrorMessage(error)
-      
-      // Update suggestions for invalid inputs
-      if (status === 'invalid' && showSuggestions) {
-        // Add smart suggestions logic here if needed
-        setSuggestions([])
-      } else {
-        setSuggestions([])
-      }
+      setErrorMessage(result.errorMessage)
+      setSuggestions([])
+      onValidationChange?.(result.isValid, result.errorMessage)
+      return
+    }
 
-      onValidationChange?.(status === 'valid' || status === 'empty', error)
-    }, [value, internalValue, validationType, onValidationChange, showSuggestions])
+    // Use standard validation for other types
+    const validator = getValidator()
+    if (!validator) return
+
+    const status = getValidationStatus(currentValue, validator.validate)
+    const error = validator.getErrorMessage ? validator.getErrorMessage(currentValue) : ""
+    
+    setValidationStatus(status)
+    setErrorMessage(error)
+    
+    // Update suggestions for invalid inputs
+    if (status === 'invalid' && showSuggestions) {
+      // Add smart suggestions logic here if needed
+      setSuggestions([])
+    } else {
+      setSuggestions([])
+    }
+
+    onValidationChange?.(status === 'valid' || status === 'empty', error)
+  }, [value, internalValue, validationType, nationality, onValidationChange, showSuggestions])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       let inputValue = e.target.value
@@ -118,22 +134,24 @@ const SmartInput = React.forwardRef<HTMLInputElement, SmartInputProps>(
       }
     }
 
-    const getInputHelperText = () => {
-      if (!validationType) return ""
-      
-      const placeholders = {
-        nationalId: "مثال: 1234567890",
-        mobileNumber: "مثال: 512 345 678",
-        plateNumber: "مثال: أ ب ج 1234", 
-        vin: "مثال: WVW1J7A37CE123456",
-        iban: "مثال: SA00 0000 0000 0000 0000 00",
-        postalCode: "مثال: 12345",
-        driverLicense: "مثال: 12345678",
-        email: "مثال: user@example.com"
-      }
-      
-      return placeholders[validationType] || ""
+  const getInputHelperText = () => {
+    if (!validationType) return ""
+    
+    const placeholders = {
+      nationalId: nationality === 'سعودي' ? "مثال: 1234567890 (للسعوديين)" : 
+                   nationality && nationality !== 'سعودي' ? "مثال: 2234567890 (للمقيمين)" :
+                   "مثال: 1234567890 (سعودي) أو 2234567890 (مقيم)",
+      mobileNumber: "مثال: 512 345 678",
+      plateNumber: "مثال: أ ب ج 1234", 
+      vin: "مثال: WVW1J7A37CE123456",
+      iban: "مثال: SA00 0000 0000 0000 0000 00",
+      postalCode: "مثال: 12345",
+      driverLicense: "مثال: 12345678",
+      email: "مثال: user@example.com"
     }
+    
+    return placeholders[validationType] || ""
+  }
 
     return (
       <div className="space-y-2">
@@ -192,7 +210,9 @@ const SmartInput = React.forwardRef<HTMLInputElement, SmartInputProps>(
           <div className="text-xs text-muted-foreground">
             {(() => {
               const helpTexts = {
-                nationalId: "رقم الهوية السعودية: يبدأ بـ 1 (مواطن) | رقم الإقامة: يبدأ بـ 2 (مقيم)",
+                nationalId: nationality === 'سعودي' ? "رقم الهوية السعودية: يبدأ بـ 1 ويتكون من 10 أرقام" :
+                           nationality && nationality !== 'سعودي' ? "رقم الإقامة: يبدأ بـ 2 ويتكون من 10 أرقام" :
+                           "رقم الهوية السعودية: يبدأ بـ 1 (مواطن) | رقم الإقامة: يبدأ بـ 2 (مقيم)",
                 mobileNumber: "يجب أن يبدأ بـ 5 ويتكون من 10 أرقام",
                 plateNumber: "الشكل الجديد: 3 أحرف + 4 أرقام",
                 vin: "17 حرف/رقم (لا يحتوي على I, O, Q)",

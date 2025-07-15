@@ -68,6 +68,39 @@ export const SaudiValidation = {
     }
   },
 
+  // Enhanced national ID validation with nationality checking
+  validateNationalIdWithNationality: (value: string, nationality?: string): { isValid: boolean; errorMessage: string } => {
+    const cleaned = value.replace(/\D/g, '');
+    
+    if (cleaned.length === 0) return { isValid: true, errorMessage: '' };
+    
+    // Basic format validation first
+    if (cleaned.length !== 10) {
+      return { isValid: false, errorMessage: 'رقم الهوية/الإقامة يجب أن يكون 10 أرقام' };
+    }
+    
+    const firstDigit = cleaned[0];
+    const isSaudi = nationality === 'سعودي';
+    
+    // Check nationality-ID consistency
+    if (nationality) {
+      if (isSaudi && firstDigit !== '1') {
+        return { isValid: false, errorMessage: 'رقم الهوية السعودية يجب أن يبدأ بـ 1' };
+      }
+      if (!isSaudi && firstDigit !== '2') {
+        return { isValid: false, errorMessage: 'رقم الإقامة يجب أن يبدأ بـ 2 للمقيمين' };
+      }
+    }
+    
+    // Validate checksum
+    if (!SaudiValidation.nationalId.validate(cleaned)) {
+      const docType = firstDigit === '1' ? 'رقم الهوية السعودية' : 'رقم الإقامة';
+      return { isValid: false, errorMessage: `${docType} غير صحيح` };
+    }
+    
+    return { isValid: true, errorMessage: '' };
+  },
+
   // Saudi mobile number validation (starts with 5, 10 digits total)
   mobileNumber: {
     validate: (value: string): boolean => {

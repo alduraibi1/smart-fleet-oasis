@@ -451,6 +451,7 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
                     <SmartInput
                       label="رقم الهوية/الإقامة"
                       validationType="nationalId"
+                      nationality={formData.nationality}
                       value={formData.nationalId}
                       onChange={(e) => setFormData({ ...formData, nationalId: e.target.value })}
                       required
