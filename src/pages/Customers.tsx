@@ -2,14 +2,20 @@ import { useState, useMemo } from "react";
 import Header from "@/components/Layout/Header";
 import Sidebar from "@/components/Layout/Sidebar";
 import { Button } from "@/components/ui/button";
-import { CustomerStats } from "@/components/Customers/CustomerStats";
-import { CustomerFilters } from "@/components/Customers/CustomerFilters";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EnhancedCustomerStats } from "@/components/Customers/EnhancedCustomerStats";
+import { EnhancedCustomerFilters, CustomerFilters } from "@/components/Customers/EnhancedCustomerFilters";
+import { EnhancedCustomerTable } from "@/components/Customers/EnhancedCustomerTable";
+import { CustomerBulkActions } from "@/components/Customers/CustomerBulkActions";
 import { CustomerCard } from "@/components/Customers/CustomerCard";
+import { CustomerLoadingSkeleton } from "@/components/Customers/CustomerLoadingSkeleton";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { AddCustomerDialog } from "@/components/Customers/AddCustomerDialog";
 import { CustomerDetailsDialog } from "@/components/Customers/CustomerDetailsDialog";
 import { BlacklistDialog } from "@/components/Customers/BlacklistDialog";
 import { useCustomers, Customer } from "@/hooks/useCustomers";
-import { Plus } from "lucide-react";
+import { Plus, Grid, List } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Customers() {
   const {
@@ -29,48 +35,111 @@ export default function Customers() {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showBlacklistDialog, setShowBlacklistDialog] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
+  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState("");
-  const [ratingFilter, setRatingFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [documentFilter, setDocumentFilter] = useState("all");
-  const [blacklistFilter, setBlacklistFilter] = useState("all");
+  // Enhanced filters
+  const [filters, setFilters] = useState<CustomerFilters>({});
+  const { toast } = useToast();
 
-  // Filter customers based on search and filters
+  // Enhanced filtering
   const filteredCustomers = useMemo(() => {
     return customers.filter(customer => {
       // Search filter
-      const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           customer.phone.includes(searchTerm) ||
-                           (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase()));
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        const matchesSearch = customer.name.toLowerCase().includes(searchTerm) ||
+                             customer.phone.includes(searchTerm) ||
+                             (customer.email && customer.email.toLowerCase().includes(searchTerm)) ||
+                             customer.national_id.includes(searchTerm);
+        if (!matchesSearch) return false;
+      }
       
       // Rating filter
-      const matchesRating = ratingFilter === "all" || customer.rating >= parseInt(ratingFilter);
+      if (filters.rating && customer.rating < filters.rating) return false;
       
-      // Status filter (active/inactive based on is_active)
-      const matchesStatus = statusFilter === "all" || 
-                           (statusFilter === "active" && customer.is_active) ||
-                           (statusFilter === "inactive" && !customer.is_active);
+      // Status filter
+      if (filters.status === 'active' && !customer.is_active) return false;
+      if (filters.status === 'inactive' && customer.is_active) return false;
       
-      // Document filter (license expiry status)
-      const licenseExpiry = new Date(customer.license_expiry);
-      const today = new Date();
-      const daysUntilExpiry = Math.ceil((licenseExpiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-      
-      let matchesDocument = true;
-      if (documentFilter === "valid") matchesDocument = daysUntilExpiry > 30;
-      else if (documentFilter === "expiring") matchesDocument = daysUntilExpiry <= 30 && daysUntilExpiry >= 0;
-      else if (documentFilter === "expired") matchesDocument = daysUntilExpiry < 0;
+      // Document status filter
+      if (filters.documentStatus) {
+        const licenseExpiry = new Date(customer.license_expiry);
+        const today = new Date();
+        const daysUntilExpiry = Math.ceil((licenseExpiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (filters.documentStatus === 'valid' && daysUntilExpiry <= 30) return false;
+        if (filters.documentStatus === 'expiring' && (daysUntilExpiry > 30 || daysUntilExpiry < 0)) return false;
+        if (filters.documentStatus === 'expired' && daysUntilExpiry >= 0) return false;
+      }
 
       // Blacklist filter
-      const matchesBlacklist = blacklistFilter === "all" ||
-                              (blacklistFilter === "normal" && !customer.blacklisted) ||
-                              (blacklistFilter === "blacklisted" && customer.blacklisted);
+      if (filters.blacklisted !== undefined && customer.blacklisted !== filters.blacklisted) return false;
       
-      return matchesSearch && matchesRating && matchesStatus && matchesDocument && matchesBlacklist;
+      // City filter
+      if (filters.city && customer.city !== filters.city) return false;
+      
+      // Nationality filter
+      if (filters.nationality && customer.nationality !== filters.nationality) return false;
+      
+      // Customer source filter
+      if (filters.customerSource && customer.customer_source !== filters.customerSource) return false;
+      
+      // Date range filters
+      if (filters.dateFrom && new Date(customer.created_at) < filters.dateFrom) return false;
+      if (filters.dateTo && new Date(customer.created_at) > filters.dateTo) return false;
+      
+      return true;
     });
-  }, [customers, searchTerm, ratingFilter, statusFilter, documentFilter, blacklistFilter]);
+  }, [customers, filters]);
+
+  // Enhanced stats calculation
+  const enhancedStats = useMemo(() => {
+    const total = customers.length;
+    const active = customers.filter(c => c.is_active).length;
+    const inactive = total - active;
+    const blacklisted = customers.filter(c => c.blacklisted).length;
+    
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const newThisMonth = customers.filter(c => {
+      const createdDate = new Date(c.created_at);
+      return createdDate.getMonth() === currentMonth && createdDate.getFullYear() === currentYear;
+    }).length;
+
+    const averageRating = total > 0 ? customers.reduce((sum, c) => sum + c.rating, 0) / total : 0;
+    const totalRentals = customers.reduce((sum, c) => sum + (c.total_rentals || 0), 0);
+    
+    // Calculate document statuses
+    const today = new Date();
+    const expiringDocuments = customers.filter(c => {
+      const daysUntilExpiry = Math.ceil((new Date(c.license_expiry).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return daysUntilExpiry <= 30 && daysUntilExpiry >= 0;
+    }).length;
+    
+    const expiredDocuments = customers.filter(c => {
+      const daysUntilExpiry = Math.ceil((new Date(c.license_expiry).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return daysUntilExpiry < 0;
+    }).length;
+    
+    const repeatCustomers = customers.filter(c => (c.total_rentals || 0) > 1).length;
+    const highValueCustomers = customers.filter(c => (c.total_rentals || 0) >= 5).length;
+
+    return {
+      total,
+      active,
+      inactive,
+      blacklisted,
+      newThisMonth,
+      averageRating,
+      totalRentals,
+      averageRentalValue: 0,
+      expiringDocuments,
+      expiredDocuments,
+      repeatCustomers,
+      highValueCustomers
+    };
+  }, [customers]);
 
   const handleAddCustomer = async (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at'>) => {
     try {
@@ -114,6 +183,114 @@ export default function Customers() {
     }
   };
 
+  // Bulk actions handlers
+  const handleSelectCustomer = (customerId: string) => {
+    setSelectedCustomers(prev => 
+      prev.includes(customerId) 
+        ? prev.filter(id => id !== customerId)
+        : [...prev, customerId]
+    );
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedCustomers(checked ? filteredCustomers.map(c => c.id) : []);
+  };
+
+  const handleBulkBlacklist = async (customerIds: string[], reason: string) => {
+    try {
+      await Promise.all(customerIds.map(id => blacklistCustomer(id, reason)));
+      toast({
+        title: 'تم بنجاح',
+        description: `تم إضافة ${customerIds.length} عميل للقائمة السوداء`,
+      });
+    } catch (error) {
+      toast({
+        title: 'خطأ',
+        description: 'فشل في إضافة العملاء للقائمة السوداء',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleBulkRemoveBlacklist = async (customerIds: string[]) => {
+    try {
+      await Promise.all(customerIds.map(id => removeFromBlacklist(id)));
+      toast({
+        title: 'تم بنجاح',
+        description: `تم إزالة ${customerIds.length} عميل من القائمة السوداء`,
+      });
+    } catch (error) {
+      toast({
+        title: 'خطأ',
+        description: 'فشل في إزالة العملاء من القائمة السوداء',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleBulkDelete = async (customerIds: string[]) => {
+    try {
+      await Promise.all(customerIds.map(id => deleteCustomer(id)));
+      toast({
+        title: 'تم بنجاح',
+        description: `تم حذف ${customerIds.length} عميل`,
+      });
+    } catch (error) {
+      toast({
+        title: 'خطأ',
+        description: 'فشل في حذف العملاء',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleBulkExport = (customerIds: string[]) => {
+    const selectedData = customers.filter(c => customerIds.includes(c.id));
+    const csvContent = [
+      ['الاسم', 'الهاتف', 'البريد الإلكتروني', 'التقييم', 'إجمالي الإيجارات'].join(','),
+      ...selectedData.map(c => [
+        c.name,
+        c.phone,
+        c.email || '',
+        c.rating,
+        c.total_rentals || 0
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `customers_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  const handleBulkEmail = (customerIds: string[]) => {
+    const emails = customers
+      .filter(c => customerIds.includes(c.id) && c.email)
+      .map(c => c.email)
+      .join(',');
+    
+    if (emails) {
+      window.open(`mailto:${emails}`);
+    }
+  };
+
+  const handleBulkSMS = (customerIds: string[]) => {
+    // This would integrate with SMS service
+    toast({
+      title: 'ميزة قادمة',
+      description: 'سيتم إضافة خدمة الرسائل النصية قريباً',
+    });
+  };
+
+  const handleExport = () => {
+    handleBulkExport(filteredCustomers.map(c => c.id));
+  };
+
+  const handleRefresh = () => {
+    fetchCustomers();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
@@ -133,50 +310,93 @@ export default function Customers() {
               </Button>
             </div>
 
-            {/* Statistics */}
-            <CustomerStats
-              totalCustomers={stats.total}
-              activeCustomers={stats.active}
-              newCustomersThisMonth={stats.newThisMonth}
-              averageRating={stats.averageRating}
+            {/* Enhanced Statistics */}
+            <EnhancedCustomerStats 
+              stats={enhancedStats} 
+              isLoading={loading}
             />
 
-            {/* Filters */}
-            <CustomerFilters
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              ratingFilter={ratingFilter}
-              onRatingChange={setRatingFilter}
-              statusFilter={statusFilter}
-              onStatusChange={setStatusFilter}
-              documentFilter={documentFilter}
-              onDocumentChange={setDocumentFilter}
-              blacklistFilter={blacklistFilter}
-              onBlacklistChange={setBlacklistFilter}
+            {/* Enhanced Filters */}
+            <EnhancedCustomerFilters
+              filters={filters}
+              onFiltersChange={setFilters}
+              onExport={handleExport}
+              onRefresh={handleRefresh}
+              totalCount={customers.length}
+              filteredCount={filteredCustomers.length}
             />
 
-            {/* Loading State */}
-            {loading && (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <span className="ml-2">جاري تحميل العملاء...</span>
-              </div>
-            )}
+            {/* Bulk Actions */}
+            <CustomerBulkActions
+              selectedCustomers={selectedCustomers}
+              customers={filteredCustomers}
+              onClearSelection={() => setSelectedCustomers([])}
+              onBulkBlacklist={handleBulkBlacklist}
+              onBulkRemoveBlacklist={handleBulkRemoveBlacklist}
+              onBulkDelete={handleBulkDelete}
+              onBulkExport={handleBulkExport}
+              onBulkEmail={handleBulkEmail}
+              onBulkSMS={handleBulkSMS}
+            />
 
-            {/* Customer Grid */}
-            {!loading && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCustomers.map((customer) => (
-                  <CustomerCard
-                    key={customer.id}
-                    customer={customer}
-                    onEdit={handleEditCustomer}
-                    onView={handleViewCustomer}
-                    onBlacklist={handleBlacklistCustomer}
-                  />
-                ))}
+            {/* View Mode Toggle */}
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">عرض:</span>
+                <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'grid' | 'table')}>
+                  <TabsList className="grid w-fit grid-cols-2">
+                    <TabsTrigger value="table" className="flex items-center gap-2">
+                      <List className="h-4 w-4" />
+                      جدول
+                    </TabsTrigger>
+                    <TabsTrigger value="grid" className="flex items-center gap-2">
+                      <Grid className="h-4 w-4" />
+                      بطاقات
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
-            )}
+              
+              {filteredCustomers.length > 0 && (
+                <div className="text-sm text-muted-foreground">
+                  عرض {filteredCustomers.length} من {customers.length} عميل
+                </div>
+              )}
+            </div>
+
+            {/* Customer Display */}
+            <ErrorBoundary>
+              {viewMode === 'table' ? (
+                <EnhancedCustomerTable
+                  customers={filteredCustomers}
+                  loading={loading}
+                  onEdit={handleEditCustomer}
+                  onView={handleViewCustomer}
+                  onBlacklist={handleBlacklistCustomer}
+                  selectedCustomers={selectedCustomers}
+                  onSelectCustomer={handleSelectCustomer}
+                  onSelectAll={handleSelectAll}
+                />
+              ) : (
+                <>
+                  {loading && <CustomerLoadingSkeleton viewMode="grid" />}
+
+                  {!loading && filteredCustomers.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredCustomers.map((customer) => (
+                        <CustomerCard
+                          key={customer.id}
+                          customer={customer}
+                          onEdit={handleEditCustomer}
+                          onView={handleViewCustomer}
+                          onBlacklist={handleBlacklistCustomer}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </ErrorBoundary>
 
             {/* Empty State */}
             {!loading && filteredCustomers.length === 0 && (
@@ -191,11 +411,7 @@ export default function Customers() {
                     if (customers.length === 0) {
                       setShowAddDialog(true);
                     } else {
-                      setSearchTerm("");
-                      setRatingFilter("all");
-                      setStatusFilter("all");
-                      setDocumentFilter("all");
-                      setBlacklistFilter("all");
+                      setFilters({});
                     }
                   }}
                 >
