@@ -77,6 +77,12 @@ export const menuSections: MenuSection[] = [
         icon: Database,
         href: '/inventory',
         badge: { count: 8, variant: 'secondary' as const }
+      },
+      {
+        title: 'الموردين',
+        icon: Building2,
+        href: '/suppliers',
+        badge: undefined
       }
     ]
   },
