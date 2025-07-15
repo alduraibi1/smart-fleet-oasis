@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { Customer } from "@/types";
+import { useCustomerMutations } from "@/hooks/useCustomersQuery";
 import { 
   CalendarIcon, 
   Upload, 
@@ -36,12 +37,13 @@ import { cn } from "@/lib/utils";
 interface AddCustomerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (customer: Omit<Customer, 'id'>) => void;
+  onAdd?: (customer: Omit<Customer, 'id'>) => void;
 }
 
 export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDialogProps) => {
   const [activeTab, setActiveTab] = useState("personal");
   const [requiresGuarantor, setRequiresGuarantor] = useState(false);
+  const { addCustomer } = useCustomerMutations();
   const [formData, setFormData] = useState({
     // Personal Information
     name: "",
@@ -174,7 +176,7 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
     setUploadedFileTypes(prev => prev.filter(type => type !== fileType));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
@@ -210,16 +212,16 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
       return;
     }
 
-    const newCustomer: Omit<Customer, 'id'> = {
+    const customerData = {
       name: formData.name,
-      name_english: formData.nameEnglish,
+      name_english: formData.nameEnglish || null,
       phone: formData.phone,
-      phone_secondary: formData.phoneSecondary,
-      email: formData.email,
-      email_secondary: formData.emailSecondary,
+      phone_secondary: formData.phoneSecondary || null,
+      email: formData.email || null,
+      email_secondary: formData.emailSecondary || null,
       national_id: formData.nationalId,
       nationality: formData.nationality,
-      date_of_birth: formData.dateOfBirth?.toISOString().split('T')[0],
+      date_of_birth: formData.dateOfBirth?.toISOString().split('T')[0] || null,
       gender: formData.gender,
       marital_status: formData.maritalStatus,
       
@@ -227,31 +229,31 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
       license_number: formData.licenseNumber,
       license_expiry: formData.licenseExpiry!.toISOString().split('T')[0],
       license_type: formData.licenseType,
-      license_issue_date: formData.licenseIssueDate?.toISOString().split('T')[0],
-      license_issue_place: formData.licenseIssuePlace,
+      license_issue_date: formData.licenseIssueDate?.toISOString().split('T')[0] || null,
+      license_issue_place: formData.licenseIssuePlace || null,
       international_license: formData.internationalLicense,
-      international_license_number: formData.internationalLicenseNumber,
-      international_license_expiry: formData.internationalLicenseExpiry?.toISOString().split('T')[0],
+      international_license_number: formData.internationalLicenseNumber || null,
+      international_license_expiry: formData.internationalLicenseExpiry?.toISOString().split('T')[0] || null,
       
       // معلومات العنوان
-      address: formData.address,
-      city: formData.city,
-      district: formData.district,
-      postal_code: formData.postalCode,
+      address: formData.address || null,
+      city: formData.city || null,
+      district: formData.district || null,
+      postal_code: formData.postalCode || null,
       country: formData.country,
       address_type: formData.addressType,
       
       // معلومات العمل
-      job_title: formData.jobTitle,
-      company: formData.company,
-      work_address: formData.workAddress,
-      work_phone: formData.workPhone,
-      monthly_income: formData.monthlyIncome ? parseFloat(formData.monthlyIncome) : undefined,
+      job_title: formData.jobTitle || null,
+      company: formData.company || null,
+      work_address: formData.workAddress || null,
+      work_phone: formData.workPhone || null,
+      monthly_income: formData.monthlyIncome ? parseFloat(formData.monthlyIncome) : null,
       
       // جهة الاتصال في الطوارئ
-      emergency_contact_name: formData.emergencyContactName,
-      emergency_contact_phone: formData.emergencyContactPhone,
-      emergency_contact_relation: formData.emergencyContactRelation,
+      emergency_contact_name: formData.emergencyContactName || null,
+      emergency_contact_phone: formData.emergencyContactPhone || null,
+      emergency_contact_relation: formData.emergencyContactRelation || null,
       
       // التفضيلات والإعدادات
       preferred_language: formData.preferredLanguage,
@@ -261,50 +263,53 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
       
       // التقييم والمعلومات الإضافية
       rating: formData.rating,
-      notes: formData.notes,
+      notes: formData.notes || null,
       customer_source: formData.customerSource,
-      referred_by: formData.referredBy,
+      referred_by: formData.referredBy || null,
       
       // معلومات الائتمان
       credit_limit: formData.creditLimit,
       payment_terms: formData.paymentTerms,
       preferred_payment_method: formData.preferredPaymentMethod,
-      bank_account_number: formData.bankAccountNumber,
-      bank_name: formData.bankName,
+      bank_account_number: formData.bankAccountNumber || null,
+      bank_name: formData.bankName || null,
       
       // معلومات التأمين
       has_insurance: formData.hasInsurance,
-      insurance_company: formData.insuranceCompany,
-      insurance_policy_number: formData.insurancePolicyNumber,
-      insurance_expiry: formData.insuranceExpiry?.toISOString().split('T')[0],
+      insurance_company: formData.insuranceCompany || null,
+      insurance_policy_number: formData.insurancePolicyNumber || null,
+      insurance_expiry: formData.insuranceExpiry?.toISOString().split('T')[0] || null,
       
       // معلومات الحالة
       is_active: true,
       blacklisted: false,
-      blacklist_reason: undefined,
-      blacklist_date: undefined,
       total_rentals: 0,
-      last_rental_date: undefined,
       
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      created_by: undefined,
-      
-      // الحقول للتوافق مع المكونات الحالية
+      // Legacy fields for backward compatibility
       nationalId: formData.nationalId,
       licenseNumber: formData.licenseNumber,
       licenseExpiry: formData.licenseExpiry!,
       totalRentals: 0
     };
 
-    onAdd(newCustomer);
-    onOpenChange(false);
-    resetForm();
-
-    toast({
-      title: "تم بنجاح",
-      description: "تم إضافة العميل بنجاح مع جميع البيانات والمستندات",
-    });
+    try {
+      console.log('Attempting to add customer:', customerData);
+      const result = await addCustomer.mutateAsync(customerData);
+      console.log('Customer added successfully:', result);
+      onOpenChange(false);
+      resetForm();
+      // Call onAdd if provided for backwards compatibility
+      if (onAdd) {
+        onAdd(customerData as any);
+      }
+    } catch (error) {
+      console.error('Error adding customer:', error);
+      toast({
+        title: "خطأ في إضافة العميل",
+        description: "تأكد من تسجيل الدخول وصحة البيانات",
+        variant: "destructive",
+      });
+    }
   };
 
   const resetForm = () => {

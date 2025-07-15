@@ -19,6 +19,7 @@ import { ExportUtils } from "@/components/Customers/ExportUtils";
 import { CustomerChangeHistory } from "@/components/Customers/CustomerChangeHistory";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { useCustomers } from "@/hooks/useCustomersQuery";
+import { useCustomerMutations } from "@/hooks/useCustomersQuery";
 import { useCustomerSelection } from "@/hooks/useCustomerSelection";
 import { useRealtimeCustomers } from "@/hooks/useRealtimeCustomers";
 import { useSmartNotifications } from "@/hooks/useSmartNotifications";
@@ -35,6 +36,7 @@ export default function Customers() {
   const { selectedCustomers, handleSelectCustomer, handleSelectAll, clearSelection } = useCustomerSelection();
   useRealtimeCustomers(); // للتحديثات الفورية
   const { notifications, createNotification } = useSmartNotifications();
+  const { blacklistCustomer, removeFromBlacklist, deleteCustomer, bulkUpdate } = useCustomerMutations();
   
   // States
   const [filters, setFilters] = useState<CustomerFilters>({});
@@ -258,28 +260,40 @@ export default function Customers() {
                     filteredCount={filteredCustomers.length}
                   />
 
-                  {/* Bulk Actions */}
+                   {/* Bulk Actions */}
                   <CustomerBulkActions
                     selectedCustomers={selectedCustomers}
                     customers={customers}
                     onClearSelection={clearSelection}
                     onBulkBlacklist={async (customerIds, reason) => {
-                      toast({
-                        title: "تم إضافة العملاء للقائمة السوداء",
-                        description: `تم إضافة ${customerIds.length} عميل للقائمة السوداء`,
-                      });
+                      try {
+                        await Promise.all(
+                          customerIds.map(id => blacklistCustomer.mutateAsync({ id, reason }))
+                        );
+                        clearSelection();
+                      } catch (error) {
+                        console.error('Error in bulk blacklist:', error);
+                      }
                     }}
                     onBulkRemoveBlacklist={async (customerIds) => {
-                      toast({
-                        title: "تم إزالة العملاء من القائمة السوداء",
-                        description: `تم إزالة ${customerIds.length} عميل من القائمة السوداء`,
-                      });
+                      try {
+                        await Promise.all(
+                          customerIds.map(id => removeFromBlacklist.mutateAsync(id))
+                        );
+                        clearSelection();
+                      } catch (error) {
+                        console.error('Error in bulk remove blacklist:', error);
+                      }
                     }}
                     onBulkDelete={async (customerIds) => {
-                      toast({
-                        title: "تم حذف العملاء",
-                        description: `تم حذف ${customerIds.length} عميل نهائياً`,
-                      });
+                      try {
+                        await Promise.all(
+                          customerIds.map(id => deleteCustomer.mutateAsync(id))
+                        );
+                        clearSelection();
+                      } catch (error) {
+                        console.error('Error in bulk delete:', error);
+                      }
                     }}
                     onBulkExport={(customerIds) => {
                       toast({
@@ -345,12 +359,6 @@ export default function Customers() {
                   <AddCustomerDialog
                     open={isAddDialogOpen}
                     onOpenChange={setIsAddDialogOpen}
-                    onAdd={(customer) => {
-                      toast({
-                        title: "تم إضافة العميل",
-                        description: "تم إضافة العميل بنجاح",
-                      });
-                    }}
                   />
 
                   <CustomerDetailsDialog
@@ -364,17 +372,21 @@ export default function Customers() {
                     customer={selectedCustomer}
                     open={isBlacklistDialogOpen}
                     onOpenChange={setIsBlacklistDialogOpen}
-                    onBlacklist={(customerId, reason) => {
-                      toast({
-                        title: "تم إضافة العميل للقائمة السوداء",
-                        description: reason,
-                      });
+                    onBlacklist={async (customerId, reason) => {
+                      try {
+                        await blacklistCustomer.mutateAsync({ id: customerId, reason });
+                        setIsBlacklistDialogOpen(false);
+                      } catch (error) {
+                        console.error('Error blacklisting customer:', error);
+                      }
                     }}
-                    onRemoveFromBlacklist={(customerId) => {
-                      toast({
-                        title: "تم إزالة العميل من القائمة السوداء",
-                        description: "تم إزالة العميل من القائمة السوداء بنجاح",
-                      });
+                    onRemoveFromBlacklist={async (customerId) => {
+                      try {
+                        await removeFromBlacklist.mutateAsync(customerId);
+                        setIsBlacklistDialogOpen(false);
+                      } catch (error) {
+                        console.error('Error removing from blacklist:', error);
+                      }
                     }}
                   />
 
