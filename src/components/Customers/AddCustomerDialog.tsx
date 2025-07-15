@@ -295,8 +295,6 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
       licenseNumber: formData.licenseNumber,
       licenseExpiry: formData.licenseExpiry!,
       totalRentals: 0,
-      blacklistReason: undefined,
-      blacklistDate: undefined,
       documents: documents.map(doc => ({
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         name: doc.name,
