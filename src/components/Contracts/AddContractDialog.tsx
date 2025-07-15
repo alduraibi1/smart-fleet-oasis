@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, User, Car, Calendar, FileText, Upload, CreditCard, MapPin, Shield, Camera, FileCheck, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,114 +24,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import type { Vehicle } from '@/types/vehicle';
+import { useCustomers } from '@/hooks/useCustomers';
+import { useVehicles } from '@/hooks/useVehicles';
+import { useContracts } from '@/hooks/useContracts';
 
-// Mock data for available vehicles and customers
-const availableVehicles: Vehicle[] = [
-  {
-    id: 'V001',
-    plateNumber: 'أ ب ج 1234',
-    brand: 'تويوتا',
-    model: 'كامري',
-    year: 2023,
-    color: 'أبيض',
-    status: 'available',
-    dailyRate: 150,
-    mileage: 25000,
-    vin: 'JT2BF18K9X0123456',
-    engineNumber: 'ENG123456',
-    chassisNumber: 'CHS123456',
-    fuelType: 'gasoline',
-    transmission: 'automatic',
-    seatingCapacity: 5,
-    features: ['مكيف', 'نظام صوتي', 'كاميرا خلفية'],
-    ownerId: 'O001',
-    owner: {
-      id: 'O001',
-      name: 'محمد أحمد',
-      phone: '0501234567',
-      email: 'mohamed@example.com',
-      nationalId: '1234567890',
-      address: 'الرياض',
-      isActive: true,
-    },
-    documents: [],
-    images: [],
-    maintenance: {
-      status: 'completed',
-      lastMaintenanceDate: '2024-01-15',
-      nextMaintenanceDate: '2024-07-15',
-    },
-    location: {
-      isTracked: false,
-    },
-    purchase: {},
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-15',
-  },
-  {
-    id: 'V002',
-    plateNumber: 'هـ و ز 5678',
-    brand: 'نيسان',
-    model: 'التيما',
-    year: 2022,
-    color: 'أسود',
-    status: 'available',
-    dailyRate: 130,
-    mileage: 30000,
-    vin: 'NIS2BF18K9X0123456',
-    engineNumber: 'NISENG123456',
-    chassisNumber: 'NISCHS123456',
-    fuelType: 'gasoline',
-    transmission: 'automatic',
-    seatingCapacity: 5,
-    features: ['مكيف', 'نظام ملاحة'],
-    ownerId: 'O002',
-    owner: {
-      id: 'O002',
-      name: 'فاطمة سعد',
-      phone: '0507654321',
-      email: 'fatima@example.com',
-      nationalId: '0987654321',
-      address: 'جدة',
-      isActive: true,
-    },
-    documents: [],
-    images: [],
-    maintenance: {
-      status: 'completed',
-    },
-    location: {
-      isTracked: false,
-    },
-    purchase: {},
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-15',
-  },
-];
-
-const customers = [
-  {
-    id: 'CUST001',
-    name: 'أحمد محمد علي',
-    phone: '0501234567',
-    email: 'ahmed@example.com',
-    nationalId: '1234567890',
-    licenseNumber: 'L123456789',
-    licenseExpiry: '2025-12-31',
-    address: 'الرياض، حي النزهة',
-  },
-  {
-    id: 'CUST002',
-    name: 'فاطمة أحمد خالد',
-    phone: '0507654321',
-    email: 'fatima@example.com',
-    nationalId: '0987654321',
-    licenseNumber: 'L987654321',
-    licenseExpiry: '2026-06-30',
-    address: 'جدة، حي الصفا',
-  },
-];
 
 const staff = [
   { id: 'STAFF001', name: 'خالد أحمد', role: 'موظف تسليم' },
@@ -274,6 +170,14 @@ export default function AddContractDialog() {
   const [inspectionImages, setInspectionImages] = useState<File[]>([]);
   const { toast } = useToast();
 
+  // Hooks for data fetching
+  const { customers } = useCustomers();
+  const { vehicles } = useVehicles();
+  const { createContract } = useContracts();
+
+  // Filter available vehicles
+  const availableVehicles = vehicles.filter(vehicle => vehicle.status === 'available');
+
   const calculateFinancials = () => {
     if (formData.startDate && formData.endDate && formData.dailyRate) {
       const start = new Date(formData.startDate);
@@ -302,19 +206,13 @@ export default function AddContractDialog() {
       setFormData(prev => ({
         ...prev,
         vehicleId,
-        dailyRate: vehicle.dailyRate,
+        dailyRate: vehicle.daily_rate,
         mileageAtDelivery: vehicle.mileage,
       }));
     }
   };
 
-  const generateContractNumber = () => {
-    const year = new Date().getFullYear();
-    const random = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
-    return `CR-${year}-${random}`;
-  };
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.customerId || !formData.vehicleId || !formData.startDate || !formData.endDate) {
       toast({
         variant: "destructive",
@@ -324,15 +222,34 @@ export default function AddContractDialog() {
       return;
     }
 
-    const contractNumber = generateContractNumber();
-    
-    toast({
-      title: "تم إنشاء العقد بنجاح",
-      description: `رقم العقد: ${contractNumber}`,
-    });
-    
-    setOpen(false);
-    resetForm();
+    try {
+      const contractData = {
+        customer_id: formData.customerId,
+        vehicle_id: formData.vehicleId,
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        daily_rate: formData.dailyRate,
+        total_amount: formData.totalAmount,
+        deposit_amount: formData.securityDeposit,
+        insurance_amount: 0,
+        additional_charges: formData.additionalCharges,
+        discount_amount: formData.discount,
+        payment_method: formData.paymentMethod,
+        payment_status: formData.paymentStatus,
+        pickup_location: formData.deliveryLocation,
+        return_location: formData.pickupLocation,
+        mileage_start: formData.mileageAtDelivery,
+        fuel_level_start: formData.fuelLevelAtDelivery.toString(),
+        notes: formData.notes,
+        terms_conditions: formData.terms,
+      };
+
+      await createContract(contractData);
+      setOpen(false);
+      resetForm();
+    } catch (error) {
+      // Error is already handled in the hook
+    }
   };
 
   const resetForm = () => {
@@ -389,6 +306,11 @@ export default function AddContractDialog() {
 
   const selectedCustomer = customers.find(c => c.id === formData.customerId);
   const selectedVehicle = availableVehicles.find(v => v.id === formData.vehicleId);
+
+  // Calculate financials when dates or rates change
+  useEffect(() => {
+    calculateFinancials();
+  }, [formData.startDate, formData.endDate, formData.dailyRate, formData.additionalCharges, formData.discount, formData.delegationFee, formData.vatRate]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -450,10 +372,10 @@ export default function AddContractDialog() {
                   {selectedCustomer && (
                     <div className="p-3 bg-muted rounded-lg">
                       <div className="space-y-1 text-sm">
-                        <p><strong>الهوية:</strong> {selectedCustomer.nationalId}</p>
-                        <p><strong>رخصة القيادة:</strong> {selectedCustomer.licenseNumber}</p>
-                        <p><strong>انتهاء الرخصة:</strong> {selectedCustomer.licenseExpiry}</p>
-                        <p><strong>العنوان:</strong> {selectedCustomer.address}</p>
+                        <p><strong>الهوية:</strong> {selectedCustomer.national_id}</p>
+                        <p><strong>رخصة القيادة:</strong> {selectedCustomer.license_number}</p>
+                        <p><strong>انتهاء الرخصة:</strong> {new Date(selectedCustomer.license_expiry).toLocaleDateString('ar-SA')}</p>
+                        <p><strong>العنوان:</strong> {selectedCustomer.address || 'غير محدد'}</p>
                       </div>
                     </div>
                   )}
@@ -481,9 +403,9 @@ export default function AddContractDialog() {
                             <div className="flex items-center justify-between w-full">
                               <div className="flex flex-col">
                                 <span>{vehicle.brand} {vehicle.model} {vehicle.year}</span>
-                                <span className="text-sm text-muted-foreground">{vehicle.plateNumber}</span>
+                                <span className="text-sm text-muted-foreground">{vehicle.plate_number}</span>
                               </div>
-                              <Badge variant="secondary">{vehicle.dailyRate} ر.س/يوم</Badge>
+                              <Badge variant="secondary">{vehicle.daily_rate} ر.س/يوم</Badge>
                             </div>
                           </SelectItem>
                         ))}
@@ -496,8 +418,8 @@ export default function AddContractDialog() {
                       <div className="space-y-1 text-sm">
                         <p><strong>اللون:</strong> {selectedVehicle.color}</p>
                         <p><strong>الكيلومترات:</strong> {selectedVehicle.mileage.toLocaleString()}</p>
-                        <p><strong>نوع الوقود:</strong> {selectedVehicle.fuelType === 'gasoline' ? 'بنزين' : 'ديزل'}</p>
-                        <p><strong>المالك:</strong> {selectedVehicle.owner.name}</p>
+                        <p><strong>نوع الوقود:</strong> {selectedVehicle.fuel_type === 'gasoline' ? 'بنزين' : selectedVehicle.fuel_type === 'diesel' ? 'ديزل' : selectedVehicle.fuel_type}</p>
+                        <p><strong>المالك:</strong> {selectedVehicle.owner?.name || 'غير محدد'}</p>
                       </div>
                     </div>
                   )}
