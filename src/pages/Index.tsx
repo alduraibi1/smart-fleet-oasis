@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Car, LogIn } from 'lucide-react';
+import { SmartNotifications } from '@/components/Notifications/SmartNotifications';
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -78,6 +79,11 @@ const Index = () => {
                       نظرة عامة على أداء شركتك وأهم المؤشرات
                     </p>
                   </div>
+                </div>
+                
+                {/* التنبيهات الذكية */}
+                <div className="scale-in">
+                  <SmartNotifications />
                 </div>
                 
                 <div className="scale-in">
