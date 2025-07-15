@@ -38,6 +38,8 @@ import { ContractStatusManager } from '@/components/Contracts/ContractStatusMana
 import { AutomatedWorkflows } from '@/components/Contracts/AutomatedWorkflows';
 import { AIContractAnalysis } from '@/components/Contracts/AIContractAnalysis';
 import { PredictiveAnalytics } from '@/components/Contracts/PredictiveAnalytics';
+import { ExecutiveDashboard } from '@/components/Contracts/ExecutiveDashboard';
+import { SystemIntegration } from '@/components/Contracts/SystemIntegration';
 import { useContracts } from '@/hooks/useContracts';
 
 const statusConfig = {
@@ -119,19 +121,21 @@ const Contracts = () => {
               </div>
 
               <Tabs defaultValue="dashboard" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-6 lg:grid-cols-12">
-                  <TabsTrigger value="dashboard" className="text-xs lg:text-sm">لوحة التحكم</TabsTrigger>
-                  <TabsTrigger value="analytics" className="text-xs lg:text-sm">التحليلات</TabsTrigger>
-                  <TabsTrigger value="reports" className="text-xs lg:text-sm">التقارير المالية</TabsTrigger>
-                  <TabsTrigger value="overview" className="text-xs lg:text-sm">نظرة عامة</TabsTrigger>
-                  <TabsTrigger value="tracker" className="text-xs lg:text-sm">تتبع دورة الحياة</TabsTrigger>
-                  <TabsTrigger value="search" className="text-xs lg:text-sm">البحث المتقدم</TabsTrigger>
-                  <TabsTrigger value="notifications" className="text-xs lg:text-sm">الإشعارات</TabsTrigger>
-                  <TabsTrigger value="signatures" className="text-xs lg:text-sm">التوقيع الإلكتروني</TabsTrigger>
-                  <TabsTrigger value="workflows" className="text-xs lg:text-sm">الأتمتة الذكية</TabsTrigger>
-                  <TabsTrigger value="ai-analysis" className="text-xs lg:text-sm">تحليل AI</TabsTrigger>
-                  <TabsTrigger value="predictions" className="text-xs lg:text-sm">التنبؤات</TabsTrigger>
-                  <TabsTrigger value="status-manager" className="text-xs lg:text-sm">إدارة الحالات</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-7 lg:grid-cols-14">
+                  <TabsTrigger value="dashboard" className="text-xs">لوحة التحكم</TabsTrigger>
+                  <TabsTrigger value="executive" className="text-xs">تنفيذية</TabsTrigger>
+                  <TabsTrigger value="analytics" className="text-xs">التحليلات</TabsTrigger>
+                  <TabsTrigger value="reports" className="text-xs">التقارير</TabsTrigger>
+                  <TabsTrigger value="overview" className="text-xs">نظرة عامة</TabsTrigger>
+                  <TabsTrigger value="tracker" className="text-xs">التتبع</TabsTrigger>
+                  <TabsTrigger value="search" className="text-xs">البحث</TabsTrigger>
+                  <TabsTrigger value="notifications" className="text-xs">الإشعارات</TabsTrigger>
+                  <TabsTrigger value="signatures" className="text-xs">التوقيع</TabsTrigger>
+                  <TabsTrigger value="workflows" className="text-xs">الأتمتة</TabsTrigger>
+                  <TabsTrigger value="ai-analysis" className="text-xs">تحليل AI</TabsTrigger>
+                  <TabsTrigger value="predictions" className="text-xs">التنبؤات</TabsTrigger>
+                  <TabsTrigger value="integration" className="text-xs">التكامل</TabsTrigger>
+                  <TabsTrigger value="status-manager" className="text-xs">إدارة الحالات</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="analytics" className="space-y-6">
@@ -144,6 +148,10 @@ const Contracts = () => {
 
                 <TabsContent value="dashboard" className="space-y-6">
                   <AdvancedDashboard contracts={contracts} stats={stats} />
+                </TabsContent>
+
+                <TabsContent value="executive" className="space-y-6">
+                  <ExecutiveDashboard />
                 </TabsContent>
 
                 <TabsContent value="overview" className="space-y-6">
@@ -178,6 +186,10 @@ const Contracts = () => {
 
                 <TabsContent value="predictions" className="space-y-6">
                   <PredictiveAnalytics />
+                </TabsContent>
+
+                <TabsContent value="integration" className="space-y-6">
+                  <SystemIntegration />
                 </TabsContent>
 
                 <TabsContent value="status-manager" className="space-y-6">
