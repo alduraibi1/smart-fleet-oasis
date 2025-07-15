@@ -294,14 +294,7 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
       nationalId: formData.nationalId,
       licenseNumber: formData.licenseNumber,
       licenseExpiry: formData.licenseExpiry!,
-      totalRentals: 0,
-      documents: documents.map(doc => ({
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-        name: doc.name,
-        type: doc.type,
-        url: URL.createObjectURL(doc),
-        uploadDate: new Date(),
-      })),
+      totalRentals: 0
     };
 
     onAdd(newCustomer);

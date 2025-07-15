@@ -117,7 +117,7 @@ export interface Customer {
   totalRentals: number;
   blacklistReason?: string;
   blacklistDate?: Date;
-  documents: Document[];
+  documents?: Document[];
 }
 
 export interface CustomerGuarantor {
