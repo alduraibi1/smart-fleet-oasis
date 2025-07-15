@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SmartInput } from "@/components/ui/smart-input";
+import { SmartDatePicker } from "@/components/ui/smart-date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -640,67 +641,22 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label>تاريخ إصدار الرخصة</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !formData.licenseIssueDate && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="ml-2 h-4 w-4" />
-                            {formData.licenseIssueDate ? (
-                              format(formData.licenseIssueDate, "dd/MM/yyyy", { locale: ar })
-                            ) : (
-                              <span>اختر التاريخ</span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={formData.licenseIssueDate}
-                            onSelect={(date) => setFormData({ ...formData, licenseIssueDate: date })}
-                            initialFocus
-                            className="pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                    <SmartDatePicker
+                      label="تاريخ إصدار الرخصة"
+                      value={formData.licenseIssueDate}
+                      onChange={(date) => setFormData({ ...formData, licenseIssueDate: date })}
+                      placeholder="اختر تاريخ إصدار الرخصة"
+                      yearRange={{ start: 1990, end: new Date().getFullYear() }}
+                    />
 
-                    <div className="space-y-2">
-                      <Label>تاريخ انتهاء الرخصة *</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !formData.licenseExpiry && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="ml-2 h-4 w-4" />
-                            {formData.licenseExpiry ? (
-                              format(formData.licenseExpiry, "dd/MM/yyyy", { locale: ar })
-                            ) : (
-                              <span>اختر التاريخ</span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={formData.licenseExpiry}
-                            onSelect={(date) => setFormData({ ...formData, licenseExpiry: date })}
-                            initialFocus
-                            className="pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                    <SmartDatePicker
+                      label="تاريخ انتهاء الرخصة"
+                      value={formData.licenseExpiry}
+                      onChange={(date) => setFormData({ ...formData, licenseExpiry: date })}
+                      placeholder="اختر تاريخ انتهاء الرخصة"
+                      required
+                      yearRange={{ start: new Date().getFullYear(), end: new Date().getFullYear() + 20 }}
+                    />
 
                     <div className="space-y-2">
                       <Label htmlFor="licenseIssuePlace">مكان إصدار الرخصة</Label>
@@ -734,36 +690,13 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <Label>تاريخ انتهاء الرخصة الدولية</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !formData.internationalLicenseExpiry && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="ml-2 h-4 w-4" />
-                              {formData.internationalLicenseExpiry ? (
-                                format(formData.internationalLicenseExpiry, "dd/MM/yyyy", { locale: ar })
-                              ) : (
-                                <span>اختر التاريخ</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={formData.internationalLicenseExpiry}
-                              onSelect={(date) => setFormData({ ...formData, internationalLicenseExpiry: date })}
-                              initialFocus
-                              className="pointer-events-auto"
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
+                      <SmartDatePicker
+                        label="تاريخ انتهاء الرخصة الدولية"
+                        value={formData.internationalLicenseExpiry}
+                        onChange={(date) => setFormData({ ...formData, internationalLicenseExpiry: date })}
+                        placeholder="اختر تاريخ انتهاء الرخصة الدولية"
+                        yearRange={{ start: new Date().getFullYear(), end: new Date().getFullYear() + 20 }}
+                      />
                     </div>
                   )}
                 </CardContent>
