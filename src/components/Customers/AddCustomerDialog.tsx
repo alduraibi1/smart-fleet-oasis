@@ -285,7 +285,7 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
       blacklisted: false,
       total_rentals: 0,
       
-      // Legacy fields for backward compatibility
+      // الحقول للتوافق مع المكونات الحالية
       nationalId: formData.nationalId,
       licenseNumber: formData.licenseNumber,
       licenseExpiry: formData.licenseExpiry!,
