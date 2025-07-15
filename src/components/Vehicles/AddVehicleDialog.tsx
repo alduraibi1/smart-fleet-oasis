@@ -114,33 +114,28 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
   };
 
   const onSubmit = (data: z.infer<typeof vehicleSchema>) => {
-    const selectedOwner = owners.find(owner => owner.id === data.ownerId);
-    
-    const newVehicle = {
-      id: Date.now().toString(),
-      ...data,
+    // Create vehicle data that matches the database schema
+    const vehicleData = {
+      plate_number: data.plateNumber,
+      brand: data.brand,
+      model: data.model,
+      year: data.year,
+      color: data.color,
+      fuel_type: data.fuelType,
+      transmission: data.transmission,
+      seating_capacity: data.seatingCapacity,
+      daily_rate: data.dailyRate,
+      mileage: data.mileage,
+      vin: data.vin,
+      engine_number: data.engineNumber,
+      chassis_number: data.chassisNumber,
+      owner_id: data.ownerId,
+      notes: data.notes,
       status: 'available' as const,
-      owner: selectedOwner,
-      documents,
-      images,
       features: [],
-      maintenance: {
-        status: 'completed' as const,
-        lastMaintenanceDate: new Date().toISOString(),
-        nextMaintenanceDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 3 months from now
-      },
-      location: {
-        isTracked: false,
-        address: selectedOwner?.address || '',
-      },
-      purchase: {
-        purchaseDate: new Date().toISOString(),
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
 
-    onVehicleAdded(newVehicle);
+    onVehicleAdded(vehicleData);
     setOpen(false);
     form.reset();
     setDocuments([]);

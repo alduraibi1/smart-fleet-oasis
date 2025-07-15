@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Layout/Sidebar';
 import Header from '@/components/Layout/Header';
 import VehicleStats from '@/components/Vehicles/VehicleStats';
@@ -33,6 +33,11 @@ export default function Vehicles() {
     deleteVehicle, 
     getBrands 
   } = useVehicles();
+
+  // Fetch vehicles when component mounts
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
 
   const handleFiltersChange = (newFilters: VehicleFiltersType) => {
     setFilters(newFilters);
