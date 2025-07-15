@@ -25,7 +25,8 @@ import {
 import Sidebar from '@/components/Layout/Sidebar';
 import Header from '@/components/Layout/Header';
 import { ContractsOverview } from '@/components/Contracts/ContractsOverview';
-import { ContractsAnalytics } from '@/components/Contracts/ContractsAnalytics';
+import { ContractAnalytics } from '@/components/Contracts/ContractAnalytics';
+import { FinancialReports } from '@/components/Contracts/FinancialReports';
 import { ContractLifecycle } from '@/components/Contracts/ContractLifecycle';
 import { DigitalSignatures } from '@/components/Contracts/DigitalSignatures';
 import { AutomatedContracts } from '@/components/Contracts/AutomatedContracts';
@@ -117,14 +118,22 @@ const Contracts = () => {
               <Tabs defaultValue="dashboard" className="space-y-6">
                 <TabsList className="grid w-full grid-cols-8">
                   <TabsTrigger value="dashboard">لوحة التحكم</TabsTrigger>
+                  <TabsTrigger value="analytics">التحليلات</TabsTrigger>
+                  <TabsTrigger value="reports">التقارير المالية</TabsTrigger>
                   <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
                   <TabsTrigger value="tracker">تتبع دورة الحياة</TabsTrigger>
                   <TabsTrigger value="search">البحث المتقدم</TabsTrigger>
                   <TabsTrigger value="notifications">الإشعارات</TabsTrigger>
-                  <TabsTrigger value="analytics">التحليلات</TabsTrigger>
                   <TabsTrigger value="signatures">التوقيع الإلكتروني</TabsTrigger>
-                  <TabsTrigger value="automation">العقود الذكية</TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="analytics" className="space-y-6">
+                  <ContractAnalytics contracts={contracts} />
+                </TabsContent>
+
+                <TabsContent value="reports" className="space-y-6">
+                  <FinancialReports contracts={contracts} />
+                </TabsContent>
 
                 <TabsContent value="dashboard" className="space-y-6">
                   <AdvancedDashboard contracts={contracts} stats={stats} />
@@ -362,8 +371,8 @@ const Contracts = () => {
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="analytics" className="space-y-6">
-                  <ContractsAnalytics />
+                <TabsContent value="lifecycle" className="space-y-6">
+                  <ContractLifecycle />
                 </TabsContent>
 
                 <TabsContent value="lifecycle" className="space-y-6">
