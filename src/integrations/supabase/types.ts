@@ -521,6 +521,33 @@ export type Database = {
         }
         Relationships: []
       }
+      failed_login_attempts: {
+        Row: {
+          attempt_time: string | null
+          blocked_until: string | null
+          email: string | null
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+        }
+        Insert: {
+          attempt_time?: string | null
+          blocked_until?: string | null
+          email?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Update: {
+          attempt_time?: string | null
+          blocked_until?: string | null
+          email?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       inventory_categories: {
         Row: {
           created_at: string
@@ -2174,6 +2201,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_activity_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_smart_notification: {
         Args: {
           p_title: string
@@ -2206,6 +2237,18 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      is_ip_blocked: {
+        Args: { p_ip_address: unknown }
+        Returns: boolean
+      }
+      track_failed_login: {
+        Args: { p_ip_address: unknown; p_email: string; p_user_agent?: string }
+        Returns: boolean
+      }
+      validate_password_strength: {
+        Args: { password_text: string }
+        Returns: Json
       }
     }
     Enums: {
