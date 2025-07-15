@@ -25,9 +25,9 @@ const vehicleSchema = z.object({
   dailyRate: z.number().min(1, 'السعر اليومي مطلوب'),
   mileage: z.number().min(0, 'الكيلومترات لا يمكن أن تكون سالبة'),
   ownerId: z.string().min(1, 'المالك مطلوب'),
-  vin: z.string().min(1, 'رقم VIN مطلوب'),
-  engineNumber: z.string().min(1, 'رقم المحرك مطلوب'),
-  chassisNumber: z.string().min(1, 'رقم الشاسيه مطلوب'),
+  vin: z.string().optional(),
+  engineNumber: z.string().optional(),
+  chassisNumber: z.string().optional(),
   fuelType: z.enum(['gasoline', 'diesel', 'hybrid', 'electric']),
   transmission: z.enum(['manual', 'automatic']),
   seatingCapacity: z.number().min(1).max(50),
@@ -125,32 +125,36 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
   };
 
   const onSubmit = (data: z.infer<typeof vehicleSchema>) => {
-    // Create vehicle data that matches the database schema
-    const vehicleData = {
-      plate_number: data.plateNumber,
-      brand: data.brand,
-      model: data.model,
-      year: data.year,
-      color: data.color,
-      fuel_type: data.fuelType,
-      transmission: data.transmission,
-      seating_capacity: data.seatingCapacity,
-      daily_rate: data.dailyRate,
-      mileage: data.mileage,
-      vin: data.vin,
-      engine_number: data.engineNumber,
-      chassis_number: data.chassisNumber,
-      owner_id: data.ownerId,
-      notes: data.notes,
-      status: 'available' as const,
-      features: [],
-    };
+    try {
+      // Create vehicle data that matches the database schema
+      const vehicleData = {
+        plate_number: data.plateNumber,
+        brand: data.brand,
+        model: data.model,
+        year: data.year,
+        color: data.color,
+        fuel_type: data.fuelType,
+        transmission: data.transmission,
+        seating_capacity: data.seatingCapacity,
+        daily_rate: data.dailyRate,
+        mileage: data.mileage,
+        vin: data.vin || null,
+        engine_number: data.engineNumber || null,
+        chassis_number: data.chassisNumber || null,
+        owner_id: data.ownerId,
+        notes: data.notes || null,
+        status: 'available' as const,
+        features: [],
+      };
 
-    onVehicleAdded(vehicleData);
-    setOpen(false);
-    form.reset();
-    setDocuments([]);
-    setImages([]);
+      onVehicleAdded(vehicleData);
+      setOpen(false);
+      form.reset();
+      setDocuments([]);
+      setImages([]);
+    } catch (error) {
+      console.error('Error adding vehicle:', error);
+    }
   };
 
   const getDocumentTypeLabel = (type: string) => {
@@ -325,7 +329,7 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
                     name="vin"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>رقم VIN</FormLabel>
+                        <FormLabel>رقم VIN (اختياري)</FormLabel>
                         <FormControl>
                           <Input placeholder="WVW1J7A37CE123456" {...field} />
                         </FormControl>
@@ -334,13 +338,26 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
                     )}
                   />
 
+                  <FormField
+                    control={form.control}
+                    name="engineNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>رقم المحرك (اختياري)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ENG456789" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}
                     name="chassisNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>رقم الشاسيه</FormLabel>
+                        <FormLabel>رقم الشاسيه (اختياري)</FormLabel>
                         <FormControl>
                           <Input placeholder="CHS789012" {...field} />
                         </FormControl>
