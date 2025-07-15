@@ -5,6 +5,7 @@ import * as z from 'zod';
 import { Plus, Upload, X, FileText, Image as ImageIcon, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SmartInput } from '@/components/ui/smart-input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -201,10 +202,14 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
                     name="plateNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>رقم اللوحة</FormLabel>
-                        <FormControl>
-                          <Input placeholder="أ ب ج 123" {...field} />
-                        </FormControl>
+                        <SmartInput
+                          label="رقم اللوحة"
+                          validationType="plateNumber"
+                          {...field}
+                          required
+                          showValidationIcon
+                          showSuggestions
+                        />
                         <FormMessage />
                       </FormItem>
                     )}
@@ -329,10 +334,12 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
                     name="vin"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>رقم VIN (اختياري)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="WVW1J7A37CE123456" {...field} />
-                        </FormControl>
+                        <SmartInput
+                          label="رقم VIN (اختياري)"
+                          validationType="vin"
+                          {...field}
+                          showValidationIcon
+                        />
                         <FormMessage />
                       </FormItem>
                     )}

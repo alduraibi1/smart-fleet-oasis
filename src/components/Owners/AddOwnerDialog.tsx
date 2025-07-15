@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SmartInput } from "@/components/ui/smart-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
@@ -95,45 +96,31 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              البريد الإلكتروني
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="owner@example.com"
-            />
-          </div>
+          <SmartInput
+            label="البريد الإلكتروني"
+            validationType="email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            showValidationIcon
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="phone" className="flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              رقم الهاتف
-            </Label>
-            <Input
-              id="phone"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="+966 50 123 4567"
-            />
-          </div>
+          <SmartInput
+            label="رقم الهاتف"
+            validationType="mobileNumber"
+            value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            showValidationIcon
+            showSuggestions
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="national_id" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              رقم الهوية/الإقامة
-            </Label>
-            <Input
-              id="national_id"
-              value={formData.national_id}
-              onChange={(e) => setFormData({ ...formData, national_id: e.target.value })}
-              placeholder="1xxxxxxxxx"
-            />
-          </div>
+          <SmartInput
+            label="رقم الهوية/الإقامة"
+            validationType="nationalId"
+            value={formData.national_id}
+            onChange={(e) => setFormData({ ...formData, national_id: e.target.value })}
+            showValidationIcon
+            showSuggestions
+          />
 
           <div className="space-y-2">
             <Label htmlFor="address" className="flex items-center gap-2">

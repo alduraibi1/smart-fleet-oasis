@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SmartInput } from "@/components/ui/smart-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -447,23 +448,15 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="nationalId">رقم الهوية/الإقامة (10 أرقام) *</Label>
-                      <Input
-                        id="nationalId"
-                        value={formData.nationalId}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '');
-                          if (value.length <= 10) {
-                            setFormData({ ...formData, nationalId: value });
-                          }
-                        }}
-                        placeholder="1xxxxxxxxx"
-                        maxLength={10}
-                        pattern="[0-9]{10}"
-                        required
-                      />
-                    </div>
+                    <SmartInput
+                      label="رقم الهوية/الإقامة"
+                      validationType="nationalId"
+                      value={formData.nationalId}
+                      onChange={(e) => setFormData({ ...formData, nationalId: e.target.value })}
+                      required
+                      showValidationIcon
+                      showSuggestions
+                    />
 
                     <div className="space-y-2">
                       <Label htmlFor="nationality">الجنسية</Label>
