@@ -448,12 +448,19 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="nationalId">رقم الهوية/الإقامة *</Label>
+                      <Label htmlFor="nationalId">رقم الهوية/الإقامة (10 أرقام) *</Label>
                       <Input
                         id="nationalId"
                         value={formData.nationalId}
-                        onChange={(e) => setFormData({ ...formData, nationalId: e.target.value })}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '');
+                          if (value.length <= 10) {
+                            setFormData({ ...formData, nationalId: value });
+                          }
+                        }}
                         placeholder="1xxxxxxxxx"
+                        maxLength={10}
+                        pattern="[0-9]{10}"
                         required
                       />
                     </div>
