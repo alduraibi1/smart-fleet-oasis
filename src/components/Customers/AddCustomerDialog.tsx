@@ -549,12 +549,19 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="phone">رقم الهاتف الأساسي *</Label>
+                      <Label htmlFor="phone">رقم الهاتف الأساسي (10 أرقام) *</Label>
                       <Input
                         id="phone"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="05xxxxxxxx"
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '');
+                          if (value.length <= 10) {
+                            setFormData({ ...formData, phone: value });
+                          }
+                        }}
+                        placeholder="5xxxxxxxxx"
+                        maxLength={10}
+                        pattern="[0-9]{10}"
                         required
                       />
                     </div>
