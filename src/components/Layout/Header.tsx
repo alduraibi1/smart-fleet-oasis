@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Menu, User, Search, Settings, LogOut } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Logo } from '@/components/ui/logo';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import NotificationCenter from '@/components/Notifications/NotificationCenter';
@@ -14,7 +15,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   return (
     <header className="backdrop-glass border-b border-border/60 px-6 py-4 sticky top-0 z-50 shadow-soft">
       <div className="flex items-center justify-between">
-        {/* Mobile menu button and search */}
+        {/* Mobile menu button and logo */}
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -24,6 +25,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
           >
             <Menu className="h-5 w-5" />
           </Button>
+          
+          {/* Logo - visible on mobile */}
+          <div className="lg:hidden">
+            <Logo size="sm" />
+          </div>
           
           <div className="hidden md:block">
             <div className="relative group">

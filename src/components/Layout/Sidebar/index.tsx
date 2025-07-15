@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Car, X, Bell } from 'lucide-react';
+import { X, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { menuSections } from './menuConfig';
 import { SidebarSection } from './SidebarSection';
+import { Logo } from '@/components/ui/logo';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -43,14 +44,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Header */}
         <div className="flex flex-col p-6 border-b border-border/60 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent backdrop-blur-sm">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary-variant flex items-center justify-center shadow-medium hover-lift">
-                <Car className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <h1 className="text-xl font-bold text-foreground bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent">
-                CarRent Pro
-              </h1>
-            </div>
+            <Logo size="md" />
             <Button
               variant="ghost"
               size="sm"

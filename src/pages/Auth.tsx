@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, User, Phone, Car, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User, Phone, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Logo } from '@/components/ui/logo';
 
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -165,12 +166,9 @@ export default function AuthPage() {
       <div className="relative w-full max-w-md">
         {/* شعار وعنوان */}
         <div className="text-center mb-8 fade-in">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-primary-variant rounded-2xl shadow-glow mb-4">
-            <Car className="h-8 w-8 text-white" />
+          <div className="flex justify-center mb-4">
+            <Logo size="xl" />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent">
-            CarRent Pro
-          </h1>
           <p className="text-muted-foreground mt-2">
             نظام إدارة تأجير المركبات المتطور
           </p>
