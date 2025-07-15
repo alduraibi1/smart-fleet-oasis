@@ -16,21 +16,20 @@ export const SaudiValidation = {
       const firstDigit = cleaned[0];
       if (firstDigit !== '1' && firstDigit !== '2') return false;
       
-      // Checksum validation using Saudi algorithm
+      // Correct Saudi ID checksum validation algorithm
       let sum = 0;
-      for (let i = 0; i < 9; i++) {
+      for (let i = 0; i < 10; i++) {
         const digit = parseInt(cleaned[i]);
-        const weight = i % 2 === 0 ? 1 : 2;
-        let product = digit * weight;
-        
-        if (product > 9) {
-          product = Math.floor(product / 10) + (product % 10);
+        if (i % 2 === 0) {
+          const doubled = digit * 2;
+          const doubledStr = `00${doubled}`.slice(-2);
+          sum += parseInt(doubledStr[0]) + parseInt(doubledStr[1]);
+        } else {
+          sum += digit;
         }
-        sum += product;
       }
       
-      const checksum = (10 - (sum % 10)) % 10;
-      return checksum === parseInt(cleaned[9]);
+      return sum % 10 === 0;
     },
     
     format: (value: string): string => {
