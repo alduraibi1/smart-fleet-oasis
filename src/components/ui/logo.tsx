@@ -96,7 +96,7 @@ export function Logo({
       />
       <div className="flex flex-col">
         <h1 className={textClasses}>
-          الدرايبي
+          الدريبي
         </h1>
         <p className={cn(
           'text-xs font-medium transition-all duration-500 font-arabic tracking-wider',
