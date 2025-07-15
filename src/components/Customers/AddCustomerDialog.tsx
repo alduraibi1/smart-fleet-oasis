@@ -210,14 +210,91 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
 
     const newCustomer: Omit<Customer, 'id'> = {
       name: formData.name,
+      name_english: formData.nameEnglish,
       phone: formData.phone,
+      phone_secondary: formData.phoneSecondary,
       email: formData.email,
+      email_secondary: formData.emailSecondary,
+      national_id: formData.nationalId,
+      nationality: formData.nationality,
+      date_of_birth: formData.dateOfBirth?.toISOString().split('T')[0],
+      gender: formData.gender,
+      marital_status: formData.maritalStatus,
+      
+      // معلومات الرخصة
+      license_number: formData.licenseNumber,
+      license_expiry: formData.licenseExpiry!.toISOString().split('T')[0],
+      license_type: formData.licenseType,
+      license_issue_date: formData.licenseIssueDate?.toISOString().split('T')[0],
+      license_issue_place: formData.licenseIssuePlace,
+      international_license: formData.internationalLicense,
+      international_license_number: formData.internationalLicenseNumber,
+      international_license_expiry: formData.internationalLicenseExpiry?.toISOString().split('T')[0],
+      
+      // معلومات العنوان
+      address: formData.address,
+      city: formData.city,
+      district: formData.district,
+      postal_code: formData.postalCode,
+      country: formData.country,
+      address_type: formData.addressType,
+      
+      // معلومات العمل
+      job_title: formData.jobTitle,
+      company: formData.company,
+      work_address: formData.workAddress,
+      work_phone: formData.workPhone,
+      monthly_income: formData.monthlyIncome ? parseFloat(formData.monthlyIncome) : undefined,
+      
+      // جهة الاتصال في الطوارئ
+      emergency_contact_name: formData.emergencyContactName,
+      emergency_contact_phone: formData.emergencyContactPhone,
+      emergency_contact_relation: formData.emergencyContactRelation,
+      
+      // التفضيلات والإعدادات
+      preferred_language: formData.preferredLanguage,
+      marketing_consent: formData.marketingConsent,
+      sms_notifications: formData.smsNotifications,
+      email_notifications: formData.emailNotifications,
+      
+      // التقييم والمعلومات الإضافية
+      rating: formData.rating,
+      notes: formData.notes,
+      customer_source: formData.customerSource,
+      referred_by: formData.referredBy,
+      
+      // معلومات الائتمان
+      credit_limit: formData.creditLimit,
+      payment_terms: formData.paymentTerms,
+      preferred_payment_method: formData.preferredPaymentMethod,
+      bank_account_number: formData.bankAccountNumber,
+      bank_name: formData.bankName,
+      
+      // معلومات التأمين
+      has_insurance: formData.hasInsurance,
+      insurance_company: formData.insuranceCompany,
+      insurance_policy_number: formData.insurancePolicyNumber,
+      insurance_expiry: formData.insuranceExpiry?.toISOString().split('T')[0],
+      
+      // معلومات الحالة
+      is_active: true,
+      blacklisted: false,
+      blacklist_reason: undefined,
+      blacklist_date: undefined,
+      total_rentals: 0,
+      last_rental_date: undefined,
+      
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      created_by: undefined,
+      
+      // الحقول للتوافق مع المكونات الحالية
       nationalId: formData.nationalId,
       licenseNumber: formData.licenseNumber,
       licenseExpiry: formData.licenseExpiry!,
-      address: formData.address,
-      rating: formData.rating,
       totalRentals: 0,
+      blacklistReason: undefined,
+      blacklistDate: undefined,
       documents: documents.map(doc => ({
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         name: doc.name,
@@ -225,7 +302,6 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
         url: URL.createObjectURL(doc),
         uploadDate: new Date(),
       })),
-      blacklisted: false,
     };
 
     onAdd(newCustomer);

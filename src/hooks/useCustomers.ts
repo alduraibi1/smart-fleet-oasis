@@ -416,7 +416,7 @@ export const useCustomers = () => {
   };
 
   // جلب عقود العميل
-  const getCustomerContracts = async (customerId: string): Promise<RentalContract[]> => {
+  const getCustomerContracts = async (customerId: string): Promise<any[]> => {
     try {
       const { data, error } = await supabase
         .from('rental_contracts')
