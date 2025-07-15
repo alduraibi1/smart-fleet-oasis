@@ -13,22 +13,33 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { AddCustomerDialog } from "@/components/Customers/AddCustomerDialog";
 import { CustomerDetailsDialog } from "@/components/Customers/CustomerDetailsDialog";
 import { BlacklistDialog } from "@/components/Customers/BlacklistDialog";
-import { useCustomers, Customer } from "@/hooks/useCustomers";
-import { Plus, Grid, List } from "lucide-react";
+import { useCustomers, useCustomersStats, useCustomerMutations, useCustomersRealtime } from "@/hooks/useCustomersQuery";
+import { Customer } from "@/types/index";
+import { Plus, Grid, List, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Customers() {
-  const {
-    customers,
-    loading,
-    stats,
-    fetchCustomers,
-    addCustomer,
-    updateCustomer,
-    deleteCustomer,
-    blacklistCustomer,
-    removeFromBlacklist,
-  } = useCustomers();
+  // Enhanced filters state
+  const [filters, setFilters] = useState<CustomerFilters>({});
+  
+  // React Query hooks
+  const { data: customersData, isLoading, refetch } = useCustomers(filters);
+  const { data: stats } = useCustomersStats();
+  const { 
+    addCustomer, 
+    updateCustomer, 
+    deleteCustomer, 
+    blacklistCustomer, 
+    removeFromBlacklist, 
+    bulkUpdate 
+  } = useCustomerMutations();
+  
+  // Enable real-time updates
+  useCustomersRealtime();
+  
+  // Extract data from React Query response
+  const customers = customersData?.customers || [];
+  const loading = isLoading;
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -38,8 +49,6 @@ export default function Customers() {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   
-  // Enhanced filters
-  const [filters, setFilters] = useState<CustomerFilters>({});
   const { toast } = useToast();
 
   // Enhanced filtering
@@ -143,7 +152,7 @@ export default function Customers() {
 
   const handleAddCustomer = async (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      await addCustomer(customerData);
+      await addCustomer.mutateAsync(customerData);
       setShowAddDialog(false);
     } catch (error) {
       console.error('خطأ في إضافة العميل:', error);
@@ -167,7 +176,7 @@ export default function Customers() {
 
   const handleBlacklist = async (customerId: string, reason: string) => {
     try {
-      await blacklistCustomer(customerId, reason);
+      await blacklistCustomer.mutateAsync({ id: customerId, reason });
       setShowBlacklistDialog(false);
     } catch (error) {
       console.error('خطأ في إضافة العميل للقائمة السوداء:', error);
@@ -176,7 +185,7 @@ export default function Customers() {
 
   const handleRemoveFromBlacklist = async (customerId: string) => {
     try {
-      await removeFromBlacklist(customerId);
+      await removeFromBlacklist.mutateAsync(customerId);
       setShowBlacklistDialog(false);
     } catch (error) {
       console.error('خطأ في إزالة العميل من القائمة السوداء:', error);
@@ -198,7 +207,7 @@ export default function Customers() {
 
   const handleBulkBlacklist = async (customerIds: string[], reason: string) => {
     try {
-      await Promise.all(customerIds.map(id => blacklistCustomer(id, reason)));
+      await Promise.all(customerIds.map(id => blacklistCustomer.mutateAsync({ id, reason })));
       toast({
         title: 'تم بنجاح',
         description: `تم إضافة ${customerIds.length} عميل للقائمة السوداء`,
@@ -214,7 +223,7 @@ export default function Customers() {
 
   const handleBulkRemoveBlacklist = async (customerIds: string[]) => {
     try {
-      await Promise.all(customerIds.map(id => removeFromBlacklist(id)));
+      await Promise.all(customerIds.map(id => removeFromBlacklist.mutateAsync(id)));
       toast({
         title: 'تم بنجاح',
         description: `تم إزالة ${customerIds.length} عميل من القائمة السوداء`,
@@ -230,7 +239,7 @@ export default function Customers() {
 
   const handleBulkDelete = async (customerIds: string[]) => {
     try {
-      await Promise.all(customerIds.map(id => deleteCustomer(id)));
+      await Promise.all(customerIds.map(id => deleteCustomer.mutateAsync(id)));
       toast({
         title: 'تم بنجاح',
         description: `تم حذف ${customerIds.length} عميل`,
@@ -288,7 +297,7 @@ export default function Customers() {
   };
 
   const handleRefresh = () => {
-    fetchCustomers();
+    refetch();
   };
 
   return (
