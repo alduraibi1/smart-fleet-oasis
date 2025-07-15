@@ -91,6 +91,397 @@ export type Database = {
           },
         ]
       }
+      customer_documents: {
+        Row: {
+          created_at: string | null
+          customer_id: string
+          document_name: string
+          document_type: string
+          expiry_date: string | null
+          file_name: string | null
+          file_url: string | null
+          id: string
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+          upload_date: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id: string
+          document_name: string
+          document_type: string
+          expiry_date?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          upload_date?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string
+          document_name?: string
+          document_type?: string
+          expiry_date?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          upload_date?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_documents_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_guarantors: {
+        Row: {
+          account_number: string | null
+          address: string | null
+          bank_name: string | null
+          city: string | null
+          company: string | null
+          country: string | null
+          created_at: string | null
+          customer_id: string
+          date_of_birth: string | null
+          district: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          job_title: string | null
+          license_expiry: string | null
+          license_number: string | null
+          monthly_income: number | null
+          name: string
+          name_english: string | null
+          national_id: string
+          nationality: string | null
+          notes: string | null
+          phone: string
+          phone_secondary: string | null
+          postal_code: string | null
+          relation: string
+          updated_at: string | null
+          work_phone: string | null
+        }
+        Insert: {
+          account_number?: string | null
+          address?: string | null
+          bank_name?: string | null
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string | null
+          customer_id: string
+          date_of_birth?: string | null
+          district?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_title?: string | null
+          license_expiry?: string | null
+          license_number?: string | null
+          monthly_income?: number | null
+          name: string
+          name_english?: string | null
+          national_id: string
+          nationality?: string | null
+          notes?: string | null
+          phone: string
+          phone_secondary?: string | null
+          postal_code?: string | null
+          relation: string
+          updated_at?: string | null
+          work_phone?: string | null
+        }
+        Update: {
+          account_number?: string | null
+          address?: string | null
+          bank_name?: string | null
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string | null
+          customer_id?: string
+          date_of_birth?: string | null
+          district?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_title?: string | null
+          license_expiry?: string | null
+          license_number?: string | null
+          monthly_income?: number | null
+          name?: string
+          name_english?: string | null
+          national_id?: string
+          nationality?: string | null
+          notes?: string | null
+          phone?: string
+          phone_secondary?: string | null
+          postal_code?: string | null
+          relation?: string
+          updated_at?: string | null
+          work_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_guarantors_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_ratings: {
+        Row: {
+          contract_id: string | null
+          created_at: string | null
+          customer_id: string
+          id: string
+          rating: number
+          rating_date: string | null
+          review: string | null
+        }
+        Insert: {
+          contract_id?: string | null
+          created_at?: string | null
+          customer_id: string
+          id?: string
+          rating: number
+          rating_date?: string | null
+          review?: string | null
+        }
+        Update: {
+          contract_id?: string | null
+          created_at?: string | null
+          customer_id?: string
+          id?: string
+          rating?: number
+          rating_date?: string | null
+          review?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_ratings_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "rental_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_ratings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          address: string | null
+          address_type: string | null
+          bank_account_number: string | null
+          bank_name: string | null
+          blacklist_date: string | null
+          blacklist_reason: string | null
+          blacklisted: boolean | null
+          city: string | null
+          company: string | null
+          country: string | null
+          created_at: string | null
+          created_by: string | null
+          credit_limit: number | null
+          customer_source: string | null
+          date_of_birth: string | null
+          district: string | null
+          email: string | null
+          email_notifications: boolean | null
+          email_secondary: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relation: string | null
+          gender: string | null
+          has_insurance: boolean | null
+          id: string
+          insurance_company: string | null
+          insurance_expiry: string | null
+          insurance_policy_number: string | null
+          international_license: boolean | null
+          international_license_expiry: string | null
+          international_license_number: string | null
+          is_active: boolean | null
+          job_title: string | null
+          last_rental_date: string | null
+          license_expiry: string
+          license_issue_date: string | null
+          license_issue_place: string | null
+          license_number: string
+          license_type: string | null
+          marital_status: string | null
+          marketing_consent: boolean | null
+          monthly_income: number | null
+          name: string
+          name_english: string | null
+          national_id: string
+          nationality: string | null
+          notes: string | null
+          payment_terms: string | null
+          phone: string
+          phone_secondary: string | null
+          postal_code: string | null
+          preferred_language: string | null
+          preferred_payment_method: string | null
+          rating: number | null
+          referred_by: string | null
+          sms_notifications: boolean | null
+          total_rentals: number | null
+          updated_at: string | null
+          work_address: string | null
+          work_phone: string | null
+        }
+        Insert: {
+          address?: string | null
+          address_type?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          blacklist_date?: string | null
+          blacklist_reason?: string | null
+          blacklisted?: boolean | null
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          credit_limit?: number | null
+          customer_source?: string | null
+          date_of_birth?: string | null
+          district?: string | null
+          email?: string | null
+          email_notifications?: boolean | null
+          email_secondary?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
+          gender?: string | null
+          has_insurance?: boolean | null
+          id?: string
+          insurance_company?: string | null
+          insurance_expiry?: string | null
+          insurance_policy_number?: string | null
+          international_license?: boolean | null
+          international_license_expiry?: string | null
+          international_license_number?: string | null
+          is_active?: boolean | null
+          job_title?: string | null
+          last_rental_date?: string | null
+          license_expiry: string
+          license_issue_date?: string | null
+          license_issue_place?: string | null
+          license_number: string
+          license_type?: string | null
+          marital_status?: string | null
+          marketing_consent?: boolean | null
+          monthly_income?: number | null
+          name: string
+          name_english?: string | null
+          national_id: string
+          nationality?: string | null
+          notes?: string | null
+          payment_terms?: string | null
+          phone: string
+          phone_secondary?: string | null
+          postal_code?: string | null
+          preferred_language?: string | null
+          preferred_payment_method?: string | null
+          rating?: number | null
+          referred_by?: string | null
+          sms_notifications?: boolean | null
+          total_rentals?: number | null
+          updated_at?: string | null
+          work_address?: string | null
+          work_phone?: string | null
+        }
+        Update: {
+          address?: string | null
+          address_type?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          blacklist_date?: string | null
+          blacklist_reason?: string | null
+          blacklisted?: boolean | null
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          credit_limit?: number | null
+          customer_source?: string | null
+          date_of_birth?: string | null
+          district?: string | null
+          email?: string | null
+          email_notifications?: boolean | null
+          email_secondary?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
+          gender?: string | null
+          has_insurance?: boolean | null
+          id?: string
+          insurance_company?: string | null
+          insurance_expiry?: string | null
+          insurance_policy_number?: string | null
+          international_license?: boolean | null
+          international_license_expiry?: string | null
+          international_license_number?: string | null
+          is_active?: boolean | null
+          job_title?: string | null
+          last_rental_date?: string | null
+          license_expiry?: string
+          license_issue_date?: string | null
+          license_issue_place?: string | null
+          license_number?: string
+          license_type?: string | null
+          marital_status?: string | null
+          marketing_consent?: boolean | null
+          monthly_income?: number | null
+          name?: string
+          name_english?: string | null
+          national_id?: string
+          nationality?: string | null
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string
+          phone_secondary?: string | null
+          postal_code?: string | null
+          preferred_language?: string | null
+          preferred_payment_method?: string | null
+          rating?: number | null
+          referred_by?: string | null
+          sms_notifications?: boolean | null
+          total_rentals?: number | null
+          updated_at?: string | null
+          work_address?: string | null
+          work_phone?: string | null
+        }
+        Relationships: []
+      }
       digital_signatures: {
         Row: {
           document_id: string
@@ -885,6 +1276,126 @@ export type Database = {
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rental_contracts: {
+        Row: {
+          actual_return_date: string | null
+          additional_charges: number | null
+          contract_number: string
+          created_at: string | null
+          created_by: string | null
+          customer_id: string
+          customer_signature: string | null
+          daily_rate: number
+          deposit_amount: number | null
+          discount_amount: number | null
+          employee_signature: string | null
+          end_date: string
+          fuel_level_end: string | null
+          fuel_level_start: string | null
+          id: string
+          insurance_amount: number | null
+          mileage_end: number | null
+          mileage_start: number | null
+          notes: string | null
+          paid_amount: number | null
+          payment_method: string | null
+          payment_status: string | null
+          pickup_location: string | null
+          remaining_amount: number | null
+          return_location: string | null
+          signed_at: string | null
+          start_date: string
+          status: string | null
+          terms_conditions: string | null
+          total_amount: number
+          updated_at: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          actual_return_date?: string | null
+          additional_charges?: number | null
+          contract_number: string
+          created_at?: string | null
+          created_by?: string | null
+          customer_id: string
+          customer_signature?: string | null
+          daily_rate: number
+          deposit_amount?: number | null
+          discount_amount?: number | null
+          employee_signature?: string | null
+          end_date: string
+          fuel_level_end?: string | null
+          fuel_level_start?: string | null
+          id?: string
+          insurance_amount?: number | null
+          mileage_end?: number | null
+          mileage_start?: number | null
+          notes?: string | null
+          paid_amount?: number | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pickup_location?: string | null
+          remaining_amount?: number | null
+          return_location?: string | null
+          signed_at?: string | null
+          start_date: string
+          status?: string | null
+          terms_conditions?: string | null
+          total_amount: number
+          updated_at?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          actual_return_date?: string | null
+          additional_charges?: number | null
+          contract_number?: string
+          created_at?: string | null
+          created_by?: string | null
+          customer_id?: string
+          customer_signature?: string | null
+          daily_rate?: number
+          deposit_amount?: number | null
+          discount_amount?: number | null
+          employee_signature?: string | null
+          end_date?: string
+          fuel_level_end?: string | null
+          fuel_level_start?: string | null
+          id?: string
+          insurance_amount?: number | null
+          mileage_end?: number | null
+          mileage_start?: number | null
+          notes?: string | null
+          paid_amount?: number | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pickup_location?: string | null
+          remaining_amount?: number | null
+          return_location?: string | null
+          signed_at?: string | null
+          start_date?: string
+          status?: string | null
+          terms_conditions?: string | null
+          total_amount?: number
+          updated_at?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_contracts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_contracts_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
             referencedColumns: ["id"]
           },
         ]

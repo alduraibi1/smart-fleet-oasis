@@ -32,18 +32,160 @@ export interface Vehicle {
 export interface Customer {
   id: string;
   name: string;
+  name_english?: string;
   phone: string;
+  phone_secondary?: string;
   email?: string;
+  email_secondary?: string;
+  national_id: string;
+  nationality: string;
+  date_of_birth?: string;
+  gender: string;
+  marital_status: string;
+  
+  // معلومات الرخصة
+  license_number: string;
+  license_expiry: string;
+  license_type: string;
+  license_issue_date?: string;
+  license_issue_place?: string;
+  international_license: boolean;
+  international_license_number?: string;
+  international_license_expiry?: string;
+  
+  // معلومات العنوان
+  address?: string;
+  city?: string;
+  district?: string;
+  postal_code?: string;
+  country: string;
+  address_type: string;
+  
+  // معلومات العمل
+  job_title?: string;
+  company?: string;
+  work_address?: string;
+  work_phone?: string;
+  monthly_income?: number;
+  
+  // جهة الاتصال في الطوارئ
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  emergency_contact_relation?: string;
+  
+  // التفضيلات والإعدادات
+  preferred_language: string;
+  marketing_consent: boolean;
+  sms_notifications: boolean;
+  email_notifications: boolean;
+  
+  // التقييم والمعلومات الإضافية
+  rating: number;
+  notes?: string;
+  customer_source: string;
+  referred_by?: string;
+  
+  // معلومات الائتمان
+  credit_limit: number;
+  payment_terms: string;
+  preferred_payment_method: string;
+  bank_account_number?: string;
+  bank_name?: string;
+  
+  // معلومات التأمين
+  has_insurance: boolean;
+  insurance_company?: string;
+  insurance_policy_number?: string;
+  insurance_expiry?: string;
+  
+  // معلومات الحالة
+  is_active: boolean;
+  blacklisted: boolean;
+  blacklist_reason?: string;
+  blacklist_date?: string;
+  total_rentals: number;
+  last_rental_date?: string;
+  
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  
+  // الحقول القديمة للتوافق مع المكونات الحالية
   nationalId: string;
   licenseNumber: string;
   licenseExpiry: Date;
-  address: string;
-  rating: number;
   totalRentals: number;
-  documents: Document[];
-  blacklisted: boolean;
   blacklistReason?: string;
   blacklistDate?: Date;
+  documents: Document[];
+}
+
+export interface CustomerGuarantor {
+  id: string;
+  customer_id: string;
+  name: string;
+  name_english?: string;
+  phone: string;
+  phone_secondary?: string;
+  email?: string;
+  national_id: string;
+  nationality: string;
+  date_of_birth?: string;
+  relation: string;
+  job_title?: string;
+  company?: string;
+  work_phone?: string;
+  monthly_income?: number;
+  address?: string;
+  city?: string;
+  district?: string;
+  postal_code?: string;
+  country: string;
+  license_number?: string;
+  license_expiry?: string;
+  bank_name?: string;
+  account_number?: string;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomerDocument {
+  id: string;
+  customer_id: string;
+  document_type: string;
+  document_name: string;
+  file_url?: string;
+  file_name?: string;
+  expiry_date?: string;
+  status: string;
+  notes?: string;
+  uploaded_by?: string;
+  upload_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomerFilters {
+  search?: string;
+  rating?: number;
+  status?: 'all' | 'active' | 'inactive';
+  blacklisted?: boolean;
+  license_expiry?: 'all' | 'valid' | 'expiring' | 'expired';
+  city?: string;
+  customer_source?: string;
+}
+
+export interface CustomerStats {
+  total: number;
+  active: number;
+  inactive: number;
+  blacklisted: number;
+  newThisMonth: number;
+  averageRating: number;
+  totalRentals: number;
+  averageRentalValue: number;
 }
 
 export interface RentalContract {
