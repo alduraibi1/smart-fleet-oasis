@@ -1011,6 +1011,72 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          category_preferences: Json | null
+          created_at: string
+          digest_enabled: boolean | null
+          digest_frequency: string | null
+          digest_time: string | null
+          email_enabled: boolean | null
+          enabled: boolean | null
+          id: string
+          in_app_enabled: boolean | null
+          push_enabled: boolean | null
+          quiet_hours_enabled: boolean | null
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          reminder_enabled: boolean | null
+          reminder_intervals: number[] | null
+          sms_enabled: boolean | null
+          updated_at: string
+          user_id: string
+          weekend_notifications: boolean | null
+        }
+        Insert: {
+          category_preferences?: Json | null
+          created_at?: string
+          digest_enabled?: boolean | null
+          digest_frequency?: string | null
+          digest_time?: string | null
+          email_enabled?: boolean | null
+          enabled?: boolean | null
+          id?: string
+          in_app_enabled?: boolean | null
+          push_enabled?: boolean | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          reminder_enabled?: boolean | null
+          reminder_intervals?: number[] | null
+          sms_enabled?: boolean | null
+          updated_at?: string
+          user_id: string
+          weekend_notifications?: boolean | null
+        }
+        Update: {
+          category_preferences?: Json | null
+          created_at?: string
+          digest_enabled?: boolean | null
+          digest_frequency?: string | null
+          digest_time?: string | null
+          email_enabled?: boolean | null
+          enabled?: boolean | null
+          id?: string
+          in_app_enabled?: boolean | null
+          push_enabled?: boolean | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          reminder_enabled?: boolean | null
+          reminder_intervals?: number[] | null
+          sms_enabled?: boolean | null
+          updated_at?: string
+          user_id?: string
+          weekend_notifications?: boolean | null
+        }
+        Relationships: []
+      }
       notification_settings: {
         Row: {
           advance_days: number | null
@@ -1044,6 +1110,54 @@ export type Database = {
           push_enabled?: boolean | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      notification_templates: {
+        Row: {
+          auto_send: boolean | null
+          category: string
+          created_at: string
+          created_by: string | null
+          default_channels: string[] | null
+          default_priority: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          required_variables: string[] | null
+          templates: Json
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          auto_send?: boolean | null
+          category: string
+          created_at?: string
+          created_by?: string | null
+          default_channels?: string[] | null
+          default_priority?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          required_variables?: string[] | null
+          templates?: Json
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          auto_send?: boolean | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          default_channels?: string[] | null
+          default_priority?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          required_variables?: string[] | null
+          templates?: Json
+          type?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1428,6 +1542,105 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      smart_notifications: {
+        Row: {
+          action_data: Json | null
+          action_required: boolean | null
+          action_taken: boolean | null
+          auto_generated: boolean | null
+          category: string
+          created_at: string
+          created_by: string | null
+          delivery_channels: string[] | null
+          delivery_status: Json | null
+          expires_at: string | null
+          id: string
+          interaction_count: number | null
+          last_interaction_at: string | null
+          message: string
+          priority: string
+          recurring: boolean | null
+          recurring_pattern: Json | null
+          reference_data: Json | null
+          reference_id: string | null
+          reference_type: string | null
+          reminder_sent: boolean | null
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string
+          target_departments: string[] | null
+          target_roles: string[] | null
+          title: string
+          type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          action_data?: Json | null
+          action_required?: boolean | null
+          action_taken?: boolean | null
+          auto_generated?: boolean | null
+          category: string
+          created_at?: string
+          created_by?: string | null
+          delivery_channels?: string[] | null
+          delivery_status?: Json | null
+          expires_at?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_interaction_at?: string | null
+          message: string
+          priority?: string
+          recurring?: boolean | null
+          recurring_pattern?: Json | null
+          reference_data?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          reminder_sent?: boolean | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          target_departments?: string[] | null
+          target_roles?: string[] | null
+          title: string
+          type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          action_data?: Json | null
+          action_required?: boolean | null
+          action_taken?: boolean | null
+          auto_generated?: boolean | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          delivery_channels?: string[] | null
+          delivery_status?: Json | null
+          expires_at?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_interaction_at?: string | null
+          message?: string
+          priority?: string
+          recurring?: boolean | null
+          recurring_pattern?: Json | null
+          reference_data?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          reminder_sent?: boolean | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          target_departments?: string[] | null
+          target_roles?: string[] | null
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       stock_transactions: {
         Row: {
@@ -1961,6 +2174,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_smart_notification: {
+        Args: {
+          p_title: string
+          p_message: string
+          p_type?: string
+          p_category?: string
+          p_priority?: string
+          p_reference_type?: string
+          p_reference_id?: string
+          p_reference_data?: Json
+          p_user_id?: string
+          p_target_roles?: string[]
+          p_action_required?: boolean
+          p_scheduled_for?: string
+          p_delivery_channels?: string[]
+        }
+        Returns: string
+      }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
