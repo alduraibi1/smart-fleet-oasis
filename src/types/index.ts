@@ -147,11 +147,22 @@ export interface CustomerDocument {
 export interface CustomerFilters {
   search?: string;
   rating?: number;
-  status?: 'all' | 'active' | 'inactive';
+  status?: 'active' | 'inactive';
   blacklisted?: boolean;
   license_expiry?: 'all' | 'valid' | 'expiring' | 'expired';
   city?: string;
   customer_source?: string;
+  documentStatus?: 'valid' | 'expiring' | 'expired';
+  nationality?: string;
+  customerSource?: string;
+  gender?: string;
+  maritalStatus?: string;
+  minRentals?: number;
+  maxRentals?: number;
+  district?: string;
+  country?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
 }
 
 export interface CustomerStats {
