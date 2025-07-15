@@ -15,7 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { Customer } from "@/types";
-import { useCustomerMutations } from "@/hooks/useCustomersQuery";
+import { useAddCustomer } from "@/hooks/useCustomersQuery";
 import { 
   CalendarIcon, 
   Upload, 
@@ -43,7 +43,7 @@ interface AddCustomerDialogProps {
 export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDialogProps) => {
   const [activeTab, setActiveTab] = useState("personal");
   const [requiresGuarantor, setRequiresGuarantor] = useState(false);
-  const { addCustomer } = useCustomerMutations();
+  const addCustomerMutation = useAddCustomer();
   const [formData, setFormData] = useState({
     // Personal Information
     name: "",
@@ -294,7 +294,7 @@ export const AddCustomerDialog = ({ open, onOpenChange, onAdd }: AddCustomerDial
 
     try {
       console.log('Attempting to add customer:', customerData);
-      const result = await addCustomer.mutateAsync(customerData);
+      const result = await addCustomerMutation.mutateAsync(customerData);
       console.log('Customer added successfully:', result);
       onOpenChange(false);
       resetForm();

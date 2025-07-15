@@ -219,6 +219,62 @@ export const useCustomerDocuments = (customerId: string) => {
   });
 };
 
+// إضافة عميل جديد  
+export const useAddCustomer = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at'>) => {
+      console.log('Adding customer with data:', customerData);
+      
+      // إزالة الحقول المؤقتة وتحويل التواريخ
+      const { nationalId, licenseNumber, licenseExpiry, totalRentals, blacklistReason, blacklistDate, documents, ...cleanData } = customerData;
+      
+      // تحويل التواريخ إلى صيغة صحيحة
+      const dataToInsert = {
+        ...cleanData,
+        license_expiry: typeof licenseExpiry === 'string' ? licenseExpiry : licenseExpiry?.toISOString().split('T')[0],
+        date_of_birth: cleanData.date_of_birth || null,
+        license_issue_date: cleanData.license_issue_date || null,
+        international_license_expiry: cleanData.international_license_expiry || null,
+        insurance_expiry: cleanData.insurance_expiry || null,
+        blacklist_date: cleanData.blacklist_date || null,
+        last_rental_date: cleanData.last_rental_date || null,
+      };
+
+      const { data, error } = await supabase
+        .from('customers')
+        .insert([dataToInsert])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      return transformCustomerData(data);
+    },
+    onSuccess: (newCustomer) => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['customer-stats'] });
+      toast({
+        title: "تم إضافة العميل بنجاح",
+        description: `تم إضافة ${newCustomer.name} إلى قائمة العملاء`,
+      });
+    },
+    onError: (error: any) => {
+      console.error('خطأ في إضافة العميل:', error);
+      toast({
+        title: "خطأ في إضافة العميل", 
+        description: "تأكد من تسجيل الدخول وصحة البيانات",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
 // Mutations للعمليات
 export const useCustomerMutations = () => {
   const queryClient = useQueryClient();

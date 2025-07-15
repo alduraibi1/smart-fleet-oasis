@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Vehicles from "./pages/Vehicles";
 import Contracts from "./pages/Contracts";
 import Customers from "./pages/Customers";
+import CustomersV2 from "./pages/CustomersV2";
 import Accounting from "./pages/Accounting";
 import Maintenance from "./pages/Maintenance";
 import Inventory from "./pages/Inventory";
@@ -37,7 +38,8 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/vehicles" element={<Vehicles />} />
               <Route path="/contracts" element={<Contracts />} />
-              <Route path="/customers" element={<Customers />} />
+              <Route path="/customers" element={<CustomersV2 />} />
+              <Route path="/customers-old" element={<Customers />} />
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/accounting" element={<Accounting />} />
