@@ -14,6 +14,118 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounting_transactions: {
+        Row: {
+          account_category: string
+          account_type: string
+          amount: number
+          contract_id: string | null
+          created_at: string | null
+          created_by: string
+          credit_account: string
+          customer_id: string | null
+          debit_account: string
+          description: string
+          id: string
+          owner_id: string | null
+          posted_at: string | null
+          reference_id: string
+          reference_number: string
+          status: string
+          transaction_date: string
+          transaction_type: string
+          updated_at: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          account_category: string
+          account_type: string
+          amount: number
+          contract_id?: string | null
+          created_at?: string | null
+          created_by: string
+          credit_account: string
+          customer_id?: string | null
+          debit_account: string
+          description: string
+          id?: string
+          owner_id?: string | null
+          posted_at?: string | null
+          reference_id: string
+          reference_number: string
+          status?: string
+          transaction_date: string
+          transaction_type: string
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          account_category?: string
+          account_type?: string
+          amount?: number
+          contract_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          credit_account?: string
+          customer_id?: string | null
+          debit_account?: string
+          description?: string
+          id?: string
+          owner_id?: string | null
+          posted_at?: string | null
+          reference_id?: string
+          reference_number?: string
+          status?: string
+          transaction_date?: string
+          transaction_type?: string
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_transactions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "rental_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_transactions_credit_account_fkey"
+            columns: ["credit_account"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_transactions_debit_account_fkey"
+            columns: ["debit_account"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_transactions_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_transactions_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_logs: {
         Row: {
           action: string
@@ -521,6 +633,93 @@ export type Database = {
         }
         Relationships: []
       }
+      discount_vouchers: {
+        Row: {
+          applied_at: string | null
+          approval_date: string
+          approved_by: string
+          contract_id: string
+          created_at: string | null
+          customer_id: string
+          customer_name: string
+          discount_amount: number
+          discount_percentage: number | null
+          discount_reason: string
+          discount_type: string
+          final_amount: number
+          id: string
+          issued_at: string | null
+          issued_by: string
+          notes: string | null
+          original_amount: number
+          requires_higher_approval: boolean | null
+          status: string
+          updated_at: string | null
+          voucher_number: string
+        }
+        Insert: {
+          applied_at?: string | null
+          approval_date: string
+          approved_by: string
+          contract_id: string
+          created_at?: string | null
+          customer_id: string
+          customer_name: string
+          discount_amount: number
+          discount_percentage?: number | null
+          discount_reason: string
+          discount_type: string
+          final_amount: number
+          id?: string
+          issued_at?: string | null
+          issued_by: string
+          notes?: string | null
+          original_amount: number
+          requires_higher_approval?: boolean | null
+          status?: string
+          updated_at?: string | null
+          voucher_number: string
+        }
+        Update: {
+          applied_at?: string | null
+          approval_date?: string
+          approved_by?: string
+          contract_id?: string
+          created_at?: string | null
+          customer_id?: string
+          customer_name?: string
+          discount_amount?: number
+          discount_percentage?: number | null
+          discount_reason?: string
+          discount_type?: string
+          final_amount?: number
+          id?: string
+          issued_at?: string | null
+          issued_by?: string
+          notes?: string | null
+          original_amount?: number
+          requires_higher_approval?: boolean | null
+          status?: string
+          updated_at?: string | null
+          voucher_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_vouchers_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "rental_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_vouchers_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       failed_login_attempts: {
         Row: {
           attempt_time: string | null
@@ -696,9 +895,11 @@ export type Database = {
       }
       invoices: {
         Row: {
+          approved_by: string | null
           contract_id: string | null
           created_at: string
           created_by: string | null
+          currency: string | null
           customer_address: string | null
           customer_email: string | null
           customer_name: string
@@ -708,20 +909,28 @@ export type Database = {
           id: string
           invoice_date: string
           invoice_number: string
+          invoice_type: string | null
           notes: string | null
           paid_amount: number
+          payment_terms: string | null
+          period_end: string | null
+          period_start: string | null
+          sent_at: string | null
           status: string
           subtotal: number
           tax_amount: number
           terms_conditions: string | null
           total_amount: number
           updated_at: string
+          vat_rate: number | null
           vehicle_id: string | null
         }
         Insert: {
+          approved_by?: string | null
           contract_id?: string | null
           created_at?: string
           created_by?: string | null
+          currency?: string | null
           customer_address?: string | null
           customer_email?: string | null
           customer_name: string
@@ -731,20 +940,28 @@ export type Database = {
           id?: string
           invoice_date: string
           invoice_number: string
+          invoice_type?: string | null
           notes?: string | null
           paid_amount?: number
+          payment_terms?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          sent_at?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number
           terms_conditions?: string | null
           total_amount?: number
           updated_at?: string
+          vat_rate?: number | null
           vehicle_id?: string | null
         }
         Update: {
+          approved_by?: string | null
           contract_id?: string | null
           created_at?: string
           created_by?: string | null
+          currency?: string | null
           customer_address?: string | null
           customer_email?: string | null
           customer_name?: string
@@ -754,14 +971,20 @@ export type Database = {
           id?: string
           invoice_date?: string
           invoice_number?: string
+          invoice_type?: string | null
           notes?: string | null
           paid_amount?: number
+          payment_terms?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          sent_at?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number
           terms_conditions?: string | null
           total_amount?: number
           updated_at?: string
+          vat_rate?: number | null
           vehicle_id?: string | null
         }
         Relationships: []
@@ -1241,6 +1464,324 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      payment_receipts: {
+        Row: {
+          account_id: string | null
+          amount: number
+          bank_details: string | null
+          check_number: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          contract_id: string | null
+          created_at: string | null
+          customer_id: string
+          customer_name: string
+          deposited_at: string | null
+          email_sent_at: string | null
+          id: string
+          invoice_id: string | null
+          invoice_number: string | null
+          issued_at: string | null
+          issued_by: string | null
+          journal_entry_id: string | null
+          notes: string | null
+          payment_date: string
+          payment_method: string
+          plate_number: string | null
+          printed_at: string | null
+          receipt_number: string
+          receipt_type: string
+          reference_number: string | null
+          status: string
+          transaction_id: string | null
+          updated_at: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          amount: number
+          bank_details?: string | null
+          check_number?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          contract_id?: string | null
+          created_at?: string | null
+          customer_id: string
+          customer_name: string
+          deposited_at?: string | null
+          email_sent_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          invoice_number?: string | null
+          issued_at?: string | null
+          issued_by?: string | null
+          journal_entry_id?: string | null
+          notes?: string | null
+          payment_date: string
+          payment_method: string
+          plate_number?: string | null
+          printed_at?: string | null
+          receipt_number: string
+          receipt_type: string
+          reference_number?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          bank_details?: string | null
+          check_number?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          contract_id?: string | null
+          created_at?: string | null
+          customer_id?: string
+          customer_name?: string
+          deposited_at?: string | null
+          email_sent_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          invoice_number?: string | null
+          issued_at?: string | null
+          issued_by?: string | null
+          journal_entry_id?: string | null
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+          plate_number?: string | null
+          printed_at?: string | null
+          receipt_number?: string
+          receipt_type?: string
+          reference_number?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_receipts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_receipts_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "rental_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_receipts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_receipts_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_receipts_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_receipts_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_vouchers: {
+        Row: {
+          account_id: string | null
+          amount: number
+          approval_date: string | null
+          approval_notes: string | null
+          approved_by: string | null
+          bank_details: string | null
+          check_number: string | null
+          contract_id: string | null
+          created_at: string | null
+          currency: string | null
+          description: string
+          expense_category: string
+          expense_type: string
+          id: string
+          invoice_id: string | null
+          invoice_number: string | null
+          issued_at: string | null
+          issued_by: string
+          journal_entry_id: string | null
+          maintenance_id: string | null
+          notes: string | null
+          paid_at: string | null
+          payment_date: string
+          payment_method: string
+          printed_at: string | null
+          purchase_order_id: string | null
+          recipient_account: string | null
+          recipient_id: string | null
+          recipient_name: string
+          recipient_phone: string | null
+          recipient_type: string
+          reference_number: string | null
+          requested_by: string
+          requires_higher_approval: boolean | null
+          status: string
+          transaction_id: string | null
+          updated_at: string | null
+          vehicle_id: string | null
+          voucher_number: string
+        }
+        Insert: {
+          account_id?: string | null
+          amount: number
+          approval_date?: string | null
+          approval_notes?: string | null
+          approved_by?: string | null
+          bank_details?: string | null
+          check_number?: string | null
+          contract_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description: string
+          expense_category: string
+          expense_type: string
+          id?: string
+          invoice_id?: string | null
+          invoice_number?: string | null
+          issued_at?: string | null
+          issued_by: string
+          journal_entry_id?: string | null
+          maintenance_id?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_date: string
+          payment_method: string
+          printed_at?: string | null
+          purchase_order_id?: string | null
+          recipient_account?: string | null
+          recipient_id?: string | null
+          recipient_name: string
+          recipient_phone?: string | null
+          recipient_type: string
+          reference_number?: string | null
+          requested_by: string
+          requires_higher_approval?: boolean | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+          voucher_number: string
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          approval_date?: string | null
+          approval_notes?: string | null
+          approved_by?: string | null
+          bank_details?: string | null
+          check_number?: string | null
+          contract_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string
+          expense_category?: string
+          expense_type?: string
+          id?: string
+          invoice_id?: string | null
+          invoice_number?: string | null
+          issued_at?: string | null
+          issued_by?: string
+          journal_entry_id?: string | null
+          maintenance_id?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_date?: string
+          payment_method?: string
+          printed_at?: string | null
+          purchase_order_id?: string | null
+          recipient_account?: string | null
+          recipient_id?: string | null
+          recipient_name?: string
+          recipient_phone?: string | null
+          recipient_type?: string
+          reference_number?: string | null
+          requested_by?: string
+          requires_higher_approval?: boolean | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+          voucher_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_vouchers_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_vouchers_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "rental_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_vouchers_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_vouchers_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_vouchers_maintenance_id_fkey"
+            columns: ["maintenance_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_maintenance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_vouchers_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_vouchers_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       permissions: {
         Row: {
@@ -2013,39 +2554,77 @@ export type Database = {
       }
       vehicle_owners: {
         Row: {
+          account_id: string | null
           address: string | null
+          bank_account: string | null
+          commission_rate: number | null
           created_at: string
           email: string | null
+          iban: string | null
           id: string
           is_active: boolean
+          last_payment_date: string | null
           name: string
           national_id: string | null
+          paid_commission: number | null
+          payment_frequency: string | null
+          pending_commission: number | null
           phone: string | null
+          total_commission: number | null
+          total_revenue: number | null
           updated_at: string
         }
         Insert: {
+          account_id?: string | null
           address?: string | null
+          bank_account?: string | null
+          commission_rate?: number | null
           created_at?: string
           email?: string | null
+          iban?: string | null
           id?: string
           is_active?: boolean
+          last_payment_date?: string | null
           name: string
           national_id?: string | null
+          paid_commission?: number | null
+          payment_frequency?: string | null
+          pending_commission?: number | null
           phone?: string | null
+          total_commission?: number | null
+          total_revenue?: number | null
           updated_at?: string
         }
         Update: {
+          account_id?: string | null
           address?: string | null
+          bank_account?: string | null
+          commission_rate?: number | null
           created_at?: string
           email?: string | null
+          iban?: string | null
           id?: string
           is_active?: boolean
+          last_payment_date?: string | null
           name?: string
           national_id?: string | null
+          paid_commission?: number | null
+          payment_frequency?: string | null
+          pending_commission?: number | null
           phone?: string | null
+          total_commission?: number | null
+          total_revenue?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_owners_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vehicles: {
         Row: {
@@ -2221,6 +2800,18 @@ export type Database = {
           p_scheduled_for?: string
           p_delivery_channels?: string[]
         }
+        Returns: string
+      }
+      generate_discount_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_receipt_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_voucher_number: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       get_user_roles: {
