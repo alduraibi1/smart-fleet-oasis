@@ -8,6 +8,7 @@ import { DollarSign, Receipt, FileText, TrendingUp, TrendingDown, Car, Users, Wr
 import { supabase } from "@/integrations/supabase/client";
 import { CreatePaymentReceiptDialog } from "./PaymentReceipts/CreatePaymentReceiptDialog";
 import { CreatePaymentVoucherDialog } from "./PaymentVouchers/CreatePaymentVoucherDialog";
+import { FinancialWarningsTable } from "./FinancialWarnings/FinancialWarningsTable";
 
 interface FinancialSummary {
   totalReceipts: number;
@@ -199,6 +200,9 @@ export function IntegratedFinancialDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Financial Warnings */}
+      <FinancialWarningsTable />
 
       {/* Recent Transactions */}
       <Tabs defaultValue="receipts" className="space-y-4">

@@ -38,6 +38,8 @@ export function CreatePaymentVoucherDialog() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [mechanics, setMechanics] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [ownerBalance, setOwnerBalance] = useState<any>(null);
+  const [showBalanceWarning, setShowBalanceWarning] = useState(false);
 
   // جلب البيانات من قاعدة البيانات
   useEffect(() => {
@@ -102,7 +104,7 @@ export function CreatePaymentVoucherDialog() {
     }
   };
 
-  const handleRecipientSelect = (recipientId: string) => {
+  const handleRecipientSelect = async (recipientId: string) => {
     const recipients = getRecipientList();
     const recipient = recipients.find(r => r.id === recipientId);
     if (recipient) {
@@ -111,8 +113,41 @@ export function CreatePaymentVoucherDialog() {
         recipientId,
         recipientName: recipient.name
       }));
+
+      // إذا كان المستفيد مالك مركبة، جلب رصيده
+      if (formData.recipientType === 'owner') {
+        await fetchOwnerBalance(recipientId);
+      }
     }
   };
+
+  const fetchOwnerBalance = async (ownerId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('get_owner_balance', {
+        p_owner_id: ownerId
+      });
+
+      if (error) throw error;
+      setOwnerBalance(data);
+    } catch (error) {
+      console.error('Error fetching owner balance:', error);
+    }
+  };
+
+  const checkBalanceWarning = () => {
+    if (formData.recipientType === 'owner' && ownerBalance && formData.amount) {
+      const amount = parseFloat(formData.amount);
+      const availableBalance = ownerBalance.available_balance;
+      setShowBalanceWarning(amount > availableBalance);
+    } else {
+      setShowBalanceWarning(false);
+    }
+  };
+
+  // تحديث التحذير عند تغيير المبلغ
+  useEffect(() => {
+    checkBalanceWarning();
+  }, [formData.amount, ownerBalance]);
 
   const handleSave = async () => {
     if (!formData.recipientType || !formData.recipientName || !formData.amount || 
@@ -279,6 +314,38 @@ export function CreatePaymentVoucherDialog() {
                     />
                   </div>
                 )}
+
+                {/* عرض معلومات الرصيد للمالك */}
+                {formData.recipientType === 'owner' && ownerBalance && (
+                  <Card className="bg-blue-50 border-blue-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <DollarSign className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium text-blue-900">رصيد المالك</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-600">إجمالي المقبوضات:</span>
+                          <span className="font-bold text-green-600 mr-2">
+                            {formatCurrency(ownerBalance.total_receipts)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">إجمالي المصروفات:</span>
+                          <span className="font-bold text-red-600 mr-2">
+                            {formatCurrency(ownerBalance.total_vouchers)}
+                          </span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-gray-600">الرصيد المتاح:</span>
+                          <span className={`font-bold mr-2 ${ownerBalance.available_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {formatCurrency(ownerBalance.available_balance)}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </CardContent>
             </Card>
 
@@ -305,6 +372,15 @@ export function CreatePaymentVoucherDialog() {
                       <div className="flex items-center gap-1 mt-1">
                         <AlertCircle className="h-3 w-3 text-orange-500" />
                         <span className="text-xs text-orange-600">يتطلب موافقة إدارية</span>
+                      </div>
+                    )}
+                    {showBalanceWarning && (
+                      <div className="flex items-center gap-1 mt-1 p-2 bg-red-50 border border-red-200 rounded">
+                        <AlertCircle className="h-4 w-4 text-red-500" />
+                        <span className="text-sm text-red-700">
+                          تحذير: المبلغ المطلوب ({formatCurrency(parseFloat(formData.amount) || 0)}) 
+                          أكبر من الرصيد المتاح ({formatCurrency(ownerBalance?.available_balance || 0)})
+                        </span>
                       </div>
                     )}
                   </div>

@@ -747,6 +747,69 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_warnings: {
+        Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          amount: number
+          available_balance: number
+          created_at: string | null
+          created_by: string | null
+          deficit: number
+          id: string
+          owner_id: string | null
+          voucher_id: string | null
+          warning_message: string
+          warning_type: string
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          amount: number
+          available_balance: number
+          created_at?: string | null
+          created_by?: string | null
+          deficit: number
+          id?: string
+          owner_id?: string | null
+          voucher_id?: string | null
+          warning_message: string
+          warning_type: string
+        }
+        Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          amount?: number
+          available_balance?: number
+          created_at?: string | null
+          created_by?: string | null
+          deficit?: number
+          id?: string
+          owner_id?: string | null
+          voucher_id?: string | null
+          warning_message?: string
+          warning_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_warnings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_warnings_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "payment_vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_categories: {
         Row: {
           created_at: string
@@ -2814,6 +2877,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_owner_balance: {
+        Args: { p_owner_id: string }
+        Returns: Json
+      }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
@@ -2839,6 +2906,10 @@ export type Database = {
       }
       validate_password_strength: {
         Args: { password_text: string }
+        Returns: Json
+      }
+      validate_voucher_payment: {
+        Args: { p_owner_id: string; p_amount: number }
         Returns: Json
       }
     }
