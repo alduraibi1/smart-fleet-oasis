@@ -21,6 +21,7 @@ import { OwnerProfitabilityReport } from "@/components/Accounting/OwnerProfitabi
 import { VouchersManagement } from "@/components/Accounting/VouchersManagement/VouchersManagement";
 import { InvoiceManagement } from "@/components/Accounting/IntegratedInvoicing/InvoiceManagement";
 import { CostTracking } from "@/components/Accounting/IntegratedCosts/CostTracking";
+import { FinancialAnalytics } from "@/components/Accounting/AdvancedReports/FinancialAnalytics";
 
 export default function Accounting() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -59,8 +60,9 @@ export default function Accounting() {
               </div>
 
               <Tabs defaultValue="overview" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 xl:grid-cols-14">
+                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 xl:grid-cols-15">
                   <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
+                  <TabsTrigger value="analytics">التحليلات</TabsTrigger>
                   <TabsTrigger value="invoices">الفواتير</TabsTrigger>
                   <TabsTrigger value="vouchers">السندات</TabsTrigger>
                   <TabsTrigger value="costs">التكاليف</TabsTrigger>
@@ -77,7 +79,11 @@ export default function Accounting() {
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-6">
-                  <AccountingOverview />
+                  <IntegratedFinancialDashboard />
+                </TabsContent>
+
+                <TabsContent value="analytics" className="space-y-6">
+                  <FinancialAnalytics />
                 </TabsContent>
 
                 <TabsContent value="invoices" className="space-y-6">
