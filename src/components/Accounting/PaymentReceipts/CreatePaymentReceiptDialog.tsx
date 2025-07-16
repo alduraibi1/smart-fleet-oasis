@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Receipt, Calendar, DollarSign, User, Car, CreditCard, Printer, Mail, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export function CreatePaymentReceiptDialog() {
   const [open, setOpen] = useState(false);
@@ -29,13 +30,38 @@ export function CreatePaymentReceiptDialog() {
   });
 
   const { toast } = useToast();
+  const [contracts, setContracts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Mock data - في التطبيق الحقيقي ستأتي من قاعدة البيانات
-  const mockContracts = [
-    { id: "1", contractNumber: "C-2024-001", customerName: "أحمد محمد علي", plateNumber: "أ ب ج 123", amount: 15000 },
-    { id: "2", contractNumber: "C-2024-002", customerName: "فاطمة سالم", plateNumber: "د هـ و 456", amount: 12000 },
-    { id: "3", contractNumber: "C-2024-003", customerName: "خالد عبدالله", plateNumber: "ز ح ط 789", amount: 18000 }
-  ];
+  // جلب العقود من قاعدة البيانات
+  useEffect(() => {
+    fetchContracts();
+  }, []);
+
+  const fetchContracts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('rental_contracts')
+        .select(`
+          id,
+          contract_number,
+          total_amount,
+          customers!inner(name),
+          vehicles!inner(plate_number)
+        `)
+        .eq('status', 'active');
+
+      if (error) throw error;
+      setContracts(data || []);
+    } catch (error) {
+      console.error('Error fetching contracts:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في جلب العقود",
+        variant: "destructive"
+      });
+    }
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ar-SA', {
@@ -55,20 +81,20 @@ export function CreatePaymentReceiptDialog() {
   };
 
   const handleContractSelect = (contractId: string) => {
-    const contract = mockContracts.find(c => c.id === contractId);
+    const contract = contracts.find(c => c.id === contractId);
     if (contract) {
       setFormData(prev => ({
         ...prev,
         contractId,
         customerId: contractId,
-        customerName: contract.customerName,
-        plateNumber: contract.plateNumber,
-        amount: contract.amount.toString()
+        customerName: contract.customers.name,
+        plateNumber: contract.vehicles.plate_number,
+        amount: contract.total_amount.toString()
       }));
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.contractId || !formData.amount || !formData.paymentMethod || !formData.type) {
       toast({
         title: "خطأ في البيانات",
@@ -78,29 +104,84 @@ export function CreatePaymentReceiptDialog() {
       return;
     }
 
-    // في التطبيق الحقيقي سيتم حفظ البيانات في قاعدة البيانات
-    toast({
-      title: "تم إنشاء سند القبض",
-      description: `تم إنشاء سند القبض رقم ${generateReceiptNumber()} بنجاح`,
-      variant: "default"
-    });
+    setLoading(true);
+    try {
+      // إنشاء سند القبض في قاعدة البيانات
+      const { data, error } = await supabase
+        .from('payment_receipts')
+        .insert([{
+          receipt_number: generateReceiptNumber(),
+          contract_id: formData.contractId,
+          customer_id: formData.customerId,
+          customer_name: formData.customerName,
+          vehicle_id: formData.vehicleId,
+          plate_number: formData.plateNumber,
+          amount: parseFloat(formData.amount),
+          payment_method: formData.paymentMethod,
+          payment_date: formData.paymentDate,
+          receipt_type: formData.type,
+          reference_number: formData.referenceNumber,
+          check_number: formData.checkNumber,
+          bank_details: formData.bankDetails,
+          status: 'confirmed',
+          notes: formData.notes
+        }])
+        .select()
+        .single();
 
-    setOpen(false);
-    setFormData({
-      contractId: "",
-      customerId: "",
-      customerName: "",
-      vehicleId: "",
-      plateNumber: "",
-      amount: "",
-      paymentMethod: "",
-      paymentDate: new Date().toISOString().split('T')[0],
-      type: "",
-      referenceNumber: "",
-      checkNumber: "",
-      bankDetails: "",
-      notes: ""
-    });
+      if (error) throw error;
+
+      // إنشاء فاتورة مرتبطة
+      await supabase
+        .from('invoices')
+        .insert([{
+          invoice_number: `INV-${Date.now()}`,
+          invoice_type: 'rental',
+          customer_name: formData.customerName,
+          customer_phone: '',
+          invoice_date: formData.paymentDate,
+          due_date: formData.paymentDate,
+          subtotal: parseFloat(formData.amount),
+          tax_amount: parseFloat(formData.amount) * 0.15,
+          total_amount: parseFloat(formData.amount) * 1.15,
+          paid_amount: parseFloat(formData.amount),
+          status: 'paid',
+          contract_id: formData.contractId,
+          vehicle_id: formData.vehicleId
+        }]);
+
+      toast({
+        title: "تم إنشاء سند القبض",
+        description: `تم إنشاء سند القبض رقم ${data.receipt_number} بنجاح`,
+        variant: "default"
+      });
+
+      setOpen(false);
+      setFormData({
+        contractId: "",
+        customerId: "",
+        customerName: "",
+        vehicleId: "",
+        plateNumber: "",
+        amount: "",
+        paymentMethod: "",
+        paymentDate: new Date().toISOString().split('T')[0],
+        type: "",
+        referenceNumber: "",
+        checkNumber: "",
+        bankDetails: "",
+        notes: ""
+      });
+    } catch (error) {
+      console.error('Error creating receipt:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في إنشاء سند القبض",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePrint = () => {
@@ -157,9 +238,9 @@ export function CreatePaymentReceiptDialog() {
                       <SelectValue placeholder="اختر العقد" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockContracts.map((contract) => (
+                      {contracts.map((contract) => (
                         <SelectItem key={contract.id} value={contract.id}>
-                          {contract.contractNumber} - {contract.customerName} ({contract.plateNumber})
+                          {contract.contract_number} - {contract.customers.name} ({contract.vehicles.plate_number})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -425,9 +506,9 @@ export function CreatePaymentReceiptDialog() {
             <Button variant="outline" onClick={() => setOpen(false)}>
               إلغاء
             </Button>
-            <Button onClick={handleSave} className="gap-2">
+            <Button onClick={handleSave} disabled={loading} className="gap-2">
               <Save className="h-4 w-4" />
-              حفظ وإصدار السند
+              {loading ? "جاري الحفظ..." : "حفظ وإصدار السند"}
             </Button>
           </div>
         </div>

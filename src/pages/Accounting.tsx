@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, Download, TrendingUp, TrendingDown, DollarSign, PieChart } from "lucide-react";
 import { AccountingOverview } from "@/components/Accounting/AccountingOverview";
+import { IntegratedFinancialDashboard } from "@/components/Accounting/IntegratedFinancialDashboard";
 import { RevenueExpenseReport } from "@/components/Accounting/RevenueExpenseReport";
 import { CashFlowReport } from "@/components/Accounting/CashFlowReport";
 import { AssetsReport } from "@/components/Accounting/AssetsReport";

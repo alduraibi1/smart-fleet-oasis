@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { FileText, Calendar, DollarSign, User, Car, CreditCard, Printer, Mail, Save, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export function CreatePaymentVoucherDialog() {
   const [open, setOpen] = useState(false);
@@ -33,25 +34,43 @@ export function CreatePaymentVoucherDialog() {
   });
 
   const { toast } = useToast();
+  const [owners, setOwners] = useState<any[]>([]);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [mechanics, setMechanics] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Mock data - في التطبيق الحقيقي ستأتي من قاعدة البيانات
-  const mockOwners = [
-    { id: "1", name: "محمد أحمد الفهد", phone: "0501234567" },
-    { id: "2", name: "عبدالله سالم القحطاني", phone: "0512345678" },
-    { id: "3", name: "فاطمة عبدالرحمن الغامدي", phone: "0523456789" }
-  ];
+  // جلب البيانات من قاعدة البيانات
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  const mockSuppliers = [
-    { id: "1", name: "متجر قطع الغيار الذهبي", phone: "0501111111" },
-    { id: "2", name: "ورشة الماهر للصيانة", phone: "0502222222" },
-    { id: "3", name: "مؤسسة الوقود المتميز", phone: "0503333333" }
-  ];
+  const fetchData = async () => {
+    try {
+      // جلب المالكين
+      const { data: ownersData } = await supabase
+        .from('vehicle_owners')
+        .select('id, name, phone')
+        .eq('is_active', true);
 
-  const mockMechanics = [
-    { id: "1", name: "علي محمد النجار", phone: "0505555555" },
-    { id: "2", name: "خالد أحمد السليم", phone: "0506666666" },
-    { id: "3", name: "سعد عبدالله الحربي", phone: "0507777777" }
-  ];
+      // جلب الموردين
+      const { data: suppliersData } = await supabase
+        .from('suppliers')
+        .select('id, name, phone')
+        .eq('is_active', true);
+
+      // جلب الفنيين
+      const { data: mechanicsData } = await supabase
+        .from('mechanics')
+        .select('id, name, phone')
+        .eq('is_active', true);
+
+      setOwners(ownersData || []);
+      setSuppliers(suppliersData || []);
+      setMechanics(mechanicsData || []);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ar-SA', {
@@ -73,11 +92,11 @@ export function CreatePaymentVoucherDialog() {
   const getRecipientList = () => {
     switch (formData.recipientType) {
       case 'owner':
-        return mockOwners;
+        return owners;
       case 'supplier':
-        return mockSuppliers;
+        return suppliers;
       case 'mechanic':
-        return mockMechanics;
+        return mechanics;
       default:
         return [];
     }
@@ -95,7 +114,7 @@ export function CreatePaymentVoucherDialog() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.recipientType || !formData.recipientName || !formData.amount || 
         !formData.paymentMethod || !formData.expenseCategory || !formData.description) {
       toast({
@@ -106,34 +125,77 @@ export function CreatePaymentVoucherDialog() {
       return;
     }
 
-    // في التطبيق الحقيقي سيتم حفظ البيانات في قاعدة البيانات
-    toast({
-      title: "تم إنشاء سند الصرف",
-      description: `تم إنشاء سند الصرف رقم ${generateVoucherNumber()} بنجاح`,
-      variant: "default"
-    });
+    setLoading(true);
+    try {
+      // إنشاء سند الصرف في قاعدة البيانات
+      const { data, error } = await supabase
+        .from('payment_vouchers')
+        .insert([{
+          voucher_number: generateVoucherNumber(),
+          recipient_type: formData.recipientType,
+          recipient_id: formData.recipientId || null,
+          recipient_name: formData.recipientName,
+          recipient_phone: '',
+          amount: parseFloat(formData.amount),
+          payment_method: formData.paymentMethod,
+          payment_date: formData.paymentDate,
+          expense_category: formData.expenseCategory,
+          expense_type: formData.expenseType || 'operational',
+          description: formData.description,
+          reference_number: formData.referenceNumber,
+          check_number: formData.checkNumber,
+          bank_details: formData.bankDetails,
+          vehicle_id: formData.vehicleId || null,
+          contract_id: formData.contractId || null,
+          maintenance_id: formData.maintenanceId || null,
+          status: requiresApproval() ? 'pending_approval' : 'approved',
+          requires_higher_approval: requiresApproval(),
+          notes: formData.notes,
+          requested_by: (await supabase.auth.getUser()).data.user?.id || '',
+          issued_by: (await supabase.auth.getUser()).data.user?.id || ''
+        }])
+        .select()
+        .single();
 
-    setOpen(false);
-    // Reset form
-    setFormData({
-      recipientType: "",
-      recipientId: "",
-      recipientName: "",
-      amount: "",
-      paymentMethod: "",
-      paymentDate: new Date().toISOString().split('T')[0],
-      expenseCategory: "",
-      expenseType: "",
-      description: "",
-      referenceNumber: "",
-      invoiceNumber: "",
-      checkNumber: "",
-      bankDetails: "",
-      vehicleId: "",
-      contractId: "",
-      maintenanceId: "",
-      notes: ""
-    });
+      if (error) throw error;
+
+      toast({
+        title: "تم إنشاء سند الصرف",
+        description: `تم إنشاء سند الصرف رقم ${data.voucher_number} بنجاح`,
+        variant: "default"
+      });
+
+      setOpen(false);
+      // Reset form
+      setFormData({
+        recipientType: "",
+        recipientId: "",
+        recipientName: "",
+        amount: "",
+        paymentMethod: "",
+        paymentDate: new Date().toISOString().split('T')[0],
+        expenseCategory: "",
+        expenseType: "",
+        description: "",
+        referenceNumber: "",
+        invoiceNumber: "",
+        checkNumber: "",
+        bankDetails: "",
+        vehicleId: "",
+        contractId: "",
+        maintenanceId: "",
+        notes: ""
+      });
+    } catch (error) {
+      console.error('Error creating voucher:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في إنشاء سند الصرف",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const requiresApproval = () => {
@@ -546,9 +608,9 @@ export function CreatePaymentVoucherDialog() {
             <Button variant="outline" onClick={() => setOpen(false)}>
               إلغاء
             </Button>
-            <Button onClick={handleSave} className="gap-2">
+            <Button onClick={handleSave} disabled={loading} className="gap-2">
               <Save className="h-4 w-4" />
-              حفظ وإصدار السند
+              {loading ? "جاري الحفظ..." : "حفظ وإصدار السند"}
             </Button>
           </div>
         </div>
