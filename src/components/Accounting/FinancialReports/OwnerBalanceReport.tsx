@@ -31,6 +31,14 @@ interface OwnerBalance {
   utilization_percentage: number;
 }
 
+interface BalanceResult {
+  owner_id: string;
+  total_receipts: number;
+  total_vouchers: number;
+  available_balance: number;
+  has_sufficient_balance: boolean;
+}
+
 export function OwnerBalanceReport() {
   const [balances, setBalances] = useState<OwnerBalance[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,6 +78,9 @@ export function OwnerBalanceReport() {
           continue;
         }
 
+        // تحويل البيانات إلى النوع المطلوب
+        const balance = balanceData as BalanceResult;
+
         // جلب السندات المعلقة
         const { data: pendingVouchers, error: vouchersError } = await supabase
           .from('payment_vouchers')
@@ -87,11 +98,11 @@ export function OwnerBalanceReport() {
           .eq('customer_id', owner.id)
           .order('payment_date', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
-        const availableBalance = balanceData.available_balance;
-        const utilizationPercentage = balanceData.total_receipts > 0 
-          ? (balanceData.total_vouchers / balanceData.total_receipts) * 100 
+        const availableBalance = balance.available_balance;
+        const utilizationPercentage = balance.total_receipts > 0 
+          ? (balance.total_vouchers / balance.total_receipts) * 100 
           : 0;
 
         let balanceStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
@@ -104,8 +115,8 @@ export function OwnerBalanceReport() {
         ownerBalances.push({
           owner_id: owner.id,
           owner_name: owner.name,
-          total_receipts: balanceData.total_receipts,
-          total_vouchers: balanceData.total_vouchers,
+          total_receipts: balance.total_receipts,
+          total_vouchers: balance.total_vouchers,
           available_balance: availableBalance,
           pending_vouchers: pendingAmount,
           last_transaction_date: lastTransaction?.payment_date || 'لا يوجد',
@@ -266,7 +277,6 @@ export function OwnerBalanceReport() {
         </Alert>
       )}
 
-      {/* جدول الأرصدة التفصيلي */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">

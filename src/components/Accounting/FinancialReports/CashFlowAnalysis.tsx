@@ -30,6 +30,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { addDays, format, startOfMonth, endOfMonth } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 interface CashFlowData {
   date: string;
@@ -45,7 +46,7 @@ interface CategoryData {
 }
 
 export function CashFlowAnalysis() {
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date())
   });
@@ -73,6 +74,8 @@ export function CashFlowAnalysis() {
   const fetchCashFlowData = async () => {
     try {
       setLoading(true);
+
+      if (!dateRange.from || !dateRange.to) return;
 
       // جلب سندات القبض
       const { data: receipts, error: receiptsError } = await supabase
@@ -201,6 +204,12 @@ export function CashFlowAnalysis() {
     }).format(amount);
   };
 
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    if (range && range.from && range.to) {
+      setDateRange(range);
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -233,7 +242,7 @@ export function CashFlowAnalysis() {
               <label className="text-sm font-medium mb-2 block">الفترة الزمنية</label>
               <DatePickerWithRange
                 date={dateRange}
-                onDateChange={(range) => range && setDateRange(range)}
+                onDateChange={handleDateRangeChange}
               />
             </div>
             <div>
@@ -366,7 +375,6 @@ export function CashFlowAnalysis() {
         </CardContent>
       </Card>
 
-      {/* توزيع المصروفات */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
