@@ -7,7 +7,7 @@ import VehicleGrid from '@/components/Vehicles/VehicleGrid';
 import EnhancedVehicleGrid from '@/components/Vehicles/EnhancedVehicleGrid';
 import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { Button } from '@/components/ui/button';
-import { Plus, Grid, List } from 'lucide-react';
+import { Grid, List } from 'lucide-react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { VehicleFilters as VehicleFiltersType } from '@/types/vehicles';
 
@@ -41,12 +41,7 @@ const Vehicles = () => {
           
           <div className="flex items-center gap-3">
             {/* Add Vehicle Button */}
-            <AddVehicleDialog onVehicleAdded={handleVehicleAdded}>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                إضافة مركبة
-              </Button>
-            </AddVehicleDialog>
+            <AddVehicleDialog onVehicleAdded={handleVehicleAdded} />
 
             {/* View Mode Toggle */}
             <div className="flex items-center border rounded-lg p-1">
