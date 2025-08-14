@@ -1,107 +1,99 @@
 
+import { Menu, Bell, User, Search, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Menu, User, Search, Settings, LogOut } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Logo } from '@/components/ui/logo';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
-import NotificationCenter from '@/components/Notifications/NotificationCenter';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTheme } from '@/components/theme/ThemeProvider';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 interface HeaderProps {
-  onMenuClick: () => void;
+  onMenuClick?: () => void;
 }
 
-export default function Header({ onMenuClick }: HeaderProps) {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth");
-  };
+const Header = ({ onMenuClick }: HeaderProps) => {
+  const { theme, setTheme } = useTheme();
 
   return (
-    <header className="backdrop-glass border-b border-border/60 px-6 py-4 sticky top-0 z-50 shadow-soft">
-      <div className="flex items-center justify-between">
-        {/* Mobile menu button and logo */}
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-16 items-center justify-between px-6">
+        {/* Left side with menu and search */}
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMenuClick}
-            className="lg:hidden btn-scale focus-glow"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
+          <SidebarTrigger className="md:hidden" />
           
-          {/* Logo - visible on all screens */}
-          <div className="flex-shrink-0">
-            <Logo 
-              size="sm" 
-              variant="glow"
-              animated={true}
-              className="hidden sm:block"
+          <div className="relative w-64 hidden md:block">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="البحث..."
+              className="pl-10 bg-muted/50"
             />
-            <Logo 
-              size="xs" 
-              showText={false}
-              variant="glow"
-              animated={true}
-              className="sm:hidden"
-            />
-          </div>
-          
-          <div className="hidden md:block">
-            <div className="relative group">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
-              <Input
-                placeholder="بحث في النظام..."
-                className="pr-10 w-80 focus:w-96 transition-all duration-500 focus-glow bg-card/50 backdrop-blur-sm border-border/60"
-              />
-            </div>
           </div>
         </div>
 
-        {/* User actions */}
-        <div className="flex items-center gap-3">
-          {/* Theme Toggle */}
-          <div className="btn-scale">
-            <ThemeToggle />
-          </div>
+        {/* Right side with actions */}
+        <div className="flex items-center gap-4">
+          {/* Theme toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            className="h-9 w-9"
+          >
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">تبديل المظهر</span>
+          </Button>
 
           {/* Notifications */}
-          <NotificationCenter />
-          
-          {/* User Menu */}
+          <Button variant="ghost" size="icon" className="h-9 w-9 relative">
+            <Bell className="h-4 w-4" />
+            <Badge 
+              variant="destructive" 
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            >
+              3
+            </Badge>
+          </Button>
+
+          {/* User menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-3 btn-scale hover-glow p-2">
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-foreground">{user?.user_metadata?.full_name || user?.email}</p>
-                  <p className="text-xs text-muted-foreground">مستخدم النظام</p>
-                </div>
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-variant text-primary-foreground flex items-center justify-center shadow-medium">
-                  <User className="h-4 w-4" />
-                </div>
+              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src="/placeholder-avatar.jpg" alt="المستخدم" />
+                  <AvatarFallback>أح</AvatarFallback>
+                </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 backdrop-glass border-border/60 shadow-strong">
-              <DropdownMenuItem className="gap-3 hover-glow">
-                <User className="w-4 h-4 text-primary" />
-                الملف الشخصي
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">أحمد محمد</p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    admin@example.com
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <User className="mr-2 h-4 w-4" />
+                <span>الملف الشخصي</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-3 hover-glow">
-                <Settings className="w-4 h-4 text-primary" />
-                الإعدادات
+              <DropdownMenuItem>
+                <Bell className="mr-2 h-4 w-4" />
+                <span>الإشعارات</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-border/60" />
-              <DropdownMenuItem 
-                className="gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                onClick={handleSignOut}
-              >
-                <LogOut className="w-4 h-4" />
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
                 تسجيل الخروج
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -110,4 +102,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
       </div>
     </header>
   );
-}
+};
+
+export default Header;
