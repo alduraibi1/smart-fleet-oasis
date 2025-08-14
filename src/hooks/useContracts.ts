@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -76,6 +76,8 @@ export interface ContractFilters {
   endDate?: string;
   customerId?: string;
   vehicleId?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface CreateContractData {
@@ -99,38 +101,138 @@ export interface CreateContractData {
   terms_conditions?: string;
 }
 
+// Cache للبيانات
+const contractsCache = new Map<string, { data: Contract[]; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 export const useContracts = () => {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState<ContractStats>({
-    total: 0,
-    active: 0,
-    expired: 0,
-    pending: 0,
-    completed: 0,
-    totalRevenue: 0,
-    avgContractValue: 0,
-    monthlyRevenue: 0,
-  });
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20); // Pagination size
   const { toast } = useToast();
 
+  // Memoized stats calculation
+  const stats = useMemo<ContractStats>(() => {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    return {
+      total: contracts.length,
+      active: contracts.filter(c => c.status === 'active').length,
+      expired: contracts.filter(c => c.status === 'expired').length,
+      pending: contracts.filter(c => c.status === 'pending').length,
+      completed: contracts.filter(c => c.status === 'completed').length,
+      totalRevenue: contracts
+        .filter(c => c.status === 'active' || c.status === 'completed')
+        .reduce((sum, c) => sum + c.total_amount, 0),
+      avgContractValue: contracts.length > 0 
+        ? contracts.reduce((sum, c) => sum + c.total_amount, 0) / contracts.length 
+        : 0,
+      monthlyRevenue: contracts
+        .filter(c => {
+          const contractDate = new Date(c.created_at);
+          return contractDate.getMonth() === currentMonth && 
+                 contractDate.getFullYear() === currentYear &&
+                 (c.status === 'active' || c.status === 'completed');
+        })
+        .reduce((sum, c) => sum + c.total_amount, 0),
+    };
+  }, [contracts]);
+
   // Generate unique contract number
-  const generateContractNumber = () => {
+  const generateContractNumber = useCallback(() => {
     const year = new Date().getFullYear();
     const month = (new Date().getMonth() + 1).toString().padStart(2, '0');
     const random = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
     return `CR-${year}${month}-${random}`;
-  };
+  }, []);
 
-  // Fetch contracts with relations
-  const fetchContracts = async (filters?: ContractFilters) => {
+  // Check cache validity
+  const isCacheValid = useCallback((cacheKey: string) => {
+    const cached = contractsCache.get(cacheKey);
+    if (!cached) return false;
+    return Date.now() - cached.timestamp < CACHE_DURATION;
+  }, []);
+
+  // Generate cache key
+  const generateCacheKey = useCallback((filters?: ContractFilters) => {
+    return JSON.stringify(filters || {});
+  }, []);
+
+  // Optimized fetch with pagination and caching
+  const fetchContracts = useCallback(async (filters?: ContractFilters, useCache = true) => {
+    const cacheKey = generateCacheKey(filters);
+    
+    // Check cache first
+    if (useCache && isCacheValid(cacheKey)) {
+      const cached = contractsCache.get(cacheKey)!;
+      setContracts(cached.data);
+      return;
+    }
+
     setLoading(true);
     try {
+      const page = filters?.page || currentPage;
+      const limit = filters?.limit || pageSize;
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+
+      // Count query for pagination
+      let countQuery = supabase
+        .from('rental_contracts')
+        .select('*', { count: 'exact', head: true });
+
+      // Apply filters to count query
+      if (filters?.search) {
+        countQuery = countQuery.or(`contract_number.ilike.%${filters.search}%`);
+      }
+      if (filters?.status && filters.status !== 'all') {
+        countQuery = countQuery.eq('status', filters.status);
+      }
+
+      const { count } = await countQuery;
+      setTotalCount(count || 0);
+
+      // Main query with optimized selection
       let query = supabase
         .from('rental_contracts')
         .select(`
-          *,
-          customer:customers(
+          id,
+          contract_number,
+          customer_id,
+          vehicle_id,
+          start_date,
+          end_date,
+          actual_return_date,
+          daily_rate,
+          total_amount,
+          deposit_amount,
+          insurance_amount,
+          additional_charges,
+          discount_amount,
+          payment_method,
+          payment_status,
+          paid_amount,
+          remaining_amount,
+          pickup_location,
+          return_location,
+          mileage_start,
+          mileage_end,
+          fuel_level_start,
+          fuel_level_end,
+          status,
+          notes,
+          terms_conditions,
+          customer_signature,
+          employee_signature,
+          signed_at,
+          created_at,
+          updated_at,
+          created_by,
+          customer:customers!inner(
             id,
             name,
             phone,
@@ -139,7 +241,7 @@ export const useContracts = () => {
             license_number,
             license_expiry
           ),
-          vehicle:vehicles(
+          vehicle:vehicles!inner(
             id,
             plate_number,
             brand,
@@ -149,13 +251,14 @@ export const useContracts = () => {
             daily_rate
           )
         `)
+        .range(from, to)
         .order('created_at', { ascending: false });
 
       // Apply filters
       if (filters?.search) {
         query = query.or(`contract_number.ilike.%${filters.search}%`);
       }
-      if (filters?.status) {
+      if (filters?.status && filters.status !== 'all') {
         query = query.eq('status', filters.status);
       }
       if (filters?.startDate) {
@@ -182,7 +285,13 @@ export const useContracts = () => {
       })) as Contract[];
 
       setContracts(contractsData);
-      calculateStats(contractsData);
+      
+      // Cache the results
+      contractsCache.set(cacheKey, {
+        data: contractsData,
+        timestamp: Date.now()
+      });
+
     } catch (error) {
       console.error('Error fetching contracts:', error);
       toast({
@@ -193,45 +302,27 @@ export const useContracts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, pageSize, generateCacheKey, isCacheValid, toast]);
 
-  // Calculate statistics
-  const calculateStats = (contractsData: Contract[]) => {
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
+  // Debounced search function
+  const searchContracts = useCallback(
+    (() => {
+      let timeout: NodeJS.Timeout;
+      return (searchTerm: string, filters?: Omit<ContractFilters, 'search'>) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          fetchContracts({ ...filters, search: searchTerm, page: 1 }, false);
+        }, 300);
+      };
+    })(),
+    [fetchContracts]
+  );
 
-    const stats: ContractStats = {
-      total: contractsData.length,
-      active: contractsData.filter(c => c.status === 'active').length,
-      expired: contractsData.filter(c => c.status === 'expired').length,
-      pending: contractsData.filter(c => c.status === 'pending').length,
-      completed: contractsData.filter(c => c.status === 'completed').length,
-      totalRevenue: contractsData
-        .filter(c => c.status === 'active' || c.status === 'completed')
-        .reduce((sum, c) => sum + c.total_amount, 0),
-      avgContractValue: contractsData.length > 0 
-        ? contractsData.reduce((sum, c) => sum + c.total_amount, 0) / contractsData.length 
-        : 0,
-      monthlyRevenue: contractsData
-        .filter(c => {
-          const contractDate = new Date(c.created_at);
-          return contractDate.getMonth() === currentMonth && 
-                 contractDate.getFullYear() === currentYear &&
-                 (c.status === 'active' || c.status === 'completed');
-        })
-        .reduce((sum, c) => sum + c.total_amount, 0),
-    };
-
-    setStats(stats);
-  };
-
-  // Create new contract
-  const createContract = async (contractData: CreateContractData) => {
+  // Optimized create contract
+  const createContract = useCallback(async (contractData: CreateContractData) => {
     try {
       const contractNumber = generateContractNumber();
       
-      // Calculate paid and remaining amounts
       const paidAmount = contractData.deposit_amount || 0;
       const remainingAmount = contractData.total_amount - paidAmount;
 
@@ -277,7 +368,7 @@ export const useContracts = () => {
 
       if (error) throw error;
 
-      // Update vehicle status to rented
+      // Update vehicle status
       await supabase
         .from('vehicles')
         .update({ status: 'rented' })
@@ -289,8 +380,11 @@ export const useContracts = () => {
         vehicle: data.vehicle || undefined,
       } as Contract;
 
-      setContracts(prev => [newContractData, ...prev]);
-      calculateStats([newContractData, ...contracts]);
+      // Update local state
+      setContracts(prev => [newContractData, ...prev.slice(0, pageSize - 1)]);
+      
+      // Clear cache
+      contractsCache.clear();
 
       toast({
         title: 'تم بنجاح',
@@ -307,10 +401,10 @@ export const useContracts = () => {
       });
       throw error;
     }
-  };
+  }, [generateContractNumber, pageSize, toast]);
 
-  // Update contract
-  const updateContract = async (id: string, updates: Partial<Contract>) => {
+  // Optimized update contract
+  const updateContract = useCallback(async (id: string, updates: Partial<Contract>) => {
     try {
       const { data, error } = await supabase
         .from('rental_contracts')
@@ -353,6 +447,9 @@ export const useContracts = () => {
         )
       );
 
+      // Clear cache
+      contractsCache.clear();
+
       toast({
         title: 'تم بنجاح',
         description: 'تم تحديث العقد بنجاح',
@@ -364,6 +461,190 @@ export const useContracts = () => {
       toast({
         title: 'خطأ',
         description: 'حدث خطأ أثناء تحديث العقد',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [toast]);
+
+  // Renew contract (creates new contract)
+  const renewContract = async (renewalData: {
+    originalContractId: string;
+    customer_id: string;
+    vehicle_id: string;
+    start_date: string;
+    end_date: string;
+    daily_rate: number;
+    total_amount: number;
+    renewal_type: string;
+    renewal_reason: string;
+    notes?: string;
+    payment_terms?: string;
+  }) => {
+    try {
+      const contractNumber = generateContractNumber();
+      
+      const newContract = {
+        customer_id: renewalData.customer_id,
+        vehicle_id: renewalData.vehicle_id,
+        start_date: renewalData.start_date,
+        end_date: renewalData.end_date,
+        daily_rate: renewalData.daily_rate,
+        total_amount: renewalData.total_amount,
+        contract_number: contractNumber,
+        parent_contract_id: renewalData.originalContractId,
+        renewal_type: renewalData.renewal_type,
+        renewal_reason: renewalData.renewal_reason,
+        payment_method: 'cash',
+        payment_status: 'pending',
+        paid_amount: 0,
+        remaining_amount: renewalData.total_amount,
+        deposit_amount: 0,
+        insurance_amount: 0,
+        additional_charges: 0,
+        discount_amount: 0,
+        status: 'active',
+        notes: renewalData.notes || '',
+        terms_conditions: renewalData.payment_terms || 'immediate'
+      };
+
+      const { data, error } = await supabase
+        .from('rental_contracts')
+        .insert([newContract])
+        .select(`
+          *,
+          customer:customers(
+            id,
+            name,
+            phone,
+            email,
+            national_id,
+            license_number,
+            license_expiry
+          ),
+          vehicle:vehicles(
+            id,
+            plate_number,
+            brand,
+            model,
+            year,
+            color,
+            daily_rate
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+
+      // Mark original contract as renewed
+      await supabase
+        .from('rental_contracts')
+        .update({ 
+          status: 'renewed',
+          notes: `العقد تم تجديده - العقد الجديد: ${contractNumber}`
+        })
+        .eq('id', renewalData.originalContractId);
+
+      // Update vehicle status if needed
+      await supabase
+        .from('vehicles')
+        .update({ status: 'rented' })
+        .eq('id', renewalData.vehicle_id);
+
+      const newContractData = {
+        ...data,
+        customer: data.customer || undefined,
+        vehicle: data.vehicle || undefined,
+      } as Contract;
+
+      setContracts(prev => [newContractData, ...prev]);
+      calculateStats([newContractData, ...contracts]);
+
+      toast({
+        title: 'تم تجديد العقد بنجاح',
+        description: `تم إنشاء العقد الجديد ${contractNumber}`,
+      });
+
+      return data;
+    } catch (error) {
+      console.error('Error renewing contract:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء تجديد العقد',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  // Extend contract (modify existing contract)
+  const extendContract = async (contractId: string, extensionData: {
+    end_date: string;
+    daily_rate: number;
+    total_amount: number;
+    extension_reason: string;
+    notes?: string;
+  }) => {
+    try {
+      const { data, error } = await supabase
+        .from('rental_contracts')
+        .update({
+          end_date: extensionData.end_date,
+          daily_rate: extensionData.daily_rate,
+          total_amount: extensionData.total_amount,
+          remaining_amount: extensionData.total_amount, // Reset remaining amount
+          notes: `${extensionData.notes || ''}\n\nسبب التمديد: ${extensionData.extension_reason}`,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', contractId)
+        .select(`
+          *,
+          customer:customers(
+            id,
+            name,
+            phone,
+            email,
+            national_id,
+            license_number,
+            license_expiry
+          ),
+          vehicle:vehicles(
+            id,
+            plate_number,
+            brand,
+            model,
+            year,
+            color,
+            daily_rate
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+
+      const updatedContract = {
+        ...data,
+        customer: data.customer || undefined,
+        vehicle: data.vehicle || undefined,
+      } as Contract;
+
+      setContracts(prev => 
+        prev.map(contract => 
+          contract.id === contractId ? updatedContract : contract
+        )
+      );
+
+      toast({
+        title: 'تم تمديد العقد بنجاح',
+        description: 'تم تحديث تواريخ ومبلغ العقد',
+      });
+
+      return data;
+    } catch (error) {
+      console.error('Error extending contract:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء تمديد العقد',
         variant: 'destructive',
       });
       throw error;
@@ -608,6 +889,8 @@ export const useContracts = () => {
     updateContract,
     completeContract,
     cancelContract,
+    renewContract,
+    extendContract,
     getContractById,
     getExpiredContracts,
     getExpiringContracts,

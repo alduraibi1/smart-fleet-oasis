@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, Edit, Search, Filter } from 'lucide-react';
+import { Eye, Edit, Search, Filter, RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ContractRenewalDialog } from './ContractRenewalDialog';
 
 const statusConfig = {
   active: { label: 'نشط', color: 'bg-success text-success-foreground' },
@@ -41,6 +42,9 @@ interface ContractsTableProps {
 export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [renewalDialogOpen, setRenewalDialogOpen] = useState(false);
+  const [selectedContract, setSelectedContract] = useState<any>(null);
+  const [renewalType, setRenewalType] = useState<'renewal' | 'extension'>('renewal');
 
   // Filter contracts based on search and filters
   const filteredContracts = contracts.filter(contract => {
@@ -55,6 +59,27 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
     
     return matchesSearch && matchesStatus;
   });
+
+  const handleContractAction = (contract: any, action: 'renew' | 'extend' | 'view' | 'edit') => {
+    if (action === 'renew') {
+      setSelectedContract(contract);
+      setRenewalType('renewal');
+      setRenewalDialogOpen(true);
+    } else if (action === 'extend') {
+      setSelectedContract(contract);
+      setRenewalType('extension');
+      setRenewalDialogOpen(true);
+    }
+    // Handle view and edit actions here
+  };
+
+  const canRenewContract = (contract: any) => {
+    return ['expired', 'completed'].includes(contract.status);
+  };
+
+  const canExtendContract = (contract: any) => {
+    return ['active'].includes(contract.status);
+  };
 
   // Get contract type from duration
   const getContractType = (startDate: string, endDate: string) => {
@@ -124,7 +149,7 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
                   <TableHead className="text-right">المركبة</TableHead>
                   <TableHead className="text-right">تاريخ البداية</TableHead>
                   <TableHead className="text-right">تاريخ النهاية</TableHead>
-                  <TableHead className="text-right">المبلغ الشهري</TableHead>
+                  <TableHead className="text-right">المبلغ اليومي</TableHead>
                   <TableHead className="text-right">المبلغ الإجمالي</TableHead>
                   <TableHead className="text-right">النوع</TableHead>
                   <TableHead className="text-right">الحالة</TableHead>
@@ -184,12 +209,32 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => handleContractAction(contract, 'view')}>
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => handleContractAction(contract, 'edit')}>
                             <Edit className="h-4 w-4" />
                           </Button>
+                          {canExtendContract(contract) && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleContractAction(contract, 'extend')}
+                              title="تمديد العقد"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {canRenewContract(contract) && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleContractAction(contract, 'renew')}
+                              title="تجديد العقد"
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -200,6 +245,14 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Contract Renewal Dialog */}
+      <ContractRenewalDialog
+        open={renewalDialogOpen}
+        onOpenChange={setRenewalDialogOpen}
+        contract={selectedContract}
+        renewalType={renewalType}
+      />
     </div>
   );
 };

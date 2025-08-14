@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useContracts } from '@/hooks/useContracts';
+import { ContractRenewalDialog } from './ContractRenewalDialog';
 
 const statusConfig = {
   active: { 
@@ -78,6 +79,8 @@ export const ContractStatusManager: React.FC<ContractStatusManagerProps> = ({
 }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<string>('');
+  const [renewalDialogOpen, setRenewalDialogOpen] = useState(false);
+  const [renewalType, setRenewalType] = useState<'renewal' | 'extension'>('renewal');
   const [notes, setNotes] = useState('');
   const { toast } = useToast();
   const { updateContract, cancelContract } = useContracts();
@@ -86,6 +89,18 @@ export const ContractStatusManager: React.FC<ContractStatusManagerProps> = ({
   const StatusIcon = currentStatus?.icon || FileText;
 
   const handleStatusAction = async (action: string) => {
+    if (action === 'renew') {
+      setRenewalType('renewal');
+      setRenewalDialogOpen(true);
+      return;
+    }
+    
+    if (action === 'extend') {
+      setRenewalType('extension');
+      setRenewalDialogOpen(true);
+      return;
+    }
+
     setActionType(action);
     setDialogOpen(true);
   };
@@ -166,6 +181,11 @@ export const ContractStatusManager: React.FC<ContractStatusManagerProps> = ({
     });
   };
 
+  const handleRenewalSuccess = () => {
+    setRenewalDialogOpen(false);
+    onStatusChange?.();
+  };
+
   return (
     <>
       <Card className="border-l-4" style={{ borderLeftColor: currentStatus?.color.includes('success') ? '#22c55e' : currentStatus?.color.includes('warning') ? '#f59e0b' : currentStatus?.color.includes('destructive') ? '#ef4444' : '#6b7280' }}>
@@ -220,7 +240,6 @@ export const ContractStatusManager: React.FC<ContractStatusManagerProps> = ({
         </CardContent>
       </Card>
 
-      {/* Action Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -262,6 +281,13 @@ export const ContractStatusManager: React.FC<ContractStatusManagerProps> = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      <ContractRenewalDialog
+        open={renewalDialogOpen}
+        onOpenChange={setRenewalDialogOpen}
+        contract={contract}
+        renewalType={renewalType}
+      />
     </>
   );
 };
