@@ -9,13 +9,19 @@ import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { Button } from '@/components/ui/button';
 import { Plus, Grid, List } from 'lucide-react';
 import { AppLayout } from '@/components/Layout/AppLayout';
+import { VehicleFilters as VehicleFiltersType } from '@/types/vehicles';
 
 const Vehicles = () => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'enhanced'>('enhanced');
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState<VehicleFiltersType>({});
   
-  const { vehicles, loading, stats, fetchVehicles, addVehicle, updateVehicle, deleteVehicle } = useVehicles();
+  const { vehicles, loading, stats, fetchVehicles, addVehicle, updateVehicle, deleteVehicle, getBrands } = useVehicles();
+
+  const handleFiltersChange = (newFilters: VehicleFiltersType) => {
+    setFilters(newFilters);
+    fetchVehicles(newFilters);
+  };
 
   return (
     <AppLayout>
@@ -58,33 +64,34 @@ const Vehicles = () => {
         </div>
 
         {/* Statistics */}
-        <VehicleStats stats={stats} loading={loading} />
+        <VehicleStats stats={stats} />
 
         {/* Filters */}
-        <VehicleFilters filters={filters} onFiltersChange={setFilters} />
+        <VehicleFilters 
+          filters={filters} 
+          onFiltersChange={handleFiltersChange}
+          brands={getBrands()}
+          loading={loading}
+        />
 
         {/* Vehicles Display */}
         {viewMode === 'enhanced' ? (
           <EnhancedVehicleGrid
             vehicles={vehicles}
-            loading={loading}
-            onUpdate={updateVehicle}
-            onDelete={deleteVehicle}
+            onUpdateVehicle={updateVehicle}
+            onDeleteVehicle={deleteVehicle}
           />
         ) : (
           <VehicleGrid
             vehicles={vehicles}
-            loading={loading}
-            onUpdate={updateVehicle}
-            onDelete={deleteVehicle}
           />
         )}
 
         {/* Add Vehicle Dialog */}
         <AddVehicleDialog
-          open={addDialogOpen}
-          onOpenChange={setAddDialogOpen}
-          onAdd={addVehicle}
+          isOpen={addDialogOpen}
+          onClose={() => setAddDialogOpen(false)}
+          onSubmit={addVehicle}
         />
       </div>
     </AppLayout>
