@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { z } from 'zod';
 import { AlertTriangle, CheckCircle, X, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 
-// Enhanced contract validation schema with optional fields
+// Enhanced contract validation schema with payment fields
 export const contractValidationSchema = z.object({
   // Required fields
   customer_id: z.string().min(1, 'يجب اختيار العميل - حقل إلزامي'),
@@ -16,6 +15,15 @@ export const contractValidationSchema = z.object({
   
   // Optional fields
   total_amount: z.number().min(0).optional(),
+  paid_amount: z.number().min(0).optional(),
+  remaining_balance: z.number().optional(),
+  deposit_amount: z.number().min(0).optional(),
+  security_deposit: z.number().min(0).optional(),
+  payment_date: z.string().optional(),
+  payment_due_date: z.string().optional(),
+  payment_reference: z.string().optional(),
+  payment_terms: z.string().optional(),
+  deposit_status: z.enum(['pending', 'received', 'refunded']).optional().default('pending'),
   insurance_type: z.enum(['none', 'percentage', 'fixed']).optional().default('none'),
   insurance_amount: z.number().min(0).optional(),
   insurance_percentage: z.number().min(0).max(100).optional(),
@@ -47,6 +55,15 @@ export const contractValidationSchema = z.object({
 }, {
   message: 'يجب تحديد مبلغ أو نسبة التأمين عند اختيار نوع التأمين',
   path: ['insurance_amount']
+}).refine((data) => {
+  // Validate paid amount doesn't exceed total amount
+  if (data.paid_amount && data.total_amount && data.paid_amount > data.total_amount) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'المبلغ المدفوع لا يمكن أن يتجاوز المبلغ الإجمالي',
+  path: ['paid_amount']
 });
 
 // Vehicle return validation schema

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Calculator, AlertCircle, Info } from 'lucide-react';
 import { FieldRequirement } from './ContractValidation';
+import { PaymentSection } from './PaymentSection';
 
 interface EnhancedContractFormProps {
   formData: any;
@@ -304,54 +304,8 @@ export const EnhancedContractForm = ({
         </CardContent>
       </Card>
 
-      {/* Payment Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            معلومات الدفع
-            <FieldRequirement recommended />
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="paymentMethod">طريقة الدفع</Label>
-              <Select 
-                value={formData.paymentMethod || 'cash'} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">نقداً</SelectItem>
-                  <SelectItem value="card">بطاقة ائتمانية</SelectItem>
-                  <SelectItem value="bank_transfer">تحويل بنكي</SelectItem>
-                  <SelectItem value="cheque">شيك</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="paymentStatus">حالة الدفع</Label>
-              <Select 
-                value={formData.paymentStatus || 'pending'} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, paymentStatus: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">معلق</SelectItem>
-                  <SelectItem value="paid">مدفوع</SelectItem>
-                  <SelectItem value="partial">مدفوع جزئياً</SelectItem>
-                  <SelectItem value="overdue">متأخر</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Enhanced Payment Section */}
+      <PaymentSection formData={formData} setFormData={setFormData} />
 
       {/* Notes */}
       <Card>
@@ -430,6 +384,20 @@ export const EnhancedContractForm = ({
                 <span className="text-primary">{(formData.totalAmount || 0).toLocaleString()} ر.س</span>
               </div>
             </div>
+
+            {/* Enhanced Payment Summary */}
+            {formData.paidAmount > 0 && (
+              <div className="border-t pt-2">
+                <div className="flex justify-between">
+                  <span>المبلغ المدفوع:</span>
+                  <span className="font-bold text-green-600">{(formData.paidAmount || 0).toLocaleString()} ر.س</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>المبلغ المتبقي:</span>
+                  <span className="font-bold text-orange-600">{(formData.remainingBalance || 0).toLocaleString()} ر.س</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {(!formData.startDate || !formData.endDate || !formData.dailyRate) && (

@@ -76,6 +76,16 @@ export default function AddContractDialog() {
     vatRate: 15,
     vat: 0,
     totalAmount: 0,
+    // Enhanced payment fields
+    paidAmount: 0,
+    remainingBalance: 0,
+    depositAmount: 0,
+    securityDeposit: 0,
+    paymentDate: '',
+    paymentDueDate: '',
+    paymentReference: '',
+    paymentTerms: 'upfront',
+    depositStatus: 'pending',
     paymentMethod: 'cash',
     paymentStatus: 'pending',
     notes: '',
@@ -105,7 +115,7 @@ export default function AddContractDialog() {
   };
 
   const handleSubmit = async () => {
-    // Prepare contract data for validation with only required fields
+    // Prepare contract data for validation with enhanced payment fields
     const contractData = {
       customer_id: formData.customerId,
       vehicle_id: formData.vehicleId,
@@ -113,6 +123,15 @@ export default function AddContractDialog() {
       end_date: formData.endDate,
       daily_rate: formData.dailyRate,
       total_amount: formData.totalAmount,
+      paid_amount: formData.paidAmount,
+      remaining_balance: formData.remainingBalance,
+      deposit_amount: formData.depositAmount,
+      security_deposit: formData.securityDeposit,
+      payment_date: formData.paymentDate,
+      payment_due_date: formData.paymentDueDate,
+      payment_reference: formData.paymentReference,
+      payment_terms: formData.paymentTerms,
+      deposit_status: formData.depositStatus,
       insurance_type: formData.insuranceType,
       insurance_amount: formData.calculatedInsuranceAmount,
       insurance_percentage: formData.insuranceType === 'percentage' ? formData.insurancePercentage : undefined,
@@ -148,7 +167,7 @@ export default function AddContractDialog() {
         end_date: formData.endDate,
         daily_rate: formData.dailyRate,
         total_amount: formData.totalAmount,
-        deposit_amount: formData.calculatedInsuranceAmount,
+        deposit_amount: formData.depositAmount || 0,
         insurance_amount: formData.calculatedInsuranceAmount,
         additional_charges: formData.additionalCharges || 0,
         discount_amount: formData.discount || 0,
@@ -193,6 +212,16 @@ export default function AddContractDialog() {
       vatRate: 15,
       vat: 0,
       totalAmount: 0,
+      // Reset enhanced payment fields
+      paidAmount: 0,
+      remainingBalance: 0,
+      depositAmount: 0,
+      securityDeposit: 0,
+      paymentDate: '',
+      paymentDueDate: '',
+      paymentReference: '',
+      paymentTerms: 'upfront',
+      depositStatus: 'pending',
       paymentMethod: 'cash',
       paymentStatus: 'pending',
       notes: '',
