@@ -50,6 +50,16 @@ interface ContractFormData {
   vatRate: number;
   vat: number;
   totalAmount: number;
+  // Enhanced payment fields
+  paidAmount: number;
+  remainingBalance: number;
+  depositAmount: number;
+  securityDeposit: number;
+  paymentDate: string;
+  paymentDueDate: string;
+  paymentReference: string;
+  paymentTerms: string;
+  depositStatus: string;
   paymentMethod: string;
   paymentStatus: string;
   notes: string;
