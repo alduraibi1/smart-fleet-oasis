@@ -3,11 +3,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useVehicles, VehicleFilters } from "@/hooks/useVehicles";
-import { AddVehicleDialog } from "@/components/Vehicles/AddVehicleDialog";
-import { VehicleStats } from "@/components/Vehicles/VehicleStats";
-import { VehicleFilters as VehicleFiltersComponent } from "@/components/Vehicles/VehicleFilters";
-import { EnhancedVehicleGrid } from "@/components/Vehicles/EnhancedVehicleGrid";
-import { VehicleTable } from "@/components/Vehicles/VehicleTable";
+import AddVehicleDialog from "@/components/Vehicles/AddVehicleDialog";
+import VehicleStats from "@/components/Vehicles/VehicleStats";
+import VehicleFilters from "@/components/Vehicles/VehicleFilters";
+import EnhancedVehicleGrid from "@/components/Vehicles/EnhancedVehicleGrid";
+import VehicleTable from "@/components/Vehicles/VehicleTable";
 import { AppLayout } from "@/components/Layout/AppLayout";
 
 const Vehicles = () => {
@@ -23,6 +23,7 @@ const Vehicles = () => {
     addVehicle,
     updateVehicle,
     deleteVehicle,
+    getBrands,
   } = useVehicles();
 
   const handleFiltersChange = (newFilters: VehicleFilters) => {
@@ -57,22 +58,21 @@ const Vehicles = () => {
         </div>
 
         <VehicleStats stats={stats} loading={loading} />
-        <VehicleFiltersComponent onFiltersChange={handleFiltersChange} />
+        <VehicleFilters 
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          brands={getBrands()}
+          loading={loading}
+        />
 
         {viewMode === 'grid' ? (
           <EnhancedVehicleGrid
             vehicles={vehicles}
-            loading={loading}
-            onEdit={updateVehicle}
-            onDelete={deleteVehicle}
+            onUpdateVehicle={updateVehicle}
+            onDeleteVehicle={deleteVehicle}
           />
         ) : (
-          <VehicleTable
-            vehicles={vehicles}
-            loading={loading}
-            onEdit={updateVehicle}
-            onDelete={deleteVehicle}
-          />
+          <VehicleTable vehicles={vehicles} />
         )}
 
         <AddVehicleDialog

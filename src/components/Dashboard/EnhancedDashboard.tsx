@@ -48,7 +48,7 @@ export const EnhancedDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-    const interval = setInterval(fetchDashboardData, 30000); // Update every 30 seconds
+    const interval = setInterval(fetchDashboardData, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -59,16 +59,16 @@ export const EnhancedDashboard = () => {
         .from('vehicles')
         .select('*');
 
-      // Fetch contracts data
+      // Fetch contracts data - using rental_contracts table
       const { data: contracts } = await supabase
         .from('rental_contracts')
         .select('*');
 
-      // Fetch maintenance data
+      // Fetch maintenance data - using vehicle_maintenance table
       const { data: maintenance } = await supabase
-        .from('maintenance_records')
+        .from('vehicle_maintenance')
         .select('*')
-        .eq('status', 'pending');
+        .eq('status', 'scheduled');
 
       // Calculate stats
       const totalVehicles = vehicles?.length || 0;
