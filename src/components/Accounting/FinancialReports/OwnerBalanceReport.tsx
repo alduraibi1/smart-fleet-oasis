@@ -1,20 +1,30 @@
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  Users, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
-  CheckCircle,
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Users,
+  TrendingUp,
+  AlertCircle,
   Download,
-  Printer,
-  RefreshCw
+  Search,
+  Filter,
+  Eye,
+  DollarSign,
+  CreditCard,
+  Wallet
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -42,26 +52,21 @@ interface BalanceResult {
 export function OwnerBalanceReport() {
   const [balances, setBalances] = useState<OwnerBalance[]>([]);
   const [loading, setLoading] = useState(true);
-  const [summary, setSummary] = useState({
-    totalOwners: 0,
-    healthyAccounts: 0,
-    warningAccounts: 0,
-    criticalAccounts: 0,
-    totalAvailableBalance: 0
-  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<'all' | 'healthy' | 'warning' | 'critical'>('all');
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchOwnerBalances();
+    loadOwnerBalances();
   }, []);
 
-  const fetchOwnerBalances = async () => {
+  const loadOwnerBalances = async () => {
     try {
       setLoading(true);
 
-      // جلب جميع المالكين مع أرصدتهم
+      // جلب قائمة المالكين
       const { data: owners, error: ownersError } = await supabase
-        .from('vehicle_owners')
+        .from('owners')
         .select('id, name');
 
       if (ownersError) throw ownersError;
@@ -71,28 +76,35 @@ export function OwnerBalanceReport() {
       for (const owner of owners || []) {
         // استدعاء دالة حساب الرصيد
         const { data: balanceData, error: balanceError } = await supabase
-          .rpc('get_owner_balance', { p_owner_id: owner.id });
+          .rpc('get_owner_balance', { owner_id: owner.id });
 
         if (balanceError) {
-          console.error(`Error fetching balance for owner ${owner.id}:`, balanceError);
+          console.error('Error getting balance for owner:', owner.id, balanceError);
           continue;
         }
 
-        // تحويل البيانات إلى النوع المطلوب
-        const balance = balanceData as BalanceResult;
+        // التحقق من وجود البيانات وتحويلها
+        if (!balanceData) continue;
+
+        let balance: BalanceResult;
+        try {
+          balance = balanceData as unknown as BalanceResult;
+        } catch (error) {
+          console.error('Error parsing balance data:', error);
+          continue;
+        }
 
         // جلب السندات المعلقة
         const { data: pendingVouchers, error: vouchersError } = await supabase
           .from('payment_vouchers')
           .select('amount')
-          .eq('recipient_id', owner.id)
-          .eq('recipient_type', 'owner')
-          .in('status', ['pending_approval', 'approved']);
+          .eq('owner_id', owner.id)
+          .eq('status', 'pending');
 
-        const pendingAmount = pendingVouchers?.reduce((sum, v) => sum + v.amount, 0) || 0;
+        const pendingAmount = pendingVouchers?.reduce((sum, voucher) => sum + voucher.amount, 0) || 0;
 
         // جلب آخر معاملة
-        const { data: lastTransaction } = await supabase
+        const { data: lastTransaction, error: transactionError } = await supabase
           .from('payment_receipts')
           .select('payment_date')
           .eq('customer_id', owner.id)
@@ -100,54 +112,57 @@ export function OwnerBalanceReport() {
           .limit(1)
           .maybeSingle();
 
-        const availableBalance = balance.available_balance;
+        const availableBalance = balance.available_balance || 0;
         const utilizationPercentage = balance.total_receipts > 0 
           ? (balance.total_vouchers / balance.total_receipts) * 100 
           : 0;
 
         let balanceStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
-        if (availableBalance < 0) {
-          balanceStatus = 'critical';
-        } else if (availableBalance < 1000 || utilizationPercentage > 80) {
-          balanceStatus = 'warning';
-        }
+        if (availableBalance < 1000) balanceStatus = 'critical';
+        else if (availableBalance < 5000) balanceStatus = 'warning';
 
         ownerBalances.push({
           owner_id: owner.id,
           owner_name: owner.name,
-          total_receipts: balance.total_receipts,
-          total_vouchers: balance.total_vouchers,
+          total_receipts: balance.total_receipts || 0,
+          total_vouchers: balance.total_vouchers || 0,
           available_balance: availableBalance,
           pending_vouchers: pendingAmount,
           last_transaction_date: lastTransaction?.payment_date || 'لا يوجد',
           balance_status: balanceStatus,
-          utilization_percentage: Math.round(utilizationPercentage)
+          utilization_percentage: utilizationPercentage
         });
       }
 
       setBalances(ownerBalances);
-
-      // حساب الملخص
-      const summary = {
-        totalOwners: ownerBalances.length,
-        healthyAccounts: ownerBalances.filter(b => b.balance_status === 'healthy').length,
-        warningAccounts: ownerBalances.filter(b => b.balance_status === 'warning').length,
-        criticalAccounts: ownerBalances.filter(b => b.balance_status === 'critical').length,
-        totalAvailableBalance: ownerBalances.reduce((sum, b) => sum + b.available_balance, 0)
-      };
-
-      setSummary(summary);
-
     } catch (error) {
-      console.error('Error fetching owner balances:', error);
+      console.error('Error loading owner balances:', error);
       toast({
         title: "خطأ",
-        description: "فشل في جلب أرصدة المالكين",
-        variant: "destructive"
+        description: "حدث خطأ في تحميل أرصدة المالكين",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      healthy: { 
+        label: 'جيد', 
+        className: 'bg-success/10 text-success border-success/20 hover:bg-success/20' 
+      },
+      warning: { 
+        label: 'تحذير', 
+        className: 'bg-warning/10 text-warning border-warning/20 hover:bg-warning/20' 
+      },
+      critical: { 
+        label: 'حرج', 
+        className: 'bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20' 
+      }
+    };
+    return statusConfig[status as keyof typeof statusConfig] || statusConfig.healthy;
   };
 
   const formatCurrency = (amount: number) => {
@@ -158,222 +173,286 @@ export function OwnerBalanceReport() {
     }).format(amount);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'healthy':
-        return <Badge variant="default" className="bg-green-100 text-green-800">سليم</Badge>;
-      case 'warning':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">تحذير</Badge>;
-      case 'critical':
-        return <Badge variant="destructive">حرج</Badge>;
-      default:
-        return <Badge variant="outline">غير محدد</Badge>;
-    }
-  };
+  const filteredBalances = balances.filter(balance => {
+    const matchesSearch = balance.owner_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || balance.balance_status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'healthy':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'critical':
-        return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      default:
-        return null;
-    }
-  };
+  const totalBalances = balances.reduce((acc, balance) => ({
+    receipts: acc.receipts + balance.total_receipts,
+    vouchers: acc.vouchers + balance.total_vouchers,
+    available: acc.available + balance.available_balance,
+    pending: acc.pending + balance.pending_vouchers
+  }), { receipts: 0, vouchers: 0, available: 0, pending: 0 });
+
+  const healthyCount = balances.filter(b => b.balance_status === 'healthy').length;
+  const warningCount = balances.filter(b => b.balance_status === 'warning').length;
+  const criticalCount = balances.filter(b => b.balance_status === 'critical').length;
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>تقرير أرصدة المالكين</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">جاري التحميل...</div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-8 w-64 bg-muted rounded-md animate-pulse mb-2"></div>
+            <div className="h-4 w-96 bg-muted rounded-md animate-pulse"></div>
+          </div>
+          <div className="h-10 w-32 bg-muted rounded-md animate-pulse"></div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 w-20 bg-muted rounded mb-2"></div>
+                <div className="h-8 w-24 bg-muted rounded mb-2"></div>
+                <div className="h-3 w-16 bg-muted rounded"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* إحصائيات سريعة */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">
+            تقرير أرصدة المالكين
+          </h2>
+          <p className="text-muted-foreground">
+            عرض تفصيلي لأرصدة جميع المالكين ومعدلات الاستخدام
+          </p>
+        </div>
+        <Button 
+          onClick={loadOwnerBalances} 
+          className="bg-primary hover:bg-primary-hover text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          تحديث البيانات
+        </Button>
+      </div>
+
+      {/* الإحصائيات العامة */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-card to-card/80">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">إجمالي المالكين</p>
-                <p className="text-2xl font-bold">{summary.totalOwners}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">إجمالي الإيصالات</p>
+                <p className="text-2xl font-bold text-foreground">{formatCurrency(totalBalances.receipts)}</p>
               </div>
-              <Users className="h-6 w-6 text-blue-600" />
+              <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center">
+                <CreditCard className="w-6 h-6 text-success" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-card to-card/80">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">حسابات سليمة</p>
-                <p className="text-2xl font-bold text-green-600">{summary.healthyAccounts}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">إجمالي السندات</p>
+                <p className="text-2xl font-bold text-foreground">{formatCurrency(totalBalances.vouchers)}</p>
               </div>
-              <CheckCircle className="h-6 w-6 text-green-600" />
+              <div className="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-warning" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-card to-card/80">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">تحذيرات</p>
-                <p className="text-2xl font-bold text-yellow-600">{summary.warningAccounts}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">الرصيد المتاح</p>
+                <p className="text-2xl font-bold text-foreground">{formatCurrency(totalBalances.available)}</p>
               </div>
-              <AlertTriangle className="h-6 w-6 text-yellow-600" />
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Wallet className="w-6 h-6 text-primary" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-card to-card/80">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">حسابات حرجة</p>
-                <p className="text-2xl font-bold text-red-600">{summary.criticalAccounts}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">السندات المعلقة</p>
+                <p className="text-2xl font-bold text-foreground">{formatCurrency(totalBalanes.pending)}</p>
               </div>
-              <AlertTriangle className="h-6 w-6 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">إجمالي الأرصدة</p>
-                <p className={`text-2xl font-bold ${summary.totalAvailableBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {formatCurrency(summary.totalAvailableBalance)}
-                </p>
+              <div className="w-12 h-12 bg-destructive/10 rounded-lg flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-destructive" />
               </div>
-              {summary.totalAvailableBalance >= 0 ? 
-                <TrendingUp className="h-6 w-6 text-green-600" /> : 
-                <TrendingDown className="h-6 w-6 text-red-600" />
-              }
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* تنبيهات الحسابات الحرجة */}
-      {summary.criticalAccounts > 0 && (
-        <Alert className="border-red-200 bg-red-50">
-          <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">
-            يوجد {summary.criticalAccounts} حساب في وضع حرج (رصيد سالب). يرجى المراجعة الفورية.
+      {/* إحصائيات الحالات */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="border border-success/20 bg-success/5 shadow-md hover:shadow-lg transition-all duration-200">
+          <CardContent className="p-6 text-center">
+            <div className="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-3">
+              <TrendingUp className="w-6 h-6 text-success" />
+            </div>
+            <p className="text-2xl font-bold text-success mb-1">{healthyCount}</p>
+            <p className="text-sm text-success/80">مالك في حالة جيدة</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-warning/20 bg-warning/5 shadow-md hover:shadow-lg transition-all duration-200">
+          <CardContent className="p-6 text-center">
+            <div className="w-12 h-12 bg-warning/10 rounded-full flex items-center justify-center mx-auto mb-3">
+              <AlertCircle className="w-6 h-6 text-warning" />
+            </div>
+            <p className="text-2xl font-bold text-warning mb-1">{warningCount}</p>
+            <p className="text-sm text-warning/80">مالك يحتاج متابعة</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-destructive/20 bg-destructive/5 shadow-md hover:shadow-lg transition-all duration-200">
+          <CardContent className="p-6 text-center">
+            <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-3">
+              <AlertCircle className="w-6 h-6 text-destructive" />
+            </div>
+            <p className="text-2xl font-bold text-destructive mb-1">{criticalCount}</p>
+            <p className="text-sm text-destructive/80">مالك في حالة حرجة</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* تحذيرات الأرصدة المنخفضة */}
+      {criticalCount > 0 && (
+        <Alert className="border-destructive/20 bg-destructive/5">
+          <AlertCircle className="h-4 w-4 text-destructive" />
+          <AlertDescription className="text-destructive">
+            تحذير: يوجد {criticalCount} مالك لديهم أرصدة منخفضة تحتاج إلى متابعة فورية
           </AlertDescription>
         </Alert>
       )}
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                تقرير أرصدة المالكين التفصيلي
-              </CardTitle>
-              <CardDescription>
-                عرض تفصيلي لأرصدة جميع مالكي المركبات ووضعهم المالي
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={fetchOwnerBalances}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                تحديث
-              </Button>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                تصدير
-              </Button>
-              <Button variant="outline" size="sm">
-                <Printer className="h-4 w-4 mr-2" />
-                طباعة
-              </Button>
+      <Card className="shadow-lg border border-border">
+        <CardHeader className="border-b border-border bg-muted/30">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <Users className="w-5 h-5 text-primary" />
+              تفاصيل أرصدة المالكين
+            </CardTitle>
+            
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+              <div className="relative">
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="البحث عن مالك..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pr-10 bg-background border-input focus:border-primary focus:ring-primary/20"
+                />
+              </div>
+              
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="px-3 py-2 bg-background border border-input rounded-md text-sm focus:border-primary focus:ring-primary/20 focus:outline-none"
+              >
+                <option value="all">جميع الحالات</option>
+                <option value="healthy">جيد</option>
+                <option value="warning">تحذير</option>
+                <option value="critical">حرج</option>
+              </select>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="border rounded-lg overflow-hidden">
+        
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">الحالة</TableHead>
-                  <TableHead className="text-right">اسم المالك</TableHead>
-                  <TableHead className="text-right">إجمالي المقبوضات</TableHead>
-                  <TableHead className="text-right">إجمالي المصروفات</TableHead>
-                  <TableHead className="text-right">الرصيد المتاح</TableHead>
-                  <TableHead className="text-right">سندات معلقة</TableHead>
-                  <TableHead className="text-right">نسبة الاستخدام</TableHead>
-                  <TableHead className="text-right">آخر معاملة</TableHead>
+              <TableHeader className="bg-muted/50">
+                <TableRow className="border-b border-border">
+                  <TableHead className="text-right font-semibold text-foreground">المالك</TableHead>
+                  <TableHead className="text-right font-semibold text-foreground">إجمالي الإيصالات</TableHead>
+                  <TableHead className="text-right font-semibold text-foreground">إجمالي السندات</TableHead>
+                  <TableHead className="text-right font-semibold text-foreground">الرصيد المتاح</TableHead>
+                  <TableHead className="text-right font-semibold text-foreground">السندات المعلقة</TableHead>
+                  <TableHead className="text-right font-semibold text-foreground">معدل الاستخدام</TableHead>
+                  <TableHead className="text-right font-semibold text-foreground">الحالة</TableHead>
+                  <TableHead className="text-right font-semibold text-foreground">آخر معاملة</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {balances.map((balance) => (
-                  <TableRow key={balance.owner_id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(balance.balance_status)}
-                        {getStatusBadge(balance.balance_status)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-medium">{balance.owner_name}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-medium text-green-600">
+                {filteredBalances.map((balance, index) => {
+                  const statusConfig = getStatusBadge(balance.balance_status);
+                  return (
+                    <TableRow 
+                      key={balance.owner_id} 
+                      className={`border-b border-border hover:bg-muted/30 transition-colors duration-200 ${
+                        index % 2 === 0 ? 'bg-background' : 'bg-muted/10'
+                      }`}
+                    >
+                      <TableCell className="font-medium text-foreground py-4">
+                        {balance.owner_name}
+                      </TableCell>
+                      <TableCell className="text-success font-medium">
                         {formatCurrency(balance.total_receipts)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-medium text-red-600">
+                      </TableCell>
+                      <TableCell className="text-warning font-medium">
                         {formatCurrency(balance.total_vouchers)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`font-bold ${balance.available_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      </TableCell>
+                      <TableCell className="text-primary font-bold">
                         {formatCurrency(balance.available_balance)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-medium text-orange-600">
+                      </TableCell>
+                      <TableCell className="text-destructive font-medium">
                         {formatCurrency(balance.pending_vouchers)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Progress 
-                          value={Math.min(balance.utilization_percentage, 100)} 
-                          className="w-16 h-2"
-                        />
-                        <span className="text-sm">{balance.utilization_percentage}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">
-                        {balance.last_transaction_date !== 'لا يوجد' 
-                          ? new Date(balance.last_transaction_date).toLocaleDateString('ar-SA')
-                          : 'لا يوجد'
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all duration-300 ${
+                                balance.utilization_percentage > 80 ? 'bg-destructive' :
+                                balance.utilization_percentage > 60 ? 'bg-warning' : 'bg-success'
+                              }`}
+                              style={{ width: `${Math.min(balance.utilization_percentage, 100)}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm font-medium text-muted-foreground min-w-[40px]">
+                            {balance.utilization_percentage.toFixed(1)}%
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={statusConfig.className}>
+                          {statusConfig.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {balance.last_transaction_date !== 'لا يوجد' ? 
+                          new Date(balance.last_transaction_date).toLocaleDateString('ar-SA') : 
+                          'لا يوجد'
                         }
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
+          
+          {filteredBalances.length === 0 && (
+            <div className="text-center py-12">
+              <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-lg font-medium text-muted-foreground mb-2">لا توجد نتائج</p>
+              <p className="text-muted-foreground">لم يتم العثور على مالكين يطابقون معايير البحث</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
