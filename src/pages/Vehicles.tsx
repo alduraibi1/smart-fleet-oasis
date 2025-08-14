@@ -12,7 +12,6 @@ import VehicleTable from "@/components/Vehicles/VehicleTable";
 import { AppLayout } from "@/components/Layout/AppLayout";
 
 const Vehicles = () => {
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [filters, setFilters] = useState<VehicleFilters>({});
 
@@ -35,7 +34,6 @@ const Vehicles = () => {
   const handleVehicleAdded = async (vehicleData: any) => {
     try {
       await addVehicle(vehicleData);
-      setAddDialogOpen(false);
       fetchVehicles(filters);
     } catch (error) {
       // Error is handled in the hook
@@ -52,10 +50,7 @@ const Vehicles = () => {
               إدارة أسطول المركبات ومعلوماتها التفصيلية
             </p>
           </div>
-          <Button onClick={() => setAddDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            إضافة مركبة جديدة
-          </Button>
+          <AddVehicleDialog onVehicleAdded={handleVehicleAdded} />
         </div>
 
         <VehicleStats stats={stats} />
@@ -75,12 +70,6 @@ const Vehicles = () => {
         ) : (
           <VehicleTable vehicles={vehicles} />
         )}
-
-        <AddVehicleDialog
-          open={addDialogOpen}
-          onOpenChange={setAddDialogOpen}
-          onAdd={handleVehicleAdded}
-        />
       </div>
     </AppLayout>
   );
