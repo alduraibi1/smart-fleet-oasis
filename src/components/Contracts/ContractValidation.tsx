@@ -1,17 +1,25 @@
+
 import React from 'react';
 import { z } from 'zod';
 import { AlertTriangle, CheckCircle, X } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 
-// Contract validation schema
+// Enhanced contract validation schema with required fields
 export const contractValidationSchema = z.object({
-  customer_id: z.string().min(1, 'يجب اختيار العميل'),
-  vehicle_id: z.string().min(1, 'يجب اختيار المركبة'),
-  start_date: z.string().min(1, 'يجب تحديد تاريخ البداية'),
-  end_date: z.string().min(1, 'يجب تحديد تاريخ النهاية'),
-  daily_rate: z.number().min(1, 'يجب تحديد السعر اليومي'),
+  customer_id: z.string().min(1, 'يجب اختيار العميل - حقل إلزامي'),
+  vehicle_id: z.string().min(1, 'يجب اختيار المركبة - حقل إلزامي'),
+  start_date: z.string().min(1, 'يجب تحديد تاريخ البداية - حقل إلزامي'),
+  end_date: z.string().min(1, 'يجب تحديد تاريخ النهاية - حقل إلزامي'),
+  daily_rate: z.number().min(1, 'يجب تحديد السعر اليومي - حقل إلزامي'),
   total_amount: z.number().min(1, 'يجب أن يكون المبلغ الإجمالي أكبر من صفر'),
+  // Insurance is now optional
+  insurance_type: z.enum(['none', 'percentage', 'fixed']).optional(),
+  insurance_amount: z.number().min(0).optional(),
+  insurance_percentage: z.number().min(0).max(100).optional(),
+  // VAT is now optional
+  vat_enabled: z.boolean().optional(),
+  vat_rate: z.number().min(0).max(100).optional(),
 }).refine((data) => {
   const startDate = new Date(data.start_date);
   const endDate = new Date(data.end_date);
@@ -19,6 +27,19 @@ export const contractValidationSchema = z.object({
 }, {
   message: 'تاريخ النهاية يجب أن يكون بعد تاريخ البداية',
   path: ['end_date']
+}).refine((data) => {
+  // If insurance type is percentage, percentage must be provided
+  if (data.insurance_type === 'percentage' && (!data.insurance_percentage || data.insurance_percentage <= 0)) {
+    return false;
+  }
+  // If insurance type is fixed, amount must be provided
+  if (data.insurance_type === 'fixed' && (!data.insurance_amount || data.insurance_amount <= 0)) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'يجب تحديد مبلغ أو نسبة التأمين عند اختيار نوع التأمين',
+  path: ['insurance_amount']
 });
 
 // Vehicle return validation schema

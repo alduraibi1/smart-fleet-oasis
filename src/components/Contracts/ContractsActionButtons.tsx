@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, FileText, Download, Upload } from "lucide-react";
+import { Download, Upload, RefreshCw } from "lucide-react";
 import AddContractDialog from "./AddContractDialog";
 import VehicleReturnDialog from "./VehicleReturnDialog";
 
@@ -48,7 +48,7 @@ export const ContractsActionButtons = ({ onRefresh }: ContractsActionButtonsProp
         size="sm"
         onClick={onRefresh}
       >
-        <FileText className="h-4 w-4 mr-2" />
+        <RefreshCw className="h-4 w-4 mr-2" />
         تحديث
       </Button>
     </div>
