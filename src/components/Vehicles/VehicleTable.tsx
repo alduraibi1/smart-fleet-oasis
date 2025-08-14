@@ -1,14 +1,10 @@
+
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Edit, Eye, Trash2, FileText } from 'lucide-react';
 import { Vehicle } from '@/types/vehicles';
-import { EditVehicleDialog } from './EditVehicleDialog';
-import { DeleteVehicleDialog } from './DeleteVehicleDialog';
 import { EnhancedVehicleDetailsDialog } from './EnhancedVehicleDetailsDialog';
-import VehicleActions from './VehicleActions';
+import VehicleRowActions from './VehicleRowActions';
 
 interface VehicleTableProps {
   vehicles: Vehicle[];
@@ -17,8 +13,6 @@ interface VehicleTableProps {
 }
 
 export default function VehicleTable({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleTableProps) {
-  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
-  const [deletingVehicle, setDeletingVehicle] = useState<Vehicle | null>(null);
   const [viewingVehicle, setViewingVehicle] = useState<Vehicle | null>(null);
 
   const getStatusBadge = (status: string) => {
@@ -29,6 +23,21 @@ export default function VehicleTable({ vehicles, onUpdateVehicle, onDeleteVehicl
       out_of_service: { label: 'خارج الخدمة', variant: 'outline' as const }
     };
     return statusMap[status as keyof typeof statusMap] || statusMap.available;
+  };
+
+  const handleEdit = (vehicle: Vehicle) => {
+    // This will be handled by a separate edit dialog component
+    console.log('Edit vehicle:', vehicle.id);
+  };
+
+  const handleDelete = async (vehicle: Vehicle) => {
+    if (vehicle.status === 'rented') {
+      return; // Can't delete rented vehicles
+    }
+    
+    if (confirm(`هل أنت متأكد من حذف المركبة ${vehicle.plate_number}؟`)) {
+      await onDeleteVehicle(vehicle.id);
+    }
   };
 
   if (vehicles.length === 0) {
@@ -78,11 +87,11 @@ export default function VehicleTable({ vehicles, onUpdateVehicle, onDeleteVehicl
                     {vehicle.owner ? vehicle.owner.name : '-'}
                   </TableCell>
                   <TableCell>
-                    <VehicleActions
+                    <VehicleRowActions
                       vehicle={vehicle}
                       onView={() => setViewingVehicle(vehicle)}
-                      onEdit={() => setEditingVehicle(vehicle)}
-                      onDelete={() => setDeletingVehicle(vehicle)}
+                      onEdit={() => handleEdit(vehicle)}
+                      onDelete={() => handleDelete(vehicle)}
                     />
                   </TableCell>
                 </TableRow>
@@ -92,25 +101,7 @@ export default function VehicleTable({ vehicles, onUpdateVehicle, onDeleteVehicl
         </Table>
       </div>
 
-      {/* Dialogs */}
-      {editingVehicle && (
-        <EditVehicleDialog
-          vehicle={editingVehicle}
-          open={!!editingVehicle}
-          onOpenChange={(open) => !open && setEditingVehicle(null)}
-          onVehicleUpdated={onUpdateVehicle}
-        />
-      )}
-
-      {deletingVehicle && (
-        <DeleteVehicleDialog
-          vehicle={deletingVehicle}
-          open={!!deletingVehicle}
-          onOpenChange={(open) => !open && setDeletingVehicle(null)}
-          onVehicleDeleted={onDeleteVehicle}
-        />
-      )}
-
+      {/* View Dialog */}
       {viewingVehicle && (
         <EnhancedVehicleDetailsDialog
           vehicle={viewingVehicle}
