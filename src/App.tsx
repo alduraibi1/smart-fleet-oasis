@@ -20,7 +20,6 @@ import Suppliers from "./pages/Suppliers";
 import Accounting from "./pages/Accounting";
 import Reports from "./pages/Reports";
 import HR from "./pages/HR";
-import Settings from "./pages/Settings";
 import SystemCheck from "./pages/SystemCheck";
 
 const queryClient = new QueryClient();
@@ -47,8 +46,7 @@ const App = () => (
             <Route path="/suppliers" element={<Suppliers />} />
             <Route path="/accounting" element={<Accounting />} />
             <Route path="/reports" element={<Reports />} />
-            <Route path="/hr" element={<Hr />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/hr" element={<HR />} />
             <Route path="/system-check" element={<SystemCheck />} />
           </Routes>
         </SidebarProvider>

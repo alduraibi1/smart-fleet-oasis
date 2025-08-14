@@ -60,7 +60,6 @@ const managementItems = [
   { title: "المحاسبة", url: "/accounting", icon: DollarSign },
   { title: "التقارير", url: "/reports", icon: TrendingUp },
   { title: "الموارد البشرية", url: "/hr", icon: UserCheck },
-  { title: "الإعدادات", url: "/settings", icon: Settings },
 ];
 
 // System items
@@ -69,7 +68,7 @@ const systemItems = [
 ];
 
 export function AppSidebar() {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
   
@@ -82,13 +81,15 @@ export function AppSidebar() {
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
 
+  const isCollapsed = state === "collapsed";
+
   return (
     <>
       <SidebarTrigger className="fixed top-4 right-4 z-50 md:hidden" />
       
       <Sidebar
-        className={collapsed ? "w-14" : "w-60"}
-        collapsible
+        className={isCollapsed ? "w-14" : "w-60"}
+        collapsible="icon"
       >
         <SidebarContent>
           {/* Main Navigation */}
@@ -101,7 +102,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink to={item.url} end className={getNavCls}>
                         <item.icon className="ml-2 h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                        {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -120,7 +121,7 @@ export function AppSidebar() {
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton>
                         <FileText className="ml-2 h-4 w-4" />
-                        {!collapsed && (
+                        {!isCollapsed && (
                           <>
                             <span>إدارة العقود</span>
                             <ChevronDown className="mr-auto h-4 w-4 transition-transform duration-200" 
@@ -135,7 +136,7 @@ export function AppSidebar() {
                           <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton asChild>
                               <NavLink to={item.url} className={getNavCls}>
-                                {!collapsed && <span className="text-sm">{item.title}</span>}
+                                {!isCollapsed && <span className="text-sm">{item.title}</span>}
                               </NavLink>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
@@ -158,7 +159,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink to={item.url} className={getNavCls}>
                         <item.icon className="ml-2 h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                        {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -177,7 +178,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink to={item.url} className={getNavCls}>
                         <item.icon className="ml-2 h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                        {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -196,7 +197,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink to={item.url} className={getNavCls}>
                         <item.icon className="ml-2 h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                        {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
