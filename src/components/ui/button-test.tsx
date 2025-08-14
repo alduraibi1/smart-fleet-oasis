@@ -6,17 +6,16 @@ import {
   Edit, 
   Trash2, 
   Save, 
-  Cancel, 
+  X, 
   Search,
   Filter,
   Download,
   Upload,
-  Print,
+  Printer,
   Settings,
   User,
   Bell,
-  Menu,
-  X
+  Menu
 } from 'lucide-react';
 
 export const ButtonTest = () => {
@@ -49,7 +48,7 @@ export const ButtonTest = () => {
             حفظ
           </Button>
           <Button onClick={() => handleClick('إلغاء')} variant="outline">
-            <Cancel className="h-4 w-4 mr-2" />
+            <X className="h-4 w-4 mr-2" />
             إلغاء
           </Button>
         </div>
@@ -76,7 +75,7 @@ export const ButtonTest = () => {
             استيراد
           </Button>
           <Button onClick={() => handleClick('طباعة')} variant="outline">
-            <Print className="h-4 w-4 mr-2" />
+            <Printer className="h-4 w-4 mr-2" />
             طباعة
           </Button>
         </div>
