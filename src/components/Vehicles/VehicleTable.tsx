@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -6,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Edit, Eye, Trash2, FileText } from 'lucide-react';
 import { Vehicle } from '@/types/vehicles';
-import EditVehicleDialog from './EditVehicleDialog';
-import DeleteVehicleDialog from './DeleteVehicleDialog';
+import { EditVehicleDialog } from './EditVehicleDialog';
+import { DeleteVehicleDialog } from './DeleteVehicleDialog';
 import { EnhancedVehicleDetailsDialog } from './EnhancedVehicleDetailsDialog';
-import { VehicleActions } from './VehicleActions';
+import VehicleActions from './VehicleActions';
 
 interface VehicleTableProps {
   vehicles: Vehicle[];
