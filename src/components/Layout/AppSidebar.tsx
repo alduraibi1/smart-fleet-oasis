@@ -1,22 +1,11 @@
 
-import { useState } from "react";
+import { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
-  Home,
-  Car,
-  Users,
-  FileText,
-  Settings,
-  DollarSign,
-  Package,
-  Wrench,
-  TrendingUp,
-  UserCheck,
-  Building,
-  ChevronDown,
-  TestTube
-} from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
-
+  Car, Calendar, Settings, Users, Database, 
+  DollarSign, Home, BarChart3, TrendingUp, Building2, 
+  Wrench, Shield, Bell, UserCheck, ChevronDown
+} from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -26,187 +15,229 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarHeader,
+  SidebarFooter,
   useSidebar,
-} from "@/components/ui/sidebar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+} from '@/components/ui/sidebar';
+import { Badge } from '@/components/ui/badge';
+import { Logo } from '@/components/ui/logo';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
-// Main navigation items
-const mainItems = [
-  { title: "الرئيسية", url: "/", icon: Home },
-  { title: "المركبات", url: "/vehicles", icon: Car },
-  { title: "العملاء", url: "/customers", icon: Users },
-  { title: "الملاك", url: "/owners", icon: Building },
-];
+interface MenuItem {
+  title: string;
+  icon: any;
+  href: string;
+  badge?: {
+    count: number;
+    variant: 'default' | 'secondary' | 'destructive';
+  };
+}
 
-// Contracts submenu items
-const contractItems = [
-  { title: "العقود الرئيسية", url: "/contracts-main" },
-  { title: "العقود البسيطة", url: "/contracts-simple" },
-  { title: "العقود المحسنة", url: "/contracts-optimized" },
-  { title: "العقود الأساسية", url: "/contracts-essential" },
-  { title: "العقود (قديم)", url: "/contracts" },
-];
+interface MenuSection {
+  title: string;
+  icon: any;
+  items: MenuItem[];
+}
 
-// Operations items
-const operationItems = [
-  { title: "الصيانة", url: "/maintenance", icon: Wrench },
-  { title: "المخزون", url: "/inventory", icon: Package },
-  { title: "الموردين", url: "/suppliers", icon: Building },
-];
-
-// Management items
-const managementItems = [
-  { title: "المحاسبة", url: "/accounting", icon: DollarSign },
-  { title: "التقارير", url: "/reports", icon: TrendingUp },
-  { title: "الموارد البشرية", url: "/hr", icon: UserCheck },
-];
-
-// System items
-const systemItems = [
-  { title: "فحص النظام", url: "/system-check", icon: TestTube },
+const menuSections: MenuSection[] = [
+  {
+    title: 'الرئيسية',
+    icon: Home,
+    items: [
+      {
+        title: 'لوحة التحكم',
+        icon: BarChart3,
+        href: '/',
+      }
+    ]
+  },
+  {
+    title: 'إدارة الأسطول',
+    icon: Car,
+    items: [
+      {
+        title: 'إدارة المركبات',
+        icon: Car,
+        href: '/vehicles',
+        badge: { count: 12, variant: 'default' as const }
+      },
+      {
+        title: 'العقود والإيجار',
+        icon: Calendar,
+        href: '/contracts',
+        badge: { count: 5, variant: 'secondary' as const }
+      },
+      {
+        title: 'العملاء',
+        icon: Users,
+        href: '/customers',
+      },
+      {
+        title: 'إدارة الملاك',
+        icon: UserCheck,
+        href: '/owners',
+      }
+    ]
+  },
+  {
+    title: 'الصيانة والمخزون',
+    icon: Wrench,
+    items: [
+      {
+        title: 'الصيانة',
+        icon: Settings,
+        href: '/maintenance',
+        badge: { count: 3, variant: 'destructive' as const }
+      },
+      {
+        title: 'المخزون وقطع الغيار',
+        icon: Database,
+        href: '/inventory',
+        badge: { count: 8, variant: 'secondary' as const }
+      },
+      {
+        title: 'الموردين',
+        icon: Building2,
+        href: '/suppliers',
+      }
+    ]
+  },
+  {
+    title: 'المالية والإدارة',
+    icon: Building2,
+    items: [
+      {
+        title: 'النظام المحاسبي',
+        icon: DollarSign,
+        href: '/accounting',
+      },
+      {
+        title: 'التقارير المالية',
+        icon: TrendingUp,
+        href: '/reports',
+      },
+      {
+        title: 'الموارد البشرية',
+        icon: Users,
+        href: '/hr',
+      }
+    ]
+  },
+  {
+    title: 'إدارة النظام',
+    icon: Shield,
+    items: [
+      {
+        title: 'إدارة النظام والصلاحيات',
+        icon: Shield,
+        href: '/system-management',
+        badge: { count: 2, variant: 'secondary' as const }
+      },
+      {
+        title: 'إعدادات الإشعارات',
+        icon: Bell,
+        href: '/notification-settings',
+      }
+    ]
+  }
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
-  const currentPath = location.pathname;
-  
-  const [contractsOpen, setContractsOpen] = useState(
-    contractItems.some(item => currentPath === item.url)
-  );
+  const [openSections, setOpenSections] = useState<string[]>([
+    'الرئيسية', 'إدارة الأسطول', 'إدارة النظام'
+  ]);
 
-  // Helper functions
-  const isActive = (path: string) => currentPath === path;
-  const getNavCls = ({ isActive }: { isActive: boolean }) =>
-    isActive ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
+  const toggleSection = (sectionTitle: string) => {
+    setOpenSections(prev => 
+      prev.includes(sectionTitle)
+        ? prev.filter(s => s !== sectionTitle)
+        : [...prev, sectionTitle]
+    );
+  };
 
-  const isCollapsed = state === "collapsed";
+  const isActive = (path: string) => location.pathname === path;
+  const isSectionActive = (section: MenuSection) => 
+    section.items.some(item => isActive(item.href));
 
   return (
-    <>
-      <SidebarTrigger className="fixed top-4 right-4 z-50 md:hidden" />
-      
-      <Sidebar
-        className={isCollapsed ? "w-14" : "w-60"}
-        collapsible="icon"
-      >
-        <SidebarContent>
-          {/* Main Navigation */}
-          <SidebarGroup>
-            <SidebarGroupLabel>التنقل الرئيسي</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {mainItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} end className={getNavCls}>
-                        <item.icon className="ml-2 h-4 w-4" />
-                        {!isCollapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+    <Sidebar side="right" className="border-l">
+      <SidebarHeader className="border-b p-4">
+        <Logo size="lg" variant="glow" animated={true} />
+      </SidebarHeader>
 
-          {/* Contracts Section */}
-          <SidebarGroup>
-            <SidebarGroupLabel>العقود</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <Collapsible open={contractsOpen} onOpenChange={setContractsOpen}>
-                  <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton>
-                        <FileText className="ml-2 h-4 w-4" />
-                        {!isCollapsed && (
-                          <>
-                            <span>إدارة العقود</span>
-                            <ChevronDown className="mr-auto h-4 w-4 transition-transform duration-200" 
-                              style={{ transform: contractsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
-                          </>
-                        )}
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenu className="mr-4">
-                        {contractItems.map((item) => (
-                          <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton asChild>
-                              <NavLink to={item.url} className={getNavCls}>
-                                {!isCollapsed && <span className="text-sm">{item.title}</span>}
-                              </NavLink>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        ))}
-                      </SidebarMenu>
-                    </CollapsibleContent>
-                  </SidebarMenuItem>
-                </Collapsible>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+      <SidebarContent className="p-2">
+        {menuSections.map((section) => (
+          <SidebarGroup key={section.title}>
+            <Collapsible
+              open={openSections.includes(section.title)}
+              onOpenChange={() => toggleSection(section.title)}
+            >
+              <CollapsibleTrigger asChild>
+                <SidebarGroupLabel className="group/label w-full justify-between text-sm font-semibold hover:bg-accent rounded-md p-2 cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <section.icon className="h-4 w-4" />
+                    <span>{section.title}</span>
+                  </div>
+                  <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/label:rotate-180" />
+                </SidebarGroupLabel>
+              </CollapsibleTrigger>
 
-          {/* Operations */}
-          <SidebarGroup>
-            <SidebarGroupLabel>العمليات</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {operationItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="ml-2 h-4 w-4" />
-                        {!isCollapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {section.items.map((item) => (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive(item.href)}
+                          className="w-full justify-between"
+                        >
+                          <NavLink to={item.href} className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-2">
+                              <item.icon className="h-4 w-4" />
+                              <span>{item.title}</span>
+                            </div>
+                            {item.badge && (
+                              <Badge 
+                                variant={item.badge.variant}
+                                className="text-xs"
+                              >
+                                {item.badge.count}
+                              </Badge>
+                            )}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </Collapsible>
           </SidebarGroup>
+        ))}
+      </SidebarContent>
 
-          {/* Management */}
-          <SidebarGroup>
-            <SidebarGroupLabel>الإدارة</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {managementItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="ml-2 h-4 w-4" />
-                        {!isCollapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          {/* System */}
-          <SidebarGroup>
-            <SidebarGroupLabel>النظام</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {systemItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="ml-2 h-4 w-4" />
-                        {!isCollapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
-    </>
+      <SidebarFooter className="border-t p-4">
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors cursor-pointer">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-destructive flex items-center justify-center">
+              <Bell className="h-4 w-4 text-destructive-foreground" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">التنبيهات</span>
+              <span className="text-xs text-muted-foreground">5 تنبيهات جديدة</span>
+            </div>
+          </div>
+          <Badge variant="destructive" className="text-xs">
+            5
+          </Badge>
+        </div>
+      </SidebarFooter>
+    </Sidebar>
   );
 }
