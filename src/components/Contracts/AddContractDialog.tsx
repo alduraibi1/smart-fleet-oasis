@@ -26,7 +26,8 @@ import { useContracts } from '@/hooks/useContracts';
 import { 
   ValidationDisplay, 
   useContractValidation,
-  ContractValidationErrors 
+  ContractValidationErrors,
+  FieldRequirement
 } from './ContractValidation';
 import { EnhancedContractForm } from './EnhancedContractForm';
 
@@ -64,14 +65,14 @@ export default function AddContractDialog() {
     totalDays: 0,
     dailyRate: 0,
     subtotal: 0,
-    delegationFee: 200,
+    delegationFee: 0,
     additionalCharges: 0,
     discount: 0,
     insuranceType: 'none',
     insurancePercentage: 20,
     insuranceAmount: 0,
     calculatedInsuranceAmount: 0,
-    vatEnabled: true,
+    vatEnabled: false,
     vatRate: 15,
     vat: 0,
     totalAmount: 0,
@@ -104,7 +105,7 @@ export default function AddContractDialog() {
   };
 
   const handleSubmit = async () => {
-    // Prepare contract data for validation
+    // Prepare contract data for validation with only required fields
     const contractData = {
       customer_id: formData.customerId,
       vehicle_id: formData.vehicleId,
@@ -117,6 +118,12 @@ export default function AddContractDialog() {
       insurance_percentage: formData.insuranceType === 'percentage' ? formData.insurancePercentage : undefined,
       vat_enabled: formData.vatEnabled,
       vat_rate: formData.vatEnabled ? formData.vatRate : undefined,
+      additional_charges: formData.additionalCharges,
+      discount_amount: formData.discount,
+      delegation_fee: formData.delegationFee,
+      payment_method: formData.paymentMethod,
+      payment_status: formData.paymentStatus,
+      notes: formData.notes,
     };
 
     const validation = validateContract(contractData);
@@ -143,18 +150,26 @@ export default function AddContractDialog() {
         total_amount: formData.totalAmount,
         deposit_amount: formData.calculatedInsuranceAmount,
         insurance_amount: formData.calculatedInsuranceAmount,
-        additional_charges: formData.additionalCharges,
-        discount_amount: formData.discount,
+        additional_charges: formData.additionalCharges || 0,
+        discount_amount: formData.discount || 0,
         payment_method: formData.paymentMethod,
         payment_status: formData.paymentStatus,
-        notes: formData.notes,
+        notes: formData.notes || '',
       };
 
       await createContract(contractDataForSubmission);
       setOpen(false);
       resetForm();
+      toast({
+        title: "تم إنشاء العقد",
+        description: "تم إنشاء العقد بنجاح",
+      });
     } catch (error) {
-      // Error is already handled in the hook
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "حدث خطأ أثناء إنشاء العقد",
+      });
     }
   };
 
@@ -167,14 +182,14 @@ export default function AddContractDialog() {
       totalDays: 0,
       dailyRate: 0,
       subtotal: 0,
-      delegationFee: 200,
+      delegationFee: 0,
       additionalCharges: 0,
       discount: 0,
       insuranceType: 'none',
       insurancePercentage: 20,
       insuranceAmount: 0,
       calculatedInsuranceAmount: 0,
-      vatEnabled: true,
+      vatEnabled: false,
       vatRate: 15,
       vat: 0,
       totalAmount: 0,
@@ -200,7 +215,7 @@ export default function AddContractDialog() {
         <DialogHeader>
           <DialogTitle className="text-xl">إنشاء عقد إيجار جديد</DialogTitle>
           <DialogDescription>
-            املأ البيانات المطلوبة لإنشاء عقد إيجار. الحقول المميزة بـ (*) إلزامية.
+            املأ البيانات المطلوبة لإنشاء عقد إيجار. الحقول المميزة بـ (*) إلزامية، والباقي اختياري.
           </DialogDescription>
         </DialogHeader>
 
@@ -216,12 +231,15 @@ export default function AddContractDialog() {
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
                   اختيار العميل
-                  <span className="text-red-500 text-sm">*</span>
+                  <FieldRequirement required />
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="customer">العميل</Label>
+                  <Label htmlFor="customer" className="flex items-center gap-1">
+                    العميل
+                    <FieldRequirement required />
+                  </Label>
                   <Select value={formData.customerId} onValueChange={(value) => setFormData(prev => ({ ...prev, customerId: value }))}>
                     <SelectTrigger className="border-red-200 focus:border-red-500">
                       <SelectValue placeholder="اختر العميل" />
@@ -257,12 +275,15 @@ export default function AddContractDialog() {
                 <CardTitle className="flex items-center gap-2">
                   <Car className="h-5 w-5" />
                   اختيار المركبة
-                  <span className="text-red-500 text-sm">*</span>
+                  <FieldRequirement required />
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="vehicle">المركبة</Label>
+                  <Label htmlFor="vehicle" className="flex items-center gap-1">
+                    المركبة
+                    <FieldRequirement required />
+                  </Label>
                   <Select value={formData.vehicleId} onValueChange={handleVehicleSelect}>
                     <SelectTrigger className="border-red-200 focus:border-red-500">
                       <SelectValue placeholder="اختر المركبة المتاحة" />

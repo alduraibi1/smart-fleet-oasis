@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Calculator, AlertCircle } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Calculator, AlertCircle, Info } from 'lucide-react';
+import { FieldRequirement } from './ContractValidation';
 
 interface EnhancedContractFormProps {
   formData: any;
@@ -42,10 +44,10 @@ export const EnhancedContractForm = ({
       // Calculate VAT
       let vatAmount = 0;
       if (formData.vatEnabled && formData.vatRate) {
-        vatAmount = (subtotal + formData.additionalCharges + formData.delegationFee - formData.discount + insuranceAmount) * (formData.vatRate / 100);
+        vatAmount = (subtotal + (formData.additionalCharges || 0) + (formData.delegationFee || 0) - (formData.discount || 0) + insuranceAmount) * (formData.vatRate / 100);
       }
       
-      const totalAmount = subtotal + formData.additionalCharges + formData.delegationFee + insuranceAmount + vatAmount - formData.discount;
+      const totalAmount = subtotal + (formData.additionalCharges || 0) + (formData.delegationFee || 0) + insuranceAmount + vatAmount - (formData.discount || 0);
       
       setFormData(prev => ({
         ...prev,
@@ -82,14 +84,14 @@ export const EnhancedContractForm = ({
           <CardTitle className="flex items-center gap-2">
             <Calculator className="h-5 w-5" />
             المعلومات الأساسية
-            <Badge variant="destructive" className="text-xs">إلزامي</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="startDate" className="flex items-center gap-1">
-                تاريخ البداية <span className="text-red-500">*</span>
+                تاريخ البداية
+                <FieldRequirement required />
               </Label>
               <Input
                 id="startDate"
@@ -102,7 +104,8 @@ export const EnhancedContractForm = ({
 
             <div>
               <Label htmlFor="endDate" className="flex items-center gap-1">
-                تاريخ النهاية <span className="text-red-500">*</span>
+                تاريخ النهاية
+                <FieldRequirement required />
               </Label>
               <Input
                 id="endDate"
@@ -115,7 +118,8 @@ export const EnhancedContractForm = ({
 
             <div>
               <Label htmlFor="dailyRate" className="flex items-center gap-1">
-                السعر اليومي (ر.س) <span className="text-red-500">*</span>
+                السعر اليومي (ر.س)
+                <FieldRequirement required />
               </Label>
               <Input
                 id="dailyRate"
@@ -140,12 +144,67 @@ export const EnhancedContractForm = ({
         </CardContent>
       </Card>
 
+      {/* Additional Charges and Discounts */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            الرسوم الإضافية والخصومات
+            <FieldRequirement optional />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="delegationFee" className="flex items-center gap-1">
+                رسوم التفويض (ر.س)
+                <FieldRequirement optional />
+              </Label>
+              <Input
+                id="delegationFee"
+                type="number"
+                min="0"
+                value={formData.delegationFee || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, delegationFee: parseFloat(e.target.value) || 0 }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="additionalCharges" className="flex items-center gap-1">
+                رسوم إضافية (ر.س)
+                <FieldRequirement optional />
+              </Label>
+              <Input
+                id="additionalCharges"
+                type="number"
+                min="0"
+                value={formData.additionalCharges || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, additionalCharges: parseFloat(e.target.value) || 0 }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="discount" className="flex items-center gap-1">
+                خصم (ر.س)
+                <FieldRequirement optional />
+              </Label>
+              <Input
+                id="discount"
+                type="number"
+                min="0"
+                value={formData.discount || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Insurance Settings */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             إعدادات التأمين
-            <Badge variant="secondary" className="text-xs">اختياري</Badge>
+            <FieldRequirement optional />
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -208,7 +267,7 @@ export const EnhancedContractForm = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             إعدادات ضريبة القيمة المضافة
-            <Badge variant="secondary" className="text-xs">اختياري</Badge>
+            <FieldRequirement optional />
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -245,6 +304,77 @@ export const EnhancedContractForm = ({
         </CardContent>
       </Card>
 
+      {/* Payment Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            معلومات الدفع
+            <FieldRequirement recommended />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="paymentMethod">طريقة الدفع</Label>
+              <Select 
+                value={formData.paymentMethod || 'cash'} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">نقداً</SelectItem>
+                  <SelectItem value="card">بطاقة ائتمانية</SelectItem>
+                  <SelectItem value="bank_transfer">تحويل بنكي</SelectItem>
+                  <SelectItem value="cheque">شيك</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="paymentStatus">حالة الدفع</Label>
+              <Select 
+                value={formData.paymentStatus || 'pending'} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, paymentStatus: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">معلق</SelectItem>
+                  <SelectItem value="paid">مدفوع</SelectItem>
+                  <SelectItem value="partial">مدفوع جزئياً</SelectItem>
+                  <SelectItem value="overdue">متأخر</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Notes */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            ملاحظات
+            <FieldRequirement optional />
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div>
+            <Label htmlFor="notes">ملاحظات إضافية</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              placeholder="أدخل أي ملاحظات إضافية عن العقد..."
+              className="min-h-[100px]"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Financial Summary */}
       <Card>
         <CardHeader>
@@ -259,35 +389,35 @@ export const EnhancedContractForm = ({
               <span className="font-bold">{((formData.totalDays || 0) * (formData.dailyRate || 0)).toLocaleString()} ر.س</span>
             </div>
             
-            {formData.delegationFee > 0 && (
+            {(formData.delegationFee || 0) > 0 && (
               <div className="flex justify-between">
                 <span>رسوم التفويض:</span>
                 <span className="font-bold">{(formData.delegationFee || 0).toLocaleString()} ر.س</span>
               </div>
             )}
             
-            {formData.additionalCharges > 0 && (
+            {(formData.additionalCharges || 0) > 0 && (
               <div className="flex justify-between">
                 <span>رسوم إضافية:</span>
                 <span className="font-bold">{(formData.additionalCharges || 0).toLocaleString()} ر.س</span>
               </div>
             )}
             
-            {formData.discount > 0 && (
+            {(formData.discount || 0) > 0 && (
               <div className="flex justify-between">
                 <span>خصم:</span>
                 <span className="font-bold text-green-600">-{(formData.discount || 0).toLocaleString()} ر.س</span>
               </div>
             )}
             
-            {formData.insuranceType !== 'none' && formData.calculatedInsuranceAmount > 0 && (
+            {formData.insuranceType !== 'none' && (formData.calculatedInsuranceAmount || 0) > 0 && (
               <div className="flex justify-between">
                 <span>التأمين:</span>
                 <span className="font-bold">{(formData.calculatedInsuranceAmount || 0).toLocaleString()} ر.س</span>
               </div>
             )}
             
-            {formData.vatEnabled && formData.vat > 0 && (
+            {formData.vatEnabled && (formData.vat || 0) > 0 && (
               <div className="flex justify-between">
                 <span>ضريبة القيمة المضافة ({formData.vatRate || 15}%):</span>
                 <span className="font-bold">{(formData.vat || 0).toLocaleString()} ر.س</span>
