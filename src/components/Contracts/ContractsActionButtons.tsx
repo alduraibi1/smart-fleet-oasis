@@ -10,12 +10,10 @@ interface ContractsActionButtonsProps {
 
 export const ContractsActionButtons = ({ onRefresh }: ContractsActionButtonsProps) => {
   const handleExport = () => {
-    // Export functionality can be implemented here
     console.log('Exporting contracts...');
   };
 
   const handleImport = () => {
-    // Import functionality can be implemented here  
     console.log('Importing contracts...');
   };
 
