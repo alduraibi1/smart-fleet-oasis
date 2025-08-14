@@ -64,9 +64,9 @@ export function OwnerBalanceReport() {
     try {
       setLoading(true);
 
-      // جلب قائمة المالكين
+      // جلب قائمة المالكين من جدول vehicle_owners
       const { data: owners, error: ownersError } = await supabase
-        .from('owners')
+        .from('vehicle_owners')
         .select('id, name');
 
       if (ownersError) throw ownersError;
@@ -76,7 +76,7 @@ export function OwnerBalanceReport() {
       for (const owner of owners || []) {
         // استدعاء دالة حساب الرصيد
         const { data: balanceData, error: balanceError } = await supabase
-          .rpc('get_owner_balance', { owner_id: owner.id });
+          .rpc('get_owner_balance', { p_owner_id: owner.id });
 
         if (balanceError) {
           console.error('Error getting balance for owner:', owner.id, balanceError);
@@ -98,10 +98,10 @@ export function OwnerBalanceReport() {
         const { data: pendingVouchers, error: vouchersError } = await supabase
           .from('payment_vouchers')
           .select('amount')
-          .eq('owner_id', owner.id)
+          .eq('recipient_id', owner.id)
           .eq('status', 'pending');
 
-        const pendingAmount = pendingVouchers?.reduce((sum, voucher) => sum + voucher.amount, 0) || 0;
+        const pendingAmount = pendingVouchers?.reduce((sum, voucher) => sum + (voucher.amount || 0), 0) || 0;
 
         // جلب آخر معاملة
         const { data: lastTransaction, error: transactionError } = await supabase
@@ -286,7 +286,7 @@ export function OwnerBalanceReport() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-1">السندات المعلقة</p>
-                <p className="text-2xl font-bold text-foreground">{formatCurrency(totalBalanes.pending)}</p>
+                <p className="text-2xl font-bold text-foreground">{formatCurrency(totalBalances.pending)}</p>
               </div>
               <div className="w-12 h-12 bg-destructive/10 rounded-lg flex items-center justify-center">
                 <AlertCircle className="w-6 h-6 text-destructive" />
