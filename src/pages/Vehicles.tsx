@@ -1,11 +1,11 @@
 
 import { useState } from 'react';
 import { useVehicles } from '@/hooks/useVehicles';
-import { VehicleStats } from '@/components/Vehicles/VehicleStats';
-import { VehicleFilters } from '@/components/Vehicles/VehicleFilters';
-import { VehicleGrid } from '@/components/Vehicles/VehicleGrid';
-import { EnhancedVehicleGrid } from '@/components/Vehicles/EnhancedVehicleGrid';
-import { AddVehicleDialog } from '@/components/Vehicles/AddVehicleDialog';
+import VehicleStats from '@/components/Vehicles/VehicleStats';
+import VehicleFilters from '@/components/Vehicles/VehicleFilters';
+import VehicleGrid from '@/components/Vehicles/VehicleGrid';
+import EnhancedVehicleGrid from '@/components/Vehicles/EnhancedVehicleGrid';
+import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { Button } from '@/components/ui/button';
 import { Plus, Grid, List } from 'lucide-react';
 import { AppLayout } from '@/components/Layout/AppLayout';
@@ -13,7 +13,9 @@ import { AppLayout } from '@/components/Layout/AppLayout';
 const Vehicles = () => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'enhanced'>('enhanced');
-  const { vehicles, loading, stats, filters, setFilters, addVehicle, updateVehicle, deleteVehicle } = useVehicles();
+  const [filters, setFilters] = useState({});
+  
+  const { vehicles, loading, stats, fetchVehicles, addVehicle, updateVehicle, deleteVehicle } = useVehicles();
 
   return (
     <AppLayout>

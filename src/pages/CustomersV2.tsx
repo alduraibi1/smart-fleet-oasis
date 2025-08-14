@@ -34,13 +34,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Customer, CustomerFilters } from '@/types';
 
 // التخطيط العام
-import Sidebar from '@/components/Layout/Sidebar';
-import Header from '@/components/Layout/Header';
 import ProtectedRoute from '@/components/Auth/ProtectedRoute';
+import { AppLayout } from '@/components/Layout/AppLayout';
 
 export default function CustomersV2() {
   const { toast } = useToast();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // إدارة العملاء والبيانات
   const [filters, setFilters] = useState<CustomerFilters>({});
@@ -136,199 +134,146 @@ export default function CustomersV2() {
   if (error) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-background">
-          <div className="flex h-screen">
-            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-              <main className="flex-1 p-6">
-                <Card className="p-8 text-center">
-                  <CardContent>
-                    <h2 className="text-xl font-bold text-destructive mb-2">خطأ في تحميل البيانات</h2>
-                    <p className="text-muted-foreground mb-4">حدث خطأ أثناء تحميل قائمة العملاء</p>
-                    <button onClick={() => refetch()} className="px-4 py-2 bg-primary text-primary-foreground rounded">
-                      إعادة المحاولة
-                    </button>
-                  </CardContent>
-                </Card>
-              </main>
-            </div>
-          </div>
-        </div>
+        <AppLayout>
+          <Card className="p-8 text-center">
+            <CardContent>
+              <h2 className="text-xl font-bold text-destructive mb-2">خطأ في تحميل البيانات</h2>
+              <p className="text-muted-foreground mb-4">حدث خطأ أثناء تحميل قائمة العملاء</p>
+              <button onClick={() => refetch()} className="px-4 py-2 bg-primary text-primary-foreground rounded">
+                إعادة المحاولة
+              </button>
+            </CardContent>
+          </Card>
+        </AppLayout>
       </ProtectedRoute>
     );
   }
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-background">
-        <div className="flex h-screen">
-          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-            
-            <main className="flex-1 overflow-auto">
-              <div className="p-6 space-y-6">
-                {/* عنوان الصفحة */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-3xl font-bold">إدارة العملاء</h1>
-                    <p className="text-muted-foreground">
-                      إدارة شاملة لعملائك مع إحصائيات وتحليلات متقدمة
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="gap-2">
-                    <Users className="h-4 w-4" />
-                    {filteredCustomers.length} عميل
-                  </Badge>
-                </div>
-
-                <Separator />
-
-                {/* التبويبات الرئيسية */}
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="overview" className="gap-2">
-                      <Users className="h-4 w-4" />
-                      نظرة عامة
-                    </TabsTrigger>
-                    <TabsTrigger value="analytics" className="gap-2">
-                      <BarChart3 className="h-4 w-4" />
-                      التحليلات
-                    </TabsTrigger>
-                    <TabsTrigger value="table" className="gap-2">
-                      <Table className="h-4 w-4" />
-                      جدول العملاء
-                    </TabsTrigger>
-                    <TabsTrigger value="grid" className="gap-2">
-                      <Grid className="h-4 w-4" />
-                      عرض البطاقات
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {/* محتوى التبويبات */}
-                  <TabsContent value="overview" className="space-y-6">
-                    {/* الإجراءات السريعة */}
-                    <CustomerQuickActions
-                      onAddCustomer={() => handleOpenDialog('add')}
-                      onExport={handleExport}
-                      onImport={handleImport}
-                      onRefresh={handleRefresh}
-                      onAdvancedSearch={() => handleOpenDialog('advancedSearch')}
-                      onShowTemplates={() => handleOpenDialog('templates')}
-                      selectedCount={selectedCustomers.length}
-                      totalCount={filteredCustomers.length}
-                      loading={isLoading}
-                    />
-
-                    {/* البحث والفلترة */}
-                    <CustomerSearchAndFilter
-                      filters={filters}
-                      onFiltersChange={setFilters}
-                      onClearFilters={() => setFilters({})}
-                      totalResults={filteredCustomers.length}
-                    />
-
-                    {/* الإجراءات المجمعة */}
-                    {selectedCustomers.length > 0 && (
-                      <div className="p-4 bg-muted rounded-lg">
-                        <p className="text-sm">تم تحديد {selectedCustomers.length} عميل</p>
-                      </div>
-                    )}
-
-                    {/* جدول العملاء */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>قائمة العملاء</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <EnhancedCustomerTable
-                          customers={filteredCustomers}
-                          loading={isLoading}
-                          onEdit={(customer) => handleOpenDialog('details', customer)}
-                          onView={(customer) => handleOpenDialog('details', customer)}
-                          onBlacklist={(customer) => handleOpenDialog('blacklist', customer)}
-                          selectedCustomers={selectedCustomers}
-                          onSelectCustomer={handleSelectCustomer}
-                          onSelectAll={(checked) => handleSelectAll(checked, filteredCustomers.map(c => c.id))}
-                        />
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="analytics" className="space-y-6">
-                    <CustomerAnalytics customers={filteredCustomers} />
-                  </TabsContent>
-
-                  <TabsContent value="table" className="space-y-6">
-                    <CustomerSearchAndFilter
-                      filters={filters}
-                      onFiltersChange={setFilters}
-                      onClearFilters={() => setFilters({})}
-                      totalResults={filteredCustomers.length}
-                    />
-                    
-                    <EnhancedCustomerTable
-                      customers={filteredCustomers}
-                      loading={isLoading}
-                      onEdit={(customer) => handleOpenDialog('details', customer)}
-                      onView={(customer) => handleOpenDialog('details', customer)}
-                      onBlacklist={(customer) => handleOpenDialog('blacklist', customer)}
-                      selectedCustomers={selectedCustomers}
-                      onSelectCustomer={handleSelectCustomer}
-                      onSelectAll={(checked) => handleSelectAll(checked, filteredCustomers.map(c => c.id))}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="grid" className="space-y-6">
-                    <div className="text-center py-12">
-                      <Grid className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-medium">عرض البطاقات</h3>
-                      <p className="text-muted-foreground">قريباً - سيتم إضافة عرض البطاقات</p>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </main>
+      <AppLayout>
+        <div className="p-6 space-y-6">
+          {/* عنوان الصفحة */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">إدارة العملاء</h1>
+              <p className="text-muted-foreground">
+                إدارة شاملة لعملائك مع إحصائيات وتحليلات متقدمة
+              </p>
+            </div>
+            <Badge variant="secondary" className="gap-2">
+              <Users className="h-4 w-4" />
+              {customers.length} عميل
+            </Badge>
           </div>
+
+          <Separator />
+
+          {/* التبويبات الرئيسية */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="overview" className="gap-2">
+                <Users className="h-4 w-4" />
+                نظرة عامة
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                التحليلات
+              </TabsTrigger>
+              <TabsTrigger value="table" className="gap-2">
+                <Table className="h-4 w-4" />
+                جدول العملاء
+              </TabsTrigger>
+              <TabsTrigger value="grid" className="gap-2">
+                <Grid className="h-4 w-4" />
+                عرض البطاقات
+              </TabsTrigger>
+            </TabsList>
+
+            {/* محتوى التبويبات */}
+            <TabsContent value="overview" className="space-y-6">
+              {/* الإجراءات السريعة */}
+              <CustomerQuickActions
+                onAddCustomer={() => handleOpenDialog('add')}
+                onExport={handleExport}
+                onImport={handleImport}
+                onRefresh={handleRefresh}
+                onAdvancedSearch={() => handleOpenDialog('advancedSearch')}
+                onShowTemplates={() => handleOpenDialog('templates')}
+                selectedCount={selectedCustomers.length}
+                totalCount={filteredCustomers.length}
+                loading={isLoading}
+              />
+
+              {/* البحث والفلترة */}
+              <CustomerSearchAndFilter
+                filters={filters}
+                onFiltersChange={setFilters}
+                onClearFilters={() => setFilters({})}
+                totalResults={filteredCustomers.length}
+              />
+
+              {/* الإجراءات المجمعة */}
+              {selectedCustomers.length > 0 && (
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm">تم تحديد {selectedCustomers.length} عميل</p>
+                </div>
+              )}
+
+              {/* جدول العملاء */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>قائمة العملاء</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <EnhancedCustomerTable
+                    customers={filteredCustomers}
+                    loading={isLoading}
+                    onEdit={(customer) => handleOpenDialog('details', customer)}
+                    onView={(customer) => handleOpenDialog('details', customer)}
+                    onBlacklist={(customer) => handleOpenDialog('blacklist', customer)}
+                    selectedCustomers={selectedCustomers}
+                    onSelectCustomer={handleSelectCustomer}
+                    onSelectAll={(checked) => handleSelectAll(checked, filteredCustomers.map(c => c.id))}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="analytics" className="space-y-6">
+              <CustomerAnalytics customers={filteredCustomers} />
+            </TabsContent>
+
+            <TabsContent value="table" className="space-y-6">
+              <CustomerSearchAndFilter
+                filters={filters}
+                onFiltersChange={setFilters}
+                onClearFilters={() => setFilters({})}
+                totalResults={filteredCustomers.length}
+              />
+              
+              <EnhancedCustomerTable
+                customers={filteredCustomers}
+                loading={isLoading}
+                onEdit={(customer) => handleOpenDialog('details', customer)}
+                onView={(customer) => handleOpenDialog('details', customer)}
+                onBlacklist={(customer) => handleOpenDialog('blacklist', customer)}
+                selectedCustomers={selectedCustomers}
+                onSelectCustomer={handleSelectCustomer}
+                onSelectAll={(checked) => handleSelectAll(checked, filteredCustomers.map(c => c.id))}
+              />
+            </TabsContent>
+
+            <TabsContent value="grid" className="space-y-6">
+              <div className="text-center py-12">
+                <Grid className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium">عرض البطاقات</h3>
+                <p className="text-muted-foreground">قريباً - سيتم إضافة عرض البطاقات</p>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
-
-        {/* النوافذ المنبثقة */}
-        <AddCustomerDialog
-          open={dialogs.add}
-          onOpenChange={(open) => handleCloseDialog('add')}
-        />
-
-        <CustomerDetailsDialog
-          customer={selectedCustomer}
-          open={dialogs.details}
-          onOpenChange={(open) => handleCloseDialog('details')}
-          onEdit={() => {}}
-        />
-
-        <div style={{ display: 'none' }}>
-          <BlacklistDialog
-            customer={selectedCustomer}
-            open={dialogs.blacklist}
-            onOpenChange={(open) => handleCloseDialog('blacklist')}
-            onBlacklist={async () => {}}
-            onRemoveFromBlacklist={async () => {}}
-          />
-
-          <AdvancedSearchDialog
-            open={dialogs.advancedSearch}
-            onOpenChange={(open) => handleCloseDialog('advancedSearch')}
-            filters={filters}
-            onFiltersChange={setFilters}
-            customers={customers}
-          />
-
-          <CustomerChangeHistory
-            customerId={selectedCustomer?.id}
-            customers={customers}
-          />
-        </div>
-      </div>
+      </AppLayout>
     </ProtectedRoute>
   );
 }

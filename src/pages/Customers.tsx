@@ -24,12 +24,10 @@ import { useCustomerSelection } from "@/hooks/useCustomerSelection";
 import { useRealtimeCustomers } from "@/hooks/useRealtimeCustomers";
 import { useSmartNotifications } from "@/hooks/useSmartNotifications";
 import { useToast } from "@/hooks/use-toast";
-import Sidebar from '@/components/Layout/Sidebar';
-import Header from '@/components/Layout/Header';
 import ProtectedRoute from '@/components/Auth/ProtectedRoute';
+import { AppLayout } from '@/components/Layout/AppLayout';
 
 export default function Customers() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { toast } = useToast();
   
   // استخدام الـ hooks المخصصة الجديدة
@@ -185,236 +183,223 @@ export default function Customers() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-6 animate-fade-in">
-        <Card>
-          <CardContent className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <p className="text-destructive mb-4">حدث خطأ في تحميل بيانات العملاء</p>
-              <Button onClick={() => refetch()}>إعادة المحاولة</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <ProtectedRoute>
+        <AppLayout>
+          <Card>
+            <CardContent className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <p className="text-destructive mb-4">حدث خطأ في تحميل بيانات العملاء</p>
+                <Button onClick={() => refetch()}>إعادة المحاولة</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </AppLayout>
+      </ProtectedRoute>
     );
   }
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-background page-enter">
-        <div className="flex h-screen">
-          {/* Sidebar */}
-          <Sidebar 
-            isOpen={sidebarOpen} 
-            onClose={() => setSidebarOpen(false)} 
-          />
-          
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col overflow-hidden lg:mr-72">
-            <Header onMenuClick={() => setSidebarOpen(true)} />
-            
-            <main className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-              <ErrorBoundary>
-                <div className="container mx-auto space-y-6 animate-fade-in">
-                  {/* Header */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h1 className="text-3xl font-bold tracking-tight">إدارة العملاء</h1>
-                      <p className="text-muted-foreground">
-                        إدارة وتتبع بيانات العملاء والمستأجرين
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      {/* إشعار للإشعارات الجديدة */}
-                      {notifications && notifications.length > 0 && (
-                        <Badge variant="secondary" className="animate-pulse">
-                          {notifications.length} إشعار جديد
-                        </Badge>
-                      )}
-                      
-                      <Button onClick={() => setIsTemplatesOpen(true)} variant="outline">
-                        القوالب
-                      </Button>
-                      <Button onClick={() => setIsAdvancedSearchOpen(true)} variant="outline">
-                        البحث المتقدم
-                      </Button>
-                      <Button onClick={() => setIsHistoryOpen(true)} variant="outline">
-                        سجل التغييرات
-                      </Button>
-                      <Button onClick={handleAdd} className="gap-2">
-                        <Plus className="h-4 w-4" />
-                        إضافة عميل
-                      </Button>
-                    </div>
-                  </div>
+      <AppLayout>
+        <ErrorBoundary>
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">إدارة العملاء</h1>
+                <p className="text-muted-foreground">
+                  إدارة وتتبع بيانات العملاء والمستأجرين
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                {/* إشعار للإشعارات الجديدة */}
+                {notifications && notifications.length > 0 && (
+                  <Badge variant="secondary" className="animate-pulse">
+                    {notifications.length} إشعار جديد
+                  </Badge>
+                )}
+                
+                <Button onClick={() => setIsTemplatesOpen(true)} variant="outline">
+                  القوالب
+                </Button>
+                <Button onClick={() => setIsAdvancedSearchOpen(true)} variant="outline">
+                  البحث المتقدم
+                </Button>
+                <Button onClick={() => setIsHistoryOpen(true)} variant="outline">
+                  سجل التغييرات
+                </Button>
+                <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  إضافة عميل
+                </Button>
+              </div>
+            </div>
 
-                  {/* Statistics */}
-                  <EnhancedCustomerStats stats={stats} />
+            {/* Statistics */}
+            <EnhancedCustomerStats stats={stats} />
 
-                  {/* Filters */}
-                  <EnhancedCustomerFilters
-                    filters={filters}
-                    onFiltersChange={setFilters}
-                    onExport={handleExport}
-                    onRefresh={handleRefresh}
-                    totalCount={customers.length}
-                    filteredCount={filteredCustomers.length}
-                  />
+            {/* Filters */}
+            <EnhancedCustomerFilters
+              filters={filters}
+              onFiltersChange={setFilters}
+              onExport={handleExport}
+              onRefresh={handleRefresh}
+              totalCount={customers.length}
+              filteredCount={filteredCustomers.length}
+            />
 
-                   {/* Bulk Actions */}
-                  <CustomerBulkActions
-                    selectedCustomers={selectedCustomers}
-                    customers={customers}
-                    onClearSelection={clearSelection}
-                    onBulkBlacklist={async (customerIds, reason) => {
-                      try {
-                        await Promise.all(
-                          customerIds.map(id => blacklistCustomer.mutateAsync({ id, reason }))
-                        );
-                        clearSelection();
-                      } catch (error) {
-                        console.error('Error in bulk blacklist:', error);
-                      }
-                    }}
-                    onBulkRemoveBlacklist={async (customerIds) => {
-                      try {
-                        await Promise.all(
-                          customerIds.map(id => removeFromBlacklist.mutateAsync(id))
-                        );
-                        clearSelection();
-                      } catch (error) {
-                        console.error('Error in bulk remove blacklist:', error);
-                      }
-                    }}
-                    onBulkDelete={async (customerIds) => {
-                      try {
-                        await Promise.all(
-                          customerIds.map(id => deleteCustomer.mutateAsync(id))
-                        );
-                        clearSelection();
-                      } catch (error) {
-                        console.error('Error in bulk delete:', error);
-                      }
-                    }}
-                    onBulkExport={(customerIds) => {
-                      toast({
-                        title: "تم التصدير",
-                        description: `تم تصدير ${customerIds.length} عميل`,
-                      });
-                    }}
-                    onBulkEmail={(customerIds) => {
-                      toast({
-                        title: "تم إرسال البريد الإلكتروني",
-                        description: `تم إرسال بريد إلكتروني لـ ${customerIds.length} عميل`,
-                      });
-                    }}
-                    onBulkSMS={(customerIds) => {
-                      toast({
-                        title: "تم إرسال الرسائل النصية",
-                        description: `تم إرسال رسائل نصية لـ ${customerIds.length} عميل`,
-                      });
-                    }}
-                  />
+            {/* Bulk Actions */}
+            <CustomerBulkActions
+              selectedCustomers={selectedCustomers}
+              customers={customers}
+              onClearSelection={clearSelection}
+              onBulkBlacklist={async (customerIds, reason) => {
+                try {
+                  await Promise.all(
+                    customerIds.map(id => blacklistCustomer.mutateAsync({ id, reason }))
+                  );
+                  clearSelection();
+                } catch (error) {
+                  console.error('Error in bulk blacklist:', error);
+                }
+              }}
+              onBulkRemoveBlacklist={async (customerIds) => {
+                try {
+                  await Promise.all(
+                    customerIds.map(id => removeFromBlacklist.mutateAsync(id))
+                  );
+                  clearSelection();
+                } catch (error) {
+                  console.error('Error in bulk remove blacklist:', error);
+                }
+              }}
+              onBulkDelete={async (customerIds) => {
+                try {
+                  await Promise.all(
+                    customerIds.map(id => deleteCustomer.mutateAsync(id))
+                  );
+                  clearSelection();
+                } catch (error) {
+                  console.error('Error in bulk delete:', error);
+                }
+              }}
+              onBulkExport={(customerIds) => {
+                toast({
+                  title: "تم التصدير",
+                  description: `تم تصدير ${customerIds.length} عميل`,
+                });
+              }}
+              onBulkEmail={(customerIds) => {
+                toast({
+                  title: "تم إرسال البريد الإلكتروني",
+                  description: `تم إرسال بريد إلكتروني لـ ${customerIds.length} عميل`,
+                });
+              }}
+              onBulkSMS={(customerIds) => {
+                toast({
+                  title: "تم إرسال الرسائل النصية",
+                  description: `تم إرسال رسائل نصية لـ ${customerIds.length} عميل`,
+                });
+              }}
+            />
 
-                  {/* Content */}
-                  <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'table' | 'grid')}>
-                    <div className="flex items-center justify-between">
-                      <TabsList>
-                        <TabsTrigger value="table" className="gap-2">
-                          <List className="h-4 w-4" />
-                          جدول
-                        </TabsTrigger>
-                        <TabsTrigger value="grid" className="gap-2">
-                          <Grid className="h-4 w-4" />
-                          شبكة
-                        </TabsTrigger>
-                      </TabsList>
-                      
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        <span className="text-sm text-muted-foreground">
-                          {filteredCustomers.length} من {customers.length} عميل
-                        </span>
-                      </div>
-                    </div>
-
-                    <TabsContent value="table" className="space-y-4">
-                      <EnhancedCustomerTable
-                        customers={filteredCustomers}
-                        loading={isLoading}
-                        onEdit={handleEdit}
-                        onView={handleView}
-                        onBlacklist={handleBlacklist}
-                        selectedCustomers={selectedCustomers}
-                        onSelectCustomer={handleCustomerSelect}
-                        onSelectAll={handleSelectAllCustomers}
-                      />
-                    </TabsContent>
-
-                    <TabsContent value="grid" className="space-y-4">
-                      <VehicleGrid vehicles={[]} />
-                    </TabsContent>
-                  </Tabs>
-
-                  {/* Dialogs */}
-                  <AddCustomerDialog
-                    open={isAddDialogOpen}
-                    onOpenChange={setIsAddDialogOpen}
-                  />
-
-                  <CustomerDetailsDialog
-                    customer={selectedCustomer}
-                    open={isDetailsDialogOpen}
-                    onOpenChange={setIsDetailsDialogOpen}
-                    onEdit={handleEdit}
-                  />
-
-                  <BlacklistDialog
-                    customer={selectedCustomer}
-                    open={isBlacklistDialogOpen}
-                    onOpenChange={setIsBlacklistDialogOpen}
-                    onBlacklist={async (customerId, reason) => {
-                      try {
-                        await blacklistCustomer.mutateAsync({ id: customerId, reason });
-                        setIsBlacklistDialogOpen(false);
-                      } catch (error) {
-                        console.error('Error blacklisting customer:', error);
-                      }
-                    }}
-                    onRemoveFromBlacklist={async (customerId) => {
-                      try {
-                        await removeFromBlacklist.mutateAsync(customerId);
-                        setIsBlacklistDialogOpen(false);
-                      } catch (error) {
-                        console.error('Error removing from blacklist:', error);
-                      }
-                    }}
-                  />
-
-                  <AdvancedSearchDialog
-                    open={isAdvancedSearchOpen}
-                    onOpenChange={setIsAdvancedSearchOpen}
-                    filters={filters}
-                    onFiltersChange={setFilters}
-                    customers={customers}
-                  />
-
-                  <CustomerTemplates
-                    onApplyTemplate={(template) => {
-                      // سيتم إضافة المنطق لاحقاً
-                      setIsTemplatesOpen(false);
-                    }}
-                  />
-
-                  <CustomerChangeHistory
-                    customerId={selectedCustomer?.id}
-                    customers={customers}
-                  />
+            {/* Content */}
+            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'table' | 'grid')}>
+              <div className="flex items-center justify-between">
+                <TabsList>
+                  <TabsTrigger value="table" className="gap-2">
+                    <List className="h-4 w-4" />
+                    جدول
+                  </TabsTrigger>
+                  <TabsTrigger value="grid" className="gap-2">
+                    <Grid className="h-4 w-4" />
+                    شبكة
+                  </TabsTrigger>
+                </TabsList>
+                
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  <span className="text-sm text-muted-foreground">
+                    {filteredCustomers.length} من {customers.length} عميل
+                  </span>
                 </div>
-              </ErrorBoundary>
-            </main>
+              </div>
+
+              <TabsContent value="table" className="space-y-4">
+                <EnhancedCustomerTable
+                  customers={filteredCustomers}
+                  loading={isLoading}
+                  onEdit={handleEdit}
+                  onView={handleView}
+                  onBlacklist={handleBlacklist}
+                  selectedCustomers={selectedCustomers}
+                  onSelectCustomer={handleCustomerSelect}
+                  onSelectAll={handleSelectAllCustomers}
+                />
+              </TabsContent>
+
+              <TabsContent value="grid" className="space-y-4">
+                <VehicleGrid vehicles={[]} />
+              </TabsContent>
+            </Tabs>
+
+            {/* Dialogs */}
+            <AddCustomerDialog
+              open={isAddDialogOpen}
+              onOpenChange={setIsAddDialogOpen}
+            />
+
+            <CustomerDetailsDialog
+              customer={selectedCustomer}
+              open={isDetailsDialogOpen}
+              onOpenChange={setIsDetailsDialogOpen}
+              onEdit={handleEdit}
+            />
+
+            <BlacklistDialog
+              customer={selectedCustomer}
+              open={isBlacklistDialogOpen}
+              onOpenChange={setIsBlacklistDialogOpen}
+              onBlacklist={async (customerId, reason) => {
+                try {
+                  await blacklistCustomer.mutateAsync({ id: customerId, reason });
+                  setIsBlacklistDialogOpen(false);
+                } catch (error) {
+                  console.error('Error blacklisting customer:', error);
+                }
+              }}
+              onRemoveFromBlacklist={async (customerId) => {
+                try {
+                  await removeFromBlacklist.mutateAsync(customerId);
+                  setIsBlacklistDialogOpen(false);
+                } catch (error) {
+                  console.error('Error removing from blacklist:', error);
+                }
+              }}
+            />
+
+            <AdvancedSearchDialog
+              open={isAdvancedSearchOpen}
+              onOpenChange={setIsAdvancedSearchOpen}
+              filters={filters}
+              onFiltersChange={setFilters}
+              customers={customers}
+            />
+
+            <CustomerTemplates
+              onApplyTemplate={(template) => {
+                // سيتم إضافة المنطق لاحقاً
+                setIsTemplatesOpen(false);
+              }}
+            />
+
+            <CustomerChangeHistory
+              customerId={selectedCustomer?.id}
+              customers={customers}
+            />
           </div>
-        </div>
-      </div>
+        </ErrorBoundary>
+      </AppLayout>
     </ProtectedRoute>
   );
 }
