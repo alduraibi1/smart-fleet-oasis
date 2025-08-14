@@ -22,6 +22,7 @@ import NotificationSettings from "./pages/NotificationSettings";
 import Owners from "./pages/Owners";
 import Suppliers from "./pages/Suppliers";
 import NotFound from "./pages/NotFound";
+import ButtonTestPage from "./pages/ButtonTest";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/notification-settings" element={<NotificationSettings />} />
               <Route path="/owners" element={<Owners />} />
               <Route path="/suppliers" element={<Suppliers />} />
+              <Route path="/button-test" element={<ButtonTestPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

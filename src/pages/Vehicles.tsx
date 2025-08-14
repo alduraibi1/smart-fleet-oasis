@@ -40,6 +40,14 @@ const Vehicles = () => {
           </div>
           
           <div className="flex items-center gap-3">
+            {/* Add Vehicle Button */}
+            <AddVehicleDialog onVehicleAdded={handleVehicleAdded}>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                إضافة مركبة
+              </Button>
+            </AddVehicleDialog>
+
             {/* View Mode Toggle */}
             <div className="flex items-center border rounded-lg p-1">
               <Button
@@ -70,7 +78,6 @@ const Vehicles = () => {
           filters={filters} 
           onFiltersChange={handleFiltersChange}
           brands={getBrands()}
-          loading={loading}
         />
 
         {/* Vehicles Display */}
@@ -85,11 +92,6 @@ const Vehicles = () => {
             vehicles={vehicles}
           />
         )}
-
-        {/* Add Vehicle Dialog */}
-        <AddVehicleDialog
-          onVehicleAdded={handleVehicleAdded}
-        />
       </div>
     </AppLayout>
   );
