@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Vehicles from "./pages/Vehicles";
 import Contracts from "./pages/Contracts";
+import ContractsOptimized from "./pages/ContractsOptimized";
 import Customers from "./pages/Customers";
 import CustomersV2 from "./pages/CustomersV2";
 import Accounting from "./pages/Accounting";
@@ -21,6 +22,7 @@ import SystemManagement from "./pages/SystemManagement";
 import NotificationSettings from "./pages/NotificationSettings";
 import Owners from "./pages/Owners";
 import Suppliers from "./pages/Suppliers";
+import SystemCheck from "./pages/SystemCheck";
 import NotFound from "./pages/NotFound";
 import ButtonTestPage from "./pages/ButtonTest";
 
@@ -39,6 +41,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/vehicles" element={<Vehicles />} />
               <Route path="/contracts" element={<Contracts />} />
+              <Route path="/contracts-optimized" element={<ContractsOptimized />} />
               <Route path="/customers" element={<CustomersV2 />} />
               <Route path="/customers-old" element={<Customers />} />
               <Route path="/maintenance" element={<Maintenance />} />
@@ -50,6 +53,7 @@ const App = () => (
               <Route path="/notification-settings" element={<NotificationSettings />} />
               <Route path="/owners" element={<Owners />} />
               <Route path="/suppliers" element={<Suppliers />} />
+              <Route path="/system-check" element={<SystemCheck />} />
               <Route path="/button-test" element={<ButtonTestPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

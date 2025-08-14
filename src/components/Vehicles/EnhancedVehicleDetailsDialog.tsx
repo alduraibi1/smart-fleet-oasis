@@ -1,9 +1,10 @@
+
 import { useState } from 'react';
 import { Car, CheckCircle, XCircle, AlertTriangle, Clock, Wrench } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Vehicle } from '@/types/vehicle';
+import { Vehicle } from '@/types/vehicles';
 import OverviewTab from './tabs/OverviewTab';
 import DetailsTab from './tabs/DetailsTab';
 import OwnerTab from './tabs/OwnerTab';
@@ -91,7 +92,7 @@ export default function EnhancedVehicleDetailsDialog({ vehicle, trigger }: Enhan
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Car className="h-5 w-5" />
-            تفاصيل المركبة الشاملة - {vehicle.plateNumber}
+            تفاصيل المركبة الشاملة - {vehicle.plate_number}
           </DialogTitle>
         </DialogHeader>
 

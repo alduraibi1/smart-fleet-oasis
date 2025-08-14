@@ -15,9 +15,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarHeader,
   SidebarFooter,
   useSidebar,
@@ -149,7 +146,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const [openSections, setOpenSections] = useState<string[]>([
-    'الرئيسية', 'إدارة الأسطول', 'إدارة النظام'
+    'الرئيسية', 'إدارة الأسطول', 'الصيانة والمخزون', 'المالية والإدارة', 'إدارة النظام'
   ]);
 
   const toggleSection = (sectionTitle: string) => {
@@ -161,8 +158,6 @@ export function AppSidebar() {
   };
 
   const isActive = (path: string) => location.pathname === path;
-  const isSectionActive = (section: MenuSection) => 
-    section.items.some(item => isActive(item.href));
 
   return (
     <Sidebar side="right" className="border-l">
