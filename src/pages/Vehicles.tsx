@@ -2,10 +2,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useVehicles, VehicleFilters } from "@/hooks/useVehicles";
+import { useVehicles } from "@/hooks/useVehicles";
+import type { VehicleFilters } from "@/hooks/useVehicles";
 import AddVehicleDialog from "@/components/Vehicles/AddVehicleDialog";
 import VehicleStats from "@/components/Vehicles/VehicleStats";
-import VehicleFilters from "@/components/Vehicles/VehicleFilters";
+import VehicleFiltersComponent from "@/components/Vehicles/VehicleFilters";
 import EnhancedVehicleGrid from "@/components/Vehicles/EnhancedVehicleGrid";
 import VehicleTable from "@/components/Vehicles/VehicleTable";
 import { AppLayout } from "@/components/Layout/AppLayout";
@@ -57,8 +58,8 @@ const Vehicles = () => {
           </Button>
         </div>
 
-        <VehicleStats stats={stats} loading={loading} />
-        <VehicleFilters 
+        <VehicleStats stats={stats} />
+        <VehicleFiltersComponent 
           filters={filters}
           onFiltersChange={handleFiltersChange}
           brands={getBrands()}
