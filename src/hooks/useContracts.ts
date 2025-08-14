@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -558,7 +559,6 @@ export const useContracts = () => {
       } as Contract;
 
       setContracts(prev => [newContractData, ...prev]);
-      calculateStats([newContractData, ...contracts]);
 
       toast({
         title: 'تم تجديد العقد بنجاح',

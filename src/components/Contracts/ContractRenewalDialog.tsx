@@ -19,10 +19,12 @@ interface ContractRenewalDialogProps {
     id: string;
     contract_number: string;
     customer?: {
+      id?: string;
       name: string;
       phone: string;
     };
     vehicle?: {
+      id?: string;
       brand: string;
       model: string;
       plate_number: string;

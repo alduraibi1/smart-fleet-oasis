@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   CheckCircle, 
@@ -60,11 +61,15 @@ interface ContractStatusManagerProps {
     status: string;
     start_date: string;
     end_date: string;
+    daily_rate: number;
+    total_amount: number;
     customer?: {
+      id?: string;
       name: string;
       phone: string;
     };
     vehicle?: {
+      id?: string;
       brand: string;
       model: string;
       plate_number: string;
