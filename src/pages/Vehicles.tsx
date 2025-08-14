@@ -12,7 +12,6 @@ import { AppLayout } from '@/components/Layout/AppLayout';
 import { VehicleFilters as VehicleFiltersType } from '@/types/vehicles';
 
 const Vehicles = () => {
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'enhanced'>('enhanced');
   const [filters, setFilters] = useState<VehicleFiltersType>({});
   
@@ -21,6 +20,11 @@ const Vehicles = () => {
   const handleFiltersChange = (newFilters: VehicleFiltersType) => {
     setFilters(newFilters);
     fetchVehicles(newFilters);
+  };
+
+  const handleVehicleAdded = async (vehicleData: any) => {
+    await addVehicle(vehicleData);
+    fetchVehicles(filters); // Refresh the list
   };
 
   return (
@@ -55,11 +59,6 @@ const Vehicles = () => {
                 <List className="h-4 w-4" />
               </Button>
             </div>
-            
-            <Button onClick={() => setAddDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              إضافة مركبة
-            </Button>
           </div>
         </div>
 
@@ -89,9 +88,7 @@ const Vehicles = () => {
 
         {/* Add Vehicle Dialog */}
         <AddVehicleDialog
-          isOpen={addDialogOpen}
-          onClose={() => setAddDialogOpen(false)}
-          onSubmit={addVehicle}
+          onVehicleAdded={handleVehicleAdded}
         />
       </div>
     </AppLayout>
