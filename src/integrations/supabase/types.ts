@@ -2931,6 +2931,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_notification_preferences: {
+        Row: {
+          advance_days: number | null
+          created_at: string
+          email_enabled: boolean
+          enabled: boolean
+          id: string
+          notification_type: string
+          push_enabled: boolean
+          sms_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          advance_days?: number | null
+          created_at?: string
+          email_enabled?: boolean
+          enabled?: boolean
+          id?: string
+          notification_type: string
+          push_enabled?: boolean
+          sms_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          advance_days?: number | null
+          created_at?: string
+          email_enabled?: boolean
+          enabled?: boolean
+          id?: string
+          notification_type?: string
+          push_enabled?: boolean
+          sms_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_at: string
