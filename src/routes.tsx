@@ -5,6 +5,7 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import ProtectedRoute from "@/components/Auth/ProtectedRoute";
 import { Loader2 } from "lucide-react";
 import { protectedRoutes } from "@/config/rbac";
+import { UserRole } from "@/config/rbac";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -29,7 +30,7 @@ export function AppRoutes() {
               path={path}
               element={
                 <ProtectedRoute 
-                  requiredRole={requiredRole} 
+                  requiredRole={requiredRole as UserRole} 
                   requiredPermission={requiredPermission}
                 >
                   <Element />

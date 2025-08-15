@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,7 @@ import {
   Bell
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { hasPermission, hasRole } from "@/config/rbac";
+import { hasPermission, hasRole, UserRole } from "@/config/rbac";
 
 const sidebarItems = [
   {
