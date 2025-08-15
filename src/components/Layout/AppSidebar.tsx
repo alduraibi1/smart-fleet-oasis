@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
@@ -133,7 +132,7 @@ const menuSections: MenuSection[] = [
       {
         title: 'إدارة النظام والصلاحيات',
         icon: Shield,
-        href: '/system-management',
+        href: '/system',
         badge: { count: 2, variant: 'secondary' as const }
       },
       {
