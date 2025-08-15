@@ -37,6 +37,7 @@ export const VehicleReturnForm = ({ contract, onReturn, onCancel }: Props) => {
     fuel_level_end: contract.fuel_level_start || 'full',
     additional_charges: 0,
     notes: '',
+    vehicle_condition_notes: '',
     inspection_officer: '',
   });
   const [loading, setLoading] = useState(false);
@@ -198,6 +199,45 @@ export const VehicleReturnForm = ({ contract, onReturn, onCancel }: Props) => {
 
             <Separator />
 
+            {/* المبلغ المتبقي للعقد */}
+            <div className="bg-muted/50 p-4 rounded-lg border">
+              <Label className="text-sm font-medium text-muted-foreground">المبلغ المتبقي للعقد</Label>
+              <p className={`text-2xl font-bold ${remainingAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                {formatCurrency(remainingAmount)}
+              </p>
+              {remainingAmount > 0 && (
+                <p className="text-sm text-red-600 mt-1">
+                  يجب تحصيل هذا المبلغ من العميل قبل إنهاء العقد
+                </p>
+              )}
+              {remainingAmount === 0 && (
+                <p className="text-sm text-green-600 mt-1">
+                  تم سداد كامل مبلغ العقد
+                </p>
+              )}
+              {remainingAmount < 0 && (
+                <p className="text-sm text-blue-600 mt-1">
+                  يوجد مبلغ زائد مدفوع يجب رده للعميل
+                </p>
+              )}
+            </div>
+
+            {/* ملاحظات حالة المركبة */}
+            <div>
+              <Label htmlFor="vehicle_condition_notes">ملاحظات على حالة المركبة عند الإرجاع</Label>
+              <Textarea
+                id="vehicle_condition_notes"
+                value={formData.vehicle_condition_notes}
+                onChange={(e) => handleInputChange('vehicle_condition_notes', e.target.value)}
+                placeholder="مثال: يوجد خدش في الباب الأيمن للمركبة، تلف في المرآة الجانبية، إلخ..."
+                rows={3}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                يرجى توثيق أي أضرار أو ملاحظات على حالة المركبة عند الإرجاع
+              </p>
+            </div>
+
             <div>
               <Label htmlFor="inspection_officer">مسؤول الفحص *</Label>
               <Input
@@ -212,13 +252,13 @@ export const VehicleReturnForm = ({ contract, onReturn, onCancel }: Props) => {
             </div>
 
             <div>
-              <Label htmlFor="notes">ملاحظات</Label>
+              <Label htmlFor="notes">ملاحظات عامة</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => handleInputChange('notes', e.target.value)}
-                placeholder="أي ملاحظات حول حالة المركبة أو الإرجاع"
-                rows={3}
+                placeholder="أي ملاحظات عامة حول عملية الإرجاع"
+                rows={2}
               />
             </div>
           </CardContent>
