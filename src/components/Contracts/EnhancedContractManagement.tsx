@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { EarlyTerminationDialog } from "./EarlyTerminationDialog";
 
 interface Contract {
   id: string;
@@ -59,6 +59,9 @@ export const EnhancedContractManagement = () => {
     notes: ''
   });
   const { toast } = useToast();
+
+  const [earlyDialogOpen, setEarlyDialogOpen] = useState(false);
+  const [selectedForEarly, setSelectedForEarly] = useState<Contract | null>(null);
 
   useEffect(() => {
     fetchContracts();
@@ -255,7 +258,6 @@ export const EnhancedContractManagement = () => {
   };
 
   const printContract = (contract: Contract) => {
-    // Generate printable contract
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(`
@@ -527,6 +529,16 @@ export const EnhancedContractManagement = () => {
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedForEarly(contract);
+                            setEarlyDialogOpen(true);
+                          }}
+                        >
+                          <FileText className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -536,6 +548,28 @@ export const EnhancedContractManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      {selectedForEarly && (
+        <EarlyTerminationDialog
+          open={earlyDialogOpen}
+          onOpenChange={setEarlyDialogOpen}
+          contract={{
+            id: selectedForEarly.id,
+            customer_id: selectedForEarly.customer_id,
+            vehicle_id: selectedForEarly.vehicle_id,
+            start_date: selectedForEarly.start_date,
+            end_date: selectedForEarly.end_date,
+            daily_rate: selectedForEarly.daily_rate,
+            total_amount: selectedForEarly.total_amount,
+            minimum_rental_period: (selectedForEarly as any).minimum_rental_period ?? null,
+            early_termination_fee: (selectedForEarly as any).early_termination_fee ?? null,
+            termination_policy: (selectedForEarly as any).termination_policy ?? null,
+            contract_number: selectedForEarly.contract_number,
+            customer: { name: selectedForEarly.customer?.name }
+          }}
+          onCreated={fetchContracts}
+        />
+      )}
     </div>
   );
 };

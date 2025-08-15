@@ -1,6 +1,7 @@
 
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { EnhancedContractManagement } from "@/components/Contracts/EnhancedContractManagement";
+import { PendingTerminationRequests } from "@/components/Contracts/PendingTerminationRequests";
 
 const EnhancedContracts = () => {
   return (
@@ -13,6 +14,8 @@ const EnhancedContracts = () => {
           </p>
         </div>
         <EnhancedContractManagement />
+        {/* New: manager view for pending requests */}
+        <PendingTerminationRequests />
       </div>
     </AppLayout>
   );
