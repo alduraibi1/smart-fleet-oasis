@@ -1,12 +1,9 @@
 
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { 
-  TrendingUp, 
-  TrendingDown, 
   Car, 
   Users, 
   FileText, 
@@ -14,133 +11,44 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Settings
+  TrendingUp
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-
-interface DashboardStats {
-  totalVehicles: number;
-  activeContracts: number;
-  totalRevenue: number;
-  pendingMaintenance: number;
-  customerSatisfaction: number;
-  utilizationRate: number;
-  monthlyTrend: any[];
-  vehicleStatusData: any[];
-  revenueData: any[];
-}
+import { InteractiveKPICard } from "./InteractiveKPICard";
+import { DateRangeFilter } from "./DateRangeFilter";
+import { ExportControls } from "./ExportControls";
+import { RealtimeIndicator } from "./RealtimeIndicator";
+import { useRealtimeDashboard } from "@/hooks/useRealtimeDashboard";
+import { DateRange } from "react-day-picker";
 
 export const EnhancedDashboard = () => {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalVehicles: 0,
-    activeContracts: 0,
-    totalRevenue: 0,
-    pendingMaintenance: 0,
-    customerSatisfaction: 0,
-    utilizationRate: 0,
-    monthlyTrend: [],
-    vehicleStatusData: [],
-    revenueData: []
-  });
-  const [loading, setLoading] = useState(true);
-  const [alerts, setAlerts] = useState<any[]>([]);
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  const [selectedDateRange, setSelectedDateRange] = useState<DateRange | undefined>();
+  const [selectedPreset, setSelectedPreset] = useState("this_month");
+  
+  const {
+    stats,
+    revenueData,
+    topVehicles,
+    recentActivity,
+    loading,
+    isConnected,
+    lastUpdated,
+    refetch,
+    reconnect
+  } = useRealtimeDashboard();
 
-  useEffect(() => {
-    fetchDashboardData();
-    const interval = setInterval(fetchDashboardData, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      // Fetch vehicles data
-      const { data: vehicles } = await supabase
-        .from('vehicles')
-        .select('*');
-
-      // Fetch contracts data - using rental_contracts table
-      const { data: contracts } = await supabase
-        .from('rental_contracts')
-        .select('*');
-
-      // Fetch maintenance data - using vehicle_maintenance table
-      const { data: maintenance } = await supabase
-        .from('vehicle_maintenance')
-        .select('*')
-        .eq('status', 'scheduled');
-
-      // Calculate stats
-      const totalVehicles = vehicles?.length || 0;
-      const activeContracts = contracts?.filter(c => c.status === 'active').length || 0;
-      const totalRevenue = contracts?.reduce((sum, c) => sum + (c.total_amount || 0), 0) || 0;
-      const pendingMaintenance = maintenance?.length || 0;
-      
-      // Calculate utilization rate
-      const utilizationRate = totalVehicles > 0 ? (activeContracts / totalVehicles) * 100 : 0;
-
-      // Generate mock trend data
-      const monthlyTrend = Array.from({ length: 12 }, (_, i) => ({
-        month: `شهر ${i + 1}`,
-        revenue: Math.floor(Math.random() * 100000) + 50000,
-        contracts: Math.floor(Math.random() * 50) + 20
-      }));
-
-      // Vehicle status distribution
-      const availableVehicles = totalVehicles - activeContracts;
-      const vehicleStatusData = [
-        { name: 'متاحة', value: availableVehicles, color: '#22c55e' },
-        { name: 'مؤجرة', value: activeContracts, color: '#3b82f6' },
-        { name: 'صيانة', value: pendingMaintenance, color: '#f59e0b' }
-      ];
-
-      setStats({
-        totalVehicles,
-        activeContracts,
-        totalRevenue,
-        pendingMaintenance,
-        customerSatisfaction: 4.2,
-        utilizationRate,
-        monthlyTrend,
-        vehicleStatusData,
-        revenueData: monthlyTrend
-      });
-
-      // Fetch alerts
-      fetchAlerts();
-
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setSelectedDateRange(range);
+    // Here you would typically filter the data based on the selected range
+    // For now, we'll just refresh the data
+    refetch();
   };
 
-  const fetchAlerts = async () => {
-    const alertsData = [
-      {
-        id: 1,
-        type: 'maintenance',
-        title: 'صيانة مجدولة',
-        message: '5 مركبات بحاجة لصيانة خلال الأسبوع القادم',
-        priority: 'medium'
-      },
-      {
-        id: 2,
-        type: 'document',
-        title: 'وثائق منتهية الصلاحية',
-        message: '3 رخص تسجيل ستنتهي صلاحيتها قريباً',
-        priority: 'high'
-      },
-      {
-        id: 3,
-        type: 'revenue',
-        title: 'زيادة في الإيرادات',
-        message: 'زيادة 15% في الإيرادات مقارنة بالشهر الماضي',
-        priority: 'low'
-      }
-    ];
-    setAlerts(alertsData);
+  const handlePresetChange = (preset: string) => {
+    setSelectedPreset(preset);
+    // Apply preset logic and refresh data
+    refetch();
   };
 
   const formatCurrency = (amount: number) => {
@@ -160,6 +68,46 @@ export const EnhancedDashboard = () => {
     }
   };
 
+  // Mock alert data - in real implementation, this would come from your alerts system
+  const alerts = [
+    {
+      id: 1,
+      type: 'maintenance',
+      title: 'صيانة مجدولة',
+      message: '5 مركبات بحاجة لصيانة خلال الأسبوع القادم',
+      priority: 'medium'
+    },
+    {
+      id: 2,
+      type: 'document',
+      title: 'وثائق منتهية الصلاحية',
+      message: '3 رخص تسجيل ستنتهي صلاحيتها قريباً',
+      priority: 'high'
+    },
+    {
+      id: 3,
+      type: 'revenue',
+      title: 'زيادة في الإيرادات',
+      message: 'زيادة 15% في الإيرادات مقارنة بالشهر الماضي',
+      priority: 'low'
+    }
+  ];
+
+  // Vehicle status distribution
+  const availableVehicles = stats.totalVehicles - stats.activeContracts;
+  const vehicleStatusData = [
+    { name: 'متاحة', value: availableVehicles, color: '#22c55e' },
+    { name: 'مؤجرة', value: stats.activeContracts, color: '#3b82f6' },
+    { name: 'صيانة', value: stats.pendingMaintenance, color: '#f59e0b' }
+  ];
+
+  // Generate mock trend data
+  const monthlyTrend = Array.from({ length: 12 }, (_, i) => ({
+    month: `شهر ${i + 1}`,
+    revenue: Math.floor(Math.random() * 100000) + 50000,
+    contracts: Math.floor(Math.random() * 50) + 20
+  }));
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -178,77 +126,81 @@ export const EnhancedDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* KPI Cards */}
+    <div ref={dashboardRef} className="space-y-6">
+      {/* Header with Controls */}
+      <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
+        <div>
+          <h1 className="text-3xl font-bold">لوحة التحكم المتقدمة</h1>
+          <p className="text-muted-foreground mt-1">
+            نظرة شاملة على الأداء والإحصائيات التفاعلية
+          </p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <RealtimeIndicator 
+            isConnected={isConnected}
+            lastUpdated={lastUpdated}
+            onReconnect={reconnect}
+          />
+          <ExportControls 
+            dashboardRef={dashboardRef}
+            data={stats}
+            title="لوحة التحكم المتقدمة"
+          />
+        </div>
+      </div>
+
+      {/* Date Range Filter */}
+      <div className="w-full lg:w-80">
+        <DateRangeFilter
+          onDateRangeChange={handleDateRangeChange}
+          onPresetChange={handlePresetChange}
+          onRefresh={refetch}
+          isLoading={loading}
+        />
+      </div>
+
+      {/* Interactive KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">إجمالي المركبات</p>
-                <p className="text-2xl font-bold">{stats.totalVehicles}</p>
-                <p className="text-sm text-green-600">
-                  <TrendingUp className="w-4 h-4 inline mr-1" />
-                  +5% من الشهر الماضي
-                </p>
-              </div>
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Car className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <InteractiveKPICard
+          title="إجمالي المركبات"
+          value={stats.totalVehicles}
+          change="+5%"
+          trend="up"
+          icon={Car}
+          color="bg-blue-100 text-blue-600"
+          linkTo="/vehicles"
+        />
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">العقود النشطة</p>
-                <p className="text-2xl font-bold">{stats.activeContracts}</p>
-                <p className="text-sm text-green-600">
-                  <TrendingUp className="w-4 h-4 inline mr-1" />
-                  +12% من الشهر الماضي
-                </p>
-              </div>
-              <div className="p-2 bg-green-100 rounded-lg">
-                <FileText className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <InteractiveKPICard
+          title="العقود النشطة"
+          value={stats.activeContracts}
+          change="+12%"
+          trend="up"
+          icon={FileText}
+          color="bg-green-100 text-green-600"
+          linkTo="/contracts"
+        />
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">إجمالي الإيرادات</p>
-                <p className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</p>
-                <p className="text-sm text-green-600">
-                  <TrendingUp className="w-4 h-4 inline mr-1" />
-                  +8% من الشهر الماضي
-                </p>
-              </div>
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <DollarSign className="h-6 w-6 text-yellow-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <InteractiveKPICard
+          title="إجمالي الإيرادات"
+          value={formatCurrency(stats.totalRevenue)}
+          change="+8%"
+          trend="up"
+          icon={DollarSign}
+          color="bg-yellow-100 text-yellow-600"
+          linkTo="/accounting"
+        />
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">معدل الاستخدام</p>
-                <p className="text-2xl font-bold">{stats.utilizationRate.toFixed(1)}%</p>
-                <Progress value={stats.utilizationRate} className="mt-2" />
-              </div>
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-purple-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <InteractiveKPICard
+          title="معدل الاستخدام"
+          value={`${stats.utilizationRate.toFixed(1)}%`}
+          progress={stats.utilizationRate}
+          target="85%"
+          icon={TrendingUp}
+          color="bg-purple-100 text-purple-600"
+          linkTo="/reports"
+        />
       </div>
 
       {/* Real-time Alerts */}
@@ -256,13 +208,13 @@ export const EnhancedDashboard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5" />
-            التنبيهات والإشعارات
+            التنبيهات والإشعارات الفورية
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {alerts.map((alert) => (
-              <div key={alert.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div key={alert.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors cursor-pointer">
                 <div className="flex items-center gap-3">
                   <div className={`p-1 rounded-full ${
                     alert.priority === 'high' ? 'bg-red-100' :
@@ -307,7 +259,7 @@ export const EnhancedDashboard = () => {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={stats.monthlyTrend}>
+                  <LineChart data={monthlyTrend}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
@@ -324,7 +276,7 @@ export const EnhancedDashboard = () => {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={stats.monthlyTrend}>
+                  <BarChart data={monthlyTrend}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
@@ -346,7 +298,7 @@ export const EnhancedDashboard = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={stats.vehicleStatusData}
+                    data={vehicleStatusData}
                     cx="50%"
                     cy="50%"
                     outerRadius={80}
@@ -354,7 +306,7 @@ export const EnhancedDashboard = () => {
                     dataKey="value"
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
-                    {stats.vehicleStatusData.map((entry, index) => (
+                    {vehicleStatusData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -375,7 +327,6 @@ export const EnhancedDashboard = () => {
                 <div className="text-center">
                   <div className="text-3xl font-bold text-green-600">{stats.customerSatisfaction}</div>
                   <div className="text-sm text-muted-foreground">من 5 نجوم</div>
-                  <Progress value={stats.customerSatisfaction * 20} className="mt-2" />
                 </div>
               </CardContent>
             </Card>
