@@ -12,8 +12,6 @@ import {
   Wrench, 
   AlertTriangle,
   Users,
-  Calendar,
-  Target,
   Activity,
   BarChart3,
   RefreshCw
@@ -24,7 +22,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { Link } from "react-router-dom";
 
 export default function DashboardOverview() {
-  const { stats, revenueData, topVehicles, recentActivity, loading, refetch } = useDashboardData();
+  const { stats, topVehicles, recentActivity, loading, refetch } = useDashboardData();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ar-SA', {
@@ -97,7 +95,7 @@ export default function DashboardOverview() {
               </p>
               <div className="mt-2">
                 <Progress 
-                  value={(stats.availableVehicles / stats.totalVehicles) * 100} 
+                  value={stats.totalVehicles > 0 ? (stats.availableVehicles / stats.totalVehicles) * 100 : 0} 
                   className="h-2" 
                 />
               </div>
@@ -250,7 +248,7 @@ export default function DashboardOverview() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">المهام المعلقة</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">

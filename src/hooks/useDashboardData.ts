@@ -166,33 +166,33 @@ export const useDashboardData = () => {
         .gte('start_date', new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000).toISOString());
 
       // تجميع البيانات حسب الشهر
-      const monthlyData: Record<string, { revenue: number; expenses: number; contracts: number }> = {};
+      const monthlyDataMap: Record<string, { revenue: number; expenses: number; contracts: number }> = {};
       
       receipts?.forEach(receipt => {
         const monthKey = new Date(receipt.payment_date).toLocaleString('ar-SA', { month: 'long' });
-        if (!monthlyData[monthKey]) {
-          monthlyData[monthKey] = { revenue: 0, expenses: 0, contracts: 0 };
+        if (!monthlyDataMap[monthKey]) {
+          monthlyDataMap[monthKey] = { revenue: 0, expenses: 0, contracts: 0 };
         }
-        monthlyData[monthKey].revenue += receipt.amount;
+        monthlyDataMap[monthKey].revenue += receipt.amount;
       });
 
       vouchers?.forEach(voucher => {
         const monthKey = new Date(voucher.payment_date).toLocaleString('ar-SA', { month: 'long' });
-        if (!monthlyData[monthKey]) {
-          monthlyData[monthKey] = { revenue: 0, expenses: 0, contracts: 0 };
+        if (!monthlyDataMap[monthKey]) {
+          monthlyDataMap[monthKey] = { revenue: 0, expenses: 0, contracts: 0 };
         }
-        monthlyData[monthKey].expenses += voucher.amount;
+        monthlyDataMap[monthKey].expenses += voucher.amount;
       });
 
       contracts?.forEach(contract => {
         const monthKey = new Date(contract.start_date).toLocaleString('ar-SA', { month: 'long' });
-        if (!monthlyData[monthKey]) {
-          monthlyData[monthKey] = { revenue: 0, expenses: 0, contracts: 0 };
+        if (!monthlyDataMap[monthKey]) {
+          monthlyDataMap[monthKey] = { revenue: 0, expenses: 0, contracts: 0 };
         }
-        monthlyData[monthKey].contracts += 1;
+        monthlyDataMap[monthKey].contracts += 1;
       });
 
-      const revenueData = Object.entries(monthlyData).map(([month, data]) => ({
+      const revenueData = Object.entries(monthlyDataMap).map(([month, data]) => ({
         month,
         revenue: data.revenue,
         contracts: data.contracts,
@@ -207,41 +207,45 @@ export const useDashboardData = () => {
 
   const fetchTopVehicles = async () => {
     try {
-      const { data: vehiclesWithRevenue } = await supabase
+      const { data: vehicles } = await supabase
         .from('vehicles')
-        .select(`
-          id,
-          plate_number,
-          brand,
-          model,
-          rental_contracts!inner(
-            id,
-            total_amount,
-            status,
-            payment_receipts(amount)
-          )
-        `)
+        .select('id, plate_number, brand, model')
         .eq('is_active', true);
 
-      const vehiclePerformance = vehiclesWithRevenue?.map(vehicle => {
-        const contracts = vehicle.rental_contracts?.length || 0;
-        const revenue = vehicle.rental_contracts?.reduce((sum: number, contract: any) => {
-          const receiptAmount = contract.payment_receipts?.reduce((receiptSum: number, receipt: any) => 
-            receiptSum + (receipt.amount || 0), 0) || 0;
-          return sum + receiptAmount;
-        }, 0) || 0;
+      if (!vehicles) return;
 
-        return {
+      const vehiclePerformance: VehiclePerformance[] = [];
+
+      for (const vehicle of vehicles) {
+        const { data: contracts } = await supabase
+          .from('rental_contracts')
+          .select('id, total_amount')
+          .eq('vehicle_id', vehicle.id);
+
+        const { data: receipts } = await supabase
+          .from('payment_receipts')
+          .select('amount')
+          .in('contract_id', contracts?.map(c => c.id) || [])
+          .eq('status', 'confirmed');
+
+        const contractsCount = contracts?.length || 0;
+        const revenue = receipts?.reduce((sum, r) => sum + r.amount, 0) || 0;
+
+        vehiclePerformance.push({
           id: vehicle.id,
           plateNumber: vehicle.plate_number,
           model: `${vehicle.brand} ${vehicle.model}`,
           revenue,
-          utilization: contracts > 0 ? Math.min((contracts / 10) * 100, 100) : 0, // تقدير تقريبي
-          contracts,
-        };
-      }).sort((a, b) => b.revenue - a.revenue).slice(0, 5) || [];
+          utilization: contractsCount > 0 ? Math.min((contractsCount / 10) * 100, 100) : 0,
+          contracts: contractsCount,
+        });
+      }
 
-      setTopVehicles(vehiclePerformance);
+      const sortedVehicles = vehiclePerformance
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5);
+
+      setTopVehicles(sortedVehicles);
     } catch (error) {
       console.error('Error fetching top vehicles:', error);
     }
@@ -254,16 +258,16 @@ export const useDashboardData = () => {
       // جلب العقود الحديثة
       const { data: recentContracts } = await supabase
         .from('rental_contracts')
-        .select('id, contract_number, status, created_at, customers(name)')
+        .select('id, contract_number, status, created_at')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(3);
 
       recentContracts?.forEach(contract => {
         activities.push({
           id: contract.id,
           type: 'contract',
           title: `عقد جديد ${contract.contract_number}`,
-          description: `عقد جديد مع العميل ${(contract as any).customers?.name || 'غير محدد'}`,
+          description: `عقد جديد تم إنشاؤه`,
           timestamp: new Date(contract.created_at),
           status: contract.status,
         });
@@ -274,7 +278,7 @@ export const useDashboardData = () => {
         .from('payment_receipts')
         .select('id, receipt_number, amount, status, created_at, customer_name')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(3);
 
       recentPayments?.forEach(payment => {
         activities.push({
@@ -289,7 +293,7 @@ export const useDashboardData = () => {
 
       // ترتيب النشاطات حسب التاريخ
       activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-      setRecentActivity(activities.slice(0, 10));
+      setRecentActivity(activities.slice(0, 6));
 
     } catch (error) {
       console.error('Error fetching recent activity:', error);
