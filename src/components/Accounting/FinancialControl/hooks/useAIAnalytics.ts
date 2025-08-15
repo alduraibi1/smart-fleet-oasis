@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -64,13 +65,25 @@ export const useFinancialAnomalies = () => {
     queryFn: async (): Promise<FinancialAnomaly[]> => {
       const { data, error } = await supabase
         .from("financial_anomalies")
-        .select(
-          "id, anomaly_type, entity_type, entity_id, anomaly_score, expected_value, actual_value, deviation_percentage, status, detection_date, created_at"
-        )
+        .select("*")
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return (data || []) as FinancialAnomaly[];
+      
+      // Map the data to match our interface, using status field that exists
+      return (data || []).map(item => ({
+        id: item.id,
+        anomaly_type: item.anomaly_type,
+        entity_type: item.entity_type,
+        entity_id: item.entity_id,
+        anomaly_score: item.anomaly_score,
+        expected_value: item.expected_value,
+        actual_value: item.actual_value,
+        deviation_percentage: item.deviation_percentage,
+        status: item.status || 'detected',
+        detection_date: item.detection_date,
+        created_at: item.created_at
+      })) as FinancialAnomaly[];
     },
     staleTime: 30_000,
   });

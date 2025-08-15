@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,7 @@ export default function AIAnalyticsPanel() {
   const [busy, setBusy] = useState<boolean>(false);
 
   const openAnomalies = useMemo(
-    () => (anomalies || []).filter((a) => !["resolved", "false_positive"].includes((a as any).status)),
+    () => (anomalies || []).filter((a) => !["resolved", "false_positive"].includes(a.status || "detected")),
     [anomalies]
   );
 
@@ -222,17 +223,17 @@ export default function AIAnalyticsPanel() {
                 <p className="text-muted-foreground text-center py-6">لا توجد بيانات بعد</p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(anomalies || []).slice(0, 6).map((a: any) => (
+                  {(anomalies || []).slice(0, 6).map((a) => (
                     <div key={a.id} className="p-4 rounded-lg border bg-card">
                       <div className="flex items-center justify-between">
                         <p className="text-sm text-muted-foreground">
                           {a.anomaly_type} • {a.entity_type}
                         </p>
                         <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
-                          {a.status}
+                          {a.status || 'detected'}
                         </span>
                       </div>
-                      <p className="text_sm mt-2">
+                      <p className="text-sm mt-2">
                         الانحراف: {(a.deviation_percentage ?? 0).toFixed(1)}%
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
