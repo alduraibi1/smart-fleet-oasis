@@ -27,9 +27,9 @@ export function DynamicReportGenerator() {
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     to: new Date()
   });
-  const [selectedVehicle, setSelectedVehicle] = useState<string>('');
-  const [selectedCustomer, setSelectedCustomer] = useState<string>('');
-  const [selectedOwner, setSelectedOwner] = useState<string>('');
+  const [selectedVehicle, setSelectedVehicle] = useState<string>('all');
+  const [selectedCustomer, setSelectedCustomer] = useState<string>('all');
+  const [selectedOwner, setSelectedOwner] = useState<string>('all');
   const [isGenerating, setIsGenerating] = useState(false);
 
   const { vehicles } = useVehicles();
@@ -80,9 +80,9 @@ export function DynamicReportGenerator() {
   const getFilters = () => ({
     startDate: dateRange?.from || new Date(),
     endDate: dateRange?.to || new Date(),
-    vehicleId: selectedVehicle || undefined,
-    customerId: selectedCustomer || undefined,
-    ownerId: selectedOwner || undefined
+    vehicleId: selectedVehicle === 'all' ? undefined : selectedVehicle,
+    customerId: selectedCustomer === 'all' ? undefined : selectedCustomer,
+    ownerId: selectedOwner === 'all' ? undefined : selectedOwner
   });
 
   const renderReport = () => {
@@ -192,7 +192,7 @@ export function DynamicReportGenerator() {
                   <SelectValue placeholder="جميع المركبات" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">جميع المركبات</SelectItem>
+                  <SelectItem value="all">جميع المركبات</SelectItem>
                   {vehicles.map((vehicle) => (
                     <SelectItem key={vehicle.id} value={vehicle.id}>
                       {vehicle.plate_number} - {vehicle.brand} {vehicle.model}
@@ -210,7 +210,7 @@ export function DynamicReportGenerator() {
                   <SelectValue placeholder="جميع العملاء" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">جميع العملاء</SelectItem>
+                  <SelectItem value="all">جميع العملاء</SelectItem>
                   {customers.map((customer) => (
                     <SelectItem key={customer.id} value={customer.id}>
                       {customer.name}
