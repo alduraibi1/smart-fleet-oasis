@@ -1,7 +1,7 @@
 
 import { ReactElement } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
-import { screen } from '@testing-library/react'
+import { screen } from '@testing-library/dom'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
