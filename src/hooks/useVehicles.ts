@@ -3,8 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Vehicle, VehicleFilters, VehicleStats } from '@/types/vehicles';
 import { useToast } from '@/hooks/use-toast';
 
-export type { VehicleFilters } from '@/types/vehicles';
-
 export const useVehicles = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(false);

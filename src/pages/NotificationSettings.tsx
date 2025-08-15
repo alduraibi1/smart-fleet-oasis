@@ -1,7 +1,6 @@
 
 import NotificationSettings from '@/components/Notifications/NotificationSettings';
 import { AppLayout } from '@/components/Layout/AppLayout';
-import UserNotificationPreferences from '@/components/Notifications/UserNotificationPreferences';
 
 const NotificationSettingsPage = () => {
   return (
@@ -15,11 +14,7 @@ const NotificationSettingsPage = () => {
             تخصيص تفضيلات الإشعارات وطرق التسليم للحصول على تنبيهات مناسبة
           </p>
         </div>
-
-        {/* تفضيلات المستخدم الشخصية */}
-        <UserNotificationPreferences />
-
-        {/* الإعدادات الأخرى (موجودة سابقاً) */}
+        
         <NotificationSettings />
       </div>
     </AppLayout>

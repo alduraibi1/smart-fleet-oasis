@@ -1,457 +1,389 @@
+import { useState, useEffect } from 'react';
+import { TrendingUp, TrendingDown, DollarSign, Car, Users, Calendar, BarChart3, PieChart, Activity } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Cell, AreaChart, Area, Pie } from 'recharts';
+import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  AreaChart,
-  Area
-} from "recharts";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Car, 
-  Users, 
-  Calendar,
-  Target,
-  AlertTriangle,
-  Download,
-  Filter
-} from "lucide-react";
-import { useDashboardData } from "@/hooks/useDashboardData";
-import { useState } from "react";
+// بيانات تجريبية للمؤشرات
+const monthlyRevenue = [
+  { month: 'يناير', revenue: 120000, expenses: 85000, profit: 35000 },
+  { month: 'فبراير', revenue: 135000, expenses: 92000, profit: 43000 },
+  { month: 'مارس', revenue: 148000, expenses: 98000, profit: 50000 },
+  { month: 'أبريل', revenue: 162000, expenses: 105000, profit: 57000 },
+  { month: 'مايو', revenue: 175000, expenses: 112000, profit: 63000 },
+  { month: 'يونيو', revenue: 188000, expenses: 118000, profit: 70000 },
+];
+
+const vehiclePerformance = [
+  { type: 'سيدان', count: 45, utilization: 85, revenue: 85000 },
+  { type: 'SUV', count: 32, utilization: 92, revenue: 95000 },
+  { type: 'هاتشباك', count: 28, utilization: 78, revenue: 65000 },
+  { type: 'كوبيه', count: 15, utilization: 88, revenue: 55000 },
+  { type: 'بيك اب', count: 12, utilization: 95, revenue: 45000 },
+];
+
+const contractsData = [
+  { month: 'يناير', active: 85, new: 12, expired: 8 },
+  { month: 'فبراير', active: 89, new: 15, expired: 11 },
+  { month: 'مارس', active: 93, new: 18, expired: 14 },
+  { month: 'أبريل', active: 97, new: 16, expired: 12 },
+  { month: 'مايو', active: 101, new: 20, expired: 16 },
+  { month: 'يونيو', active: 105, new: 22, expired: 18 },
+];
+
+const departmentData = [
+  { name: 'المبيعات', value: 35, color: '#3b82f6' },
+  { name: 'المحاسبة', value: 25, color: '#10b981' },
+  { name: 'الصيانة', value: 20, color: '#f59e0b' },
+  { name: 'خدمة العملاء', value: 15, color: '#ef4444' },
+  { name: 'الإدارة', value: 5, color: '#8b5cf6' },
+];
+
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+
+interface MetricCardProps {
+  title: string;
+  value: string | number;
+  change: number;
+  trend: 'up' | 'down';
+  icon: React.ReactNode;
+  color: string;
+}
+
+function MetricCard({ title, value, change, trend, icon, color }: MetricCardProps) {
+  return (
+    <Card className="card-interactive hover-lift">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <p className="text-2xl font-bold text-foreground">{value}</p>
+            <div className="flex items-center gap-1">
+              {trend === 'up' ? (
+                <TrendingUp className="h-4 w-4 text-success" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-destructive" />
+              )}
+              <span className={cn(
+                "text-sm font-medium",
+                trend === 'up' ? "text-success" : "text-destructive"
+              )}>
+                {change > 0 && '+'}
+                {change}%
+              </span>
+              <span className="text-sm text-muted-foreground">عن الشهر السابق</span>
+            </div>
+          </div>
+          <div className={cn(
+            "h-12 w-12 rounded-xl flex items-center justify-center",
+            `bg-${color}/20`
+          )}>
+            {icon}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function AnalyticsDashboard() {
-  const { stats, revenueData, topVehicles, loading } = useDashboardData();
-  const [selectedPeriod, setSelectedPeriod] = useState("month");
-  const [selectedMetric, setSelectedMetric] = useState("revenue");
+  const [timeRange, setTimeRange] = useState('6months');
+  const [loading, setLoading] = useState(false);
+  const [realTimeData, setRealTimeData] = useState({
+    totalInvoices: 0,
+    totalVouchers: 0,
+    totalNotifications: 0
+  });
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-SA', {
-      style: 'currency',
-      currency: 'SAR',
-      minimumFractionDigits: 0
-    }).format(amount);
+  // جلب البيانات الحقيقية من قاعدة البيانات
+  const fetchRealData = async () => {
+    setLoading(true);
+    try {
+      // جلب عدد الفواتير
+      const { count: invoicesCount } = await supabase
+        .from('invoices')
+        .select('*', { count: 'exact', head: true });
+
+      // جلب عدد السندات
+      const { count: vouchersCount } = await supabase
+        .from('vouchers')
+        .select('*', { count: 'exact', head: true });
+
+      // جلب عدد الإشعارات
+      const { count: notificationsCount } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true });
+
+      setRealTimeData({
+        totalInvoices: invoicesCount || 0,
+        totalVouchers: vouchersCount || 0,
+        totalNotifications: notificationsCount || 0
+      });
+    } catch (error) {
+      console.error('Error fetching real data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
-
-  // إعداد بيانات الرسوم البيانية
-  const revenueVsExpenses = revenueData.map(item => ({
-    ...item,
-    profit: item.revenue - item.expenses,
-    profitMargin: item.revenue > 0 ? ((item.revenue - item.expenses) / item.revenue) * 100 : 0
-  }));
-
-  const vehicleUtilization = topVehicles.map(vehicle => ({
-    name: vehicle.plateNumber,
-    utilization: vehicle.utilization,
-    revenue: vehicle.revenue,
-    contracts: vehicle.contracts
-  }));
-
-  const performanceMetrics = [
-    { name: 'الإيرادات', value: stats.totalRevenue, target: stats.totalRevenue * 1.2, unit: 'ريال' },
-    { name: 'العقود', value: stats.activeContracts, target: stats.activeContracts * 1.15, unit: 'عقد' },
-    { name: 'معدل الاستخدام', value: stats.utilizationRate, target: 85, unit: '%' },
-    { name: 'رضا العملاء', value: stats.customerSatisfaction * 20, target: 90, unit: '%' }
-  ];
-
-  const distributionData = [
-    { name: 'متاحة', value: stats.availableVehicles, color: '#10b981' },
-    { name: 'مؤجرة', value: stats.totalVehicles - stats.availableVehicles, color: '#3b82f6' },
-    { name: 'صيانة', value: stats.pendingMaintenance, color: '#f59e0b' }
-  ];
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-32 bg-gray-200 rounded"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchRealData();
+  }, []);
 
   return (
     <div className="space-y-6">
-      {/* Header Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
+      {/* العنوان والفلاتر */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold">تحليلات متقدمة</h2>
-          <p className="text-muted-foreground">رؤى تفصيلية حول أداء الأعمال</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent">
+            لوحة التحكم التحليلية
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            مؤشرات الأداء الرئيسية وتحليلات متقدمة لأداء الشركة
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="week">أسبوعي</SelectItem>
-              <SelectItem value="month">شهري</SelectItem>
-              <SelectItem value="quarter">ربع سنوي</SelectItem>
-              <SelectItem value="year">سنوي</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            تصدير
-          </Button>
-        </div>
+        <Select value={timeRange} onValueChange={setTimeRange}>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1month">آخر شهر</SelectItem>
+            <SelectItem value="3months">آخر 3 أشهر</SelectItem>
+            <SelectItem value="6months">آخر 6 أشهر</SelectItem>
+            <SelectItem value="1year">آخر سنة</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      <Tabs defaultValue="financial" className="space-y-6">
+      {/* مؤشرات الأداء الرئيسية */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <MetricCard
+          title="إجمالي الإيرادات"
+          value="1,285,000 ريال"
+          change={12.5}
+          trend="up"
+          icon={<DollarSign className="h-6 w-6 text-primary" />}
+          color="primary"
+        />
+        <MetricCard
+          title="عدد المركبات النشطة"
+          value="132"
+          change={8.2}
+          trend="up"
+          icon={<Car className="h-6 w-6 text-success" />}
+          color="success"
+        />
+        <MetricCard
+          title="العقود النشطة"
+          value="105"
+          change={5.1}
+          trend="up"
+          icon={<Calendar className="h-6 w-6 text-info" />}
+          color="info"
+        />
+        <MetricCard
+          title="معدل الاستخدام"
+          value="87%"
+          change={-2.3}
+          trend="down"
+          icon={<Activity className="h-6 w-6 text-warning" />}
+          color="warning"
+        />
+      </div>
+
+      {/* البيانات الحقيقية من قاعدة البيانات */}
+      <Card className="card-premium">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            البيانات الحقيقية من النظام
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl">
+              <div className="text-3xl font-bold text-primary mb-2">
+                {loading ? '...' : realTimeData.totalInvoices}
+              </div>
+              <p className="text-muted-foreground">إجمالي الفواتير</p>
+            </div>
+            <div className="text-center p-6 bg-gradient-to-br from-success/10 to-success/5 rounded-xl">
+              <div className="text-3xl font-bold text-success mb-2">
+                {loading ? '...' : realTimeData.totalVouchers}
+              </div>
+              <p className="text-muted-foreground">إجمالي السندات</p>
+            </div>
+            <div className="text-center p-6 bg-gradient-to-br from-warning/10 to-warning/5 rounded-xl">
+              <div className="text-3xl font-bold text-warning mb-2">
+                {loading ? '...' : realTimeData.totalNotifications}
+              </div>
+              <p className="text-muted-foreground">إجمالي الإشعارات</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* الرسوم البيانية */}
+      <Tabs defaultValue="revenue" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="financial">الأداء المالي</TabsTrigger>
-          <TabsTrigger value="operational">التشغيلي</TabsTrigger>
+          <TabsTrigger value="revenue">الإيرادات</TabsTrigger>
           <TabsTrigger value="vehicles">المركبات</TabsTrigger>
-          <TabsTrigger value="customers">العملاء</TabsTrigger>
+          <TabsTrigger value="contracts">العقود</TabsTrigger>
+          <TabsTrigger value="departments">الأقسام</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="financial" className="space-y-6">
-          {/* Financial KPIs */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">إجمالي الإيرادات</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {formatCurrency(stats.totalRevenue)}
-                </div>
-                <div className="flex items-center gap-1 text-xs text-green-600">
-                  <TrendingUp className="h-3 w-3" />
-                  نمو إيجابي
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">الإيرادات الشهرية</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(stats.monthlyRevenue)}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  الشهر الحالي
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">هامش الربح</CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats.profitMargin.toFixed(1)}%
-                </div>
-                <Progress value={stats.profitMargin} className="mt-2" />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">معدل النمو</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">+12.5%</div>
-                <div className="text-xs text-muted-foreground">
-                  مقارنة بالشهر الماضي
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Revenue vs Expenses Chart */}
-          <Card>
+        {/* تحليل الإيرادات */}
+        <TabsContent value="revenue">
+          <Card className="card-premium">
             <CardHeader>
-              <CardTitle>الإيرادات مقابل المصروفات</CardTitle>
-              <CardDescription>مقارنة شهرية للأداء المالي</CardDescription>
+              <CardTitle>تحليل الإيرادات والأرباح</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={revenueVsExpenses}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis tickFormatter={(value) => `${value / 1000}ك`} />
-                  <Tooltip formatter={(value) => [formatCurrency(Number(value)), '']} />
-                  <Legend />
-                  <Bar dataKey="revenue" fill="#10b981" name="الإيرادات" />
-                  <Bar dataKey="expenses" fill="#ef4444" name="المصروفات" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Profit Trend */}
-          <Card>
-            <CardHeader>
-              <CardTitle>اتجاه الربحية</CardTitle>
-              <CardDescription>تطور هامش الربح عبر الوقت</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={revenueVsExpenses}>
+              <ResponsiveContainer width="100%" height={400}>
+                <AreaChart data={monthlyRevenue}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
-                  <Tooltip formatter={(value) => [`${Number(value).toFixed(1)}%`, 'هامش الربح']} />
-                  <Line type="monotone" dataKey="profitMargin" stroke="#3b82f6" strokeWidth={3} />
+                  <Tooltip 
+                    formatter={(value, name) => [
+                      `${value?.toLocaleString()} ريال`,
+                      name === 'revenue' ? 'الإيرادات' : 
+                      name === 'expenses' ? 'المصروفات' : 'الأرباح'
+                    ]}
+                  />
+                  <Area type="monotone" dataKey="revenue" stackId="1" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
+                  <Area type="monotone" dataKey="expenses" stackId="2" stroke="#ef4444" fill="#ef4444" fillOpacity={0.3} />
+                  <Area type="monotone" dataKey="profit" stackId="3" stroke="#10b981" fill="#10b981" fillOpacity={0.3} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* أداء المركبات */}
+        <TabsContent value="vehicles">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="card-premium">
+              <CardHeader>
+                <CardTitle>أداء المركبات حسب النوع</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={vehiclePerformance}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="type" />
+                    <YAxis />
+                    <Tooltip formatter={(value, name) => [
+                      name === 'count' ? `${value} مركبة` : 
+                      name === 'utilization' ? `${value}%` : `${value?.toLocaleString()} ريال`,
+                      name === 'count' ? 'العدد' : 
+                      name === 'utilization' ? 'معدل الاستخدام' : 'الإيرادات'
+                    ]} />
+                    <Bar dataKey="count" fill="#3b82f6" />
+                    <Bar dataKey="utilization" fill="#10b981" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="card-premium">
+              <CardHeader>
+                <CardTitle>معدلات الاستخدام</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {vehiclePerformance.map((vehicle, index) => (
+                  <div key={vehicle.type} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">{vehicle.type}</span>
+                      <Badge variant="outline">{vehicle.utilization}%</Badge>
+                    </div>
+                    <Progress value={vehicle.utilization} className="h-2" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* تحليل العقود */}
+        <TabsContent value="contracts">
+          <Card className="card-premium">
+            <CardHeader>
+              <CardTitle>تحليل العقود الشهرية</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={contractsData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value, name) => [
+                    `${value} عقد`,
+                    name === 'active' ? 'نشط' : 
+                    name === 'new' ? 'جديد' : 'منتهي'
+                  ]} />
+                  <Line type="monotone" dataKey="active" stroke="#3b82f6" strokeWidth={2} />
+                  <Line type="monotone" dataKey="new" stroke="#10b981" strokeWidth={2} />
+                  <Line type="monotone" dataKey="expired" stroke="#ef4444" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="operational" className="space-y-6">
-          {/* Operational Metrics */}
-          <div className="grid gap-4 md:grid-cols-3">
-            {performanceMetrics.map((metric, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <CardTitle className="text-sm">{metric.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-baseline">
-                      <span className="text-2xl font-bold">
-                        {metric.unit === 'ريال' ? formatCurrency(metric.value) : 
-                         `${metric.value.toFixed(1)}${metric.unit}`}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        الهدف: {metric.unit === 'ريال' ? formatCurrency(metric.target) : 
-                               `${metric.target.toFixed(1)}${metric.unit}`}
-                      </span>
-                    </div>
-                    <Progress value={(metric.value / metric.target) * 100} />
-                    <div className="flex items-center gap-1">
-                      {metric.value >= metric.target ? (
-                        <>
-                          <TrendingUp className="h-3 w-3 text-green-500" />
-                          <span className="text-xs text-green-600">تم تحقيق الهدف</span>
-                        </>
-                      ) : (
-                        <>
-                          <TrendingDown className="h-3 w-3 text-orange-500" />
-                          <span className="text-xs text-orange-600">
-                            {((metric.target - metric.value) / metric.target * 100).toFixed(1)}% متبقي
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Fleet Distribution */}
-          <Card>
-            <CardHeader>
-              <CardTitle>توزيع الأسطول</CardTitle>
-              <CardDescription>حالة المركبات الحالية</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6 md:grid-cols-2">
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
+        {/* توزيع الأقسام */}
+        <TabsContent value="departments">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="card-premium">
+              <CardHeader>
+                <CardTitle>توزيع الموظفين حسب الأقسام</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RechartsPieChart>
                     <Pie
-                      data={distributionData}
+                      dataKey="value"
+                      data={departmentData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: ${value}`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
+                      outerRadius={100}
+                      label={({ name, value }) => `${name}: ${value}%`}
                     >
-                      {distributionData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      {departmentData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip />
-                  </PieChart>
+                  </RechartsPieChart>
                 </ResponsiveContainer>
-                <div className="space-y-3">
-                  {distributionData.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: item.color }}
-                        />
-                        <span className="text-sm">{item.name}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold">{item.value}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {((item.value / stats.totalVehicles) * 100).toFixed(1)}%
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
 
-        <TabsContent value="vehicles" className="space-y-6">
-          {/* Vehicle Performance */}
-          <Card>
-            <CardHeader>
-              <CardTitle>أداء المركبات</CardTitle>
-              <CardDescription>معدل الاستخدام والإيرادات</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={vehicleUtilization}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip />
-                  <Legend />
-                  <Bar yAxisId="left" dataKey="utilization" fill="#3b82f6" name="معدل الاستخدام %" />
-                  <Bar yAxisId="right" dataKey="revenue" fill="#10b981" name="الإيرادات" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Top Vehicles Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>أفضل المركبات أداءً</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {topVehicles.map((vehicle, index) => (
-                  <div key={vehicle.id} className="flex items-center justify-between p-3 border rounded-lg">
+            <Card className="card-premium">
+              <CardHeader>
+                <CardTitle>تفاصيل الأقسام</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {departmentData.map((dept, index) => (
+                  <div key={dept.name} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Badge variant={index < 3 ? "default" : "secondary"}>
-                        #{index + 1}
-                      </Badge>
-                      <div>
-                        <div className="font-medium">{vehicle.plateNumber}</div>
-                        <div className="text-sm text-muted-foreground">{vehicle.model}</div>
-                      </div>
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: dept.color }}
+                      />
+                      <span className="font-medium">{dept.name}</span>
                     </div>
-                    <div className="text-right space-y-1">
-                      <div className="font-bold text-green-600">
-                        {formatCurrency(vehicle.revenue)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {vehicle.contracts} عقد - {vehicle.utilization.toFixed(1)}% استخدام
-                      </div>
-                    </div>
+                    <Badge variant="outline">{dept.value}%</Badge>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="customers" className="space-y-6">
-          {/* Customer Metrics */}
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">رضا العملاء</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats.customerSatisfaction.toFixed(1)}/5
-                </div>
-                <Progress value={(stats.customerSatisfaction / 5) * 100} className="mt-2" />
-                <div className="text-xs text-muted-foreground mt-1">
-                  متوسط التقييمات
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">العملاء النشطون</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.activeContracts}</div>
-                <div className="text-xs text-muted-foreground">
-                  عميل لديه عقد نشط
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">معدل العائدة</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">78%</div>
-                <div className="text-xs text-muted-foreground">
-                  عملاء متكررون
-                </div>
               </CardContent>
             </Card>
           </div>
-
-          {/* Customer Satisfaction Trend */}
-          <Card>
-            <CardHeader>
-              <CardTitle>اتجاه رضا العملاء</CardTitle>
-              <CardDescription>تطور التقييمات عبر الوقت</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={revenueData.map(item => ({
-                  ...item,
-                  satisfaction: 4.2 + Math.random() * 0.8 // مثال للبيانات
-                }))}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis domain={[1, 5]} />
-                  <Tooltip />
-                  <Area 
-                    type="monotone" 
-                    dataKey="satisfaction" 
-                    stroke="#3b82f6" 
-                    fill="#3b82f6" 
-                    fillOpacity={0.3}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>

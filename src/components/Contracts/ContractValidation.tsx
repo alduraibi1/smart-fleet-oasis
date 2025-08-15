@@ -1,40 +1,17 @@
 import React from 'react';
 import { z } from 'zod';
-import { AlertTriangle, CheckCircle, X, Info } from 'lucide-react';
+import { AlertTriangle, CheckCircle, X } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 
-// Enhanced contract validation schema with payment fields
+// Contract validation schema
 export const contractValidationSchema = z.object({
-  // Required fields
-  customer_id: z.string().min(1, 'يجب اختيار العميل - حقل إلزامي'),
-  vehicle_id: z.string().min(1, 'يجب اختيار المركبة - حقل إلزامي'),
-  start_date: z.string().min(1, 'يجب تحديد تاريخ البداية - حقل إلزامي'),
-  end_date: z.string().min(1, 'يجب تحديد تاريخ النهاية - حقل إلزامي'),
-  daily_rate: z.number().min(1, 'يجب تحديد السعر اليومي - حقل إلزامي'),
-  
-  // Optional fields
-  total_amount: z.number().min(0).optional(),
-  paid_amount: z.number().min(0).optional(),
-  remaining_balance: z.number().optional(),
-  deposit_amount: z.number().min(0).optional(),
-  security_deposit: z.number().min(0).optional(),
-  payment_date: z.string().optional(),
-  payment_due_date: z.string().optional(),
-  payment_reference: z.string().optional(),
-  payment_terms: z.string().optional(),
-  deposit_status: z.enum(['pending', 'received', 'refunded']).optional().default('pending'),
-  insurance_type: z.enum(['none', 'percentage', 'fixed']).optional().default('none'),
-  insurance_amount: z.number().min(0).optional(),
-  insurance_percentage: z.number().min(0).max(100).optional(),
-  vat_enabled: z.boolean().optional().default(false),
-  vat_rate: z.number().min(0).max(100).optional(),
-  additional_charges: z.number().min(0).optional(),
-  discount_amount: z.number().min(0).optional(),
-  delegation_fee: z.number().min(0).optional(),
-  payment_method: z.string().optional(),
-  payment_status: z.string().optional(),
-  notes: z.string().optional(),
+  customer_id: z.string().min(1, 'يجب اختيار العميل'),
+  vehicle_id: z.string().min(1, 'يجب اختيار المركبة'),
+  start_date: z.string().min(1, 'يجب تحديد تاريخ البداية'),
+  end_date: z.string().min(1, 'يجب تحديد تاريخ النهاية'),
+  daily_rate: z.number().min(1, 'يجب تحديد السعر اليومي'),
+  total_amount: z.number().min(1, 'يجب أن يكون المبلغ الإجمالي أكبر من صفر'),
 }).refine((data) => {
   const startDate = new Date(data.start_date);
   const endDate = new Date(data.end_date);
@@ -42,28 +19,6 @@ export const contractValidationSchema = z.object({
 }, {
   message: 'تاريخ النهاية يجب أن يكون بعد تاريخ البداية',
   path: ['end_date']
-}).refine((data) => {
-  // If insurance type is percentage, percentage must be provided
-  if (data.insurance_type === 'percentage' && (!data.insurance_percentage || data.insurance_percentage <= 0)) {
-    return false;
-  }
-  // If insurance type is fixed, amount must be provided
-  if (data.insurance_type === 'fixed' && (!data.insurance_amount || data.insurance_amount <= 0)) {
-    return false;
-  }
-  return true;
-}, {
-  message: 'يجب تحديد مبلغ أو نسبة التأمين عند اختيار نوع التأمين',
-  path: ['insurance_amount']
-}).refine((data) => {
-  // Validate paid amount doesn't exceed total amount
-  if (data.paid_amount && data.total_amount && data.paid_amount > data.total_amount) {
-    return false;
-  }
-  return true;
-}, {
-  message: 'المبلغ المدفوع لا يمكن أن يتجاوز المبلغ الإجمالي',
-  path: ['paid_amount']
 });
 
 // Vehicle return validation schema
@@ -138,42 +93,6 @@ export const ValidationBadge: React.FC<ValidationBadgeProps> = ({
       {isValid ? validText : invalidText}
     </Badge>
   );
-};
-
-// Field requirement indicator component
-interface FieldRequirementProps {
-  required?: boolean;
-  optional?: boolean;
-  recommended?: boolean;
-}
-
-export const FieldRequirement: React.FC<FieldRequirementProps> = ({
-  required = false,
-  optional = false,
-  recommended = false
-}) => {
-  if (required) {
-    return <span className="text-red-500 text-sm ml-1">*</span>;
-  }
-  
-  if (recommended) {
-    return (
-      <Badge variant="secondary" className="text-xs ml-2">
-        <Info className="h-3 w-3 ml-1" />
-        مستحسن
-      </Badge>
-    );
-  }
-  
-  if (optional) {
-    return (
-      <Badge variant="outline" className="text-xs ml-2">
-        اختياري
-      </Badge>
-    );
-  }
-  
-  return null;
 };
 
 // Custom validation hooks

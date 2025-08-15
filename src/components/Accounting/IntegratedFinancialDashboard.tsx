@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { CreatePaymentReceiptDialog } from "./PaymentReceipts/CreatePaymentReceiptDialog";
 import { CreatePaymentVoucherDialog } from "./PaymentVouchers/CreatePaymentVoucherDialog";
 import { FinancialWarningsTable } from "./FinancialWarnings/FinancialWarningsTable";
-import { useNavigate } from "react-router-dom";
 
 interface FinancialSummary {
   totalReceipts: number;
@@ -22,7 +20,6 @@ interface FinancialSummary {
 }
 
 export function IntegratedFinancialDashboard() {
-  const navigate = useNavigate();
   const [summary, setSummary] = useState<FinancialSummary>({
     totalReceipts: 0,
     totalVouchers: 0,
@@ -192,13 +189,9 @@ export function IntegratedFinancialDashboard() {
               <FileText className="h-4 w-4" />
               تقرير مالي
             </Button>
-            <Button 
-              variant="outline" 
-              className="gap-2"
-              onClick={() => navigate('/profitability-reports')}
-            >
+            <Button variant="outline" className="gap-2">
               <Car className="h-4 w-4" />
-              تقارير الربحية
+              أرباح المركبات
             </Button>
             <Button variant="outline" className="gap-2">
               <Users className="h-4 w-4" />

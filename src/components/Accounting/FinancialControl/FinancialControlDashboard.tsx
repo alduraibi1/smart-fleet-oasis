@@ -8,18 +8,13 @@ import {
   Bell, 
   Users,
   BarChart3,
-  AlertTriangle,
-  FileText,
-  Brain
+  AlertTriangle
 } from "lucide-react";
 
 import { OwnerBalanceReport } from "../FinancialReports/OwnerBalanceReport";
 import { CashFlowAnalysis } from "../FinancialReports/CashFlowAnalysis";
 import { AutomatedAlerts } from "../FinancialReports/AutomatedAlerts";
 import { FinancialWarningsTable } from "../FinancialWarnings/FinancialWarningsTable";
-import RecentJournalEntries from "./RecentJournalEntries";
-import CostCentersPanel from "./CostCentersPanel";
-import AIAnalyticsPanel from "./AIAnalyticsPanel";
 
 export function FinancialControlDashboard() {
   return (
@@ -39,7 +34,7 @@ export function FinancialControlDashboard() {
 
       {/* التبويبات الرئيسية */}
       <Tabs defaultValue="balances" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="balances" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             أرصدة المالكين
@@ -55,18 +50,6 @@ export function FinancialControlDashboard() {
           <TabsTrigger value="alerts" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             التنبيهات الآلية
-          </TabsTrigger>
-          <TabsTrigger value="journal" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            القيود اليومية
-          </TabsTrigger>
-          <TabsTrigger value="cost-centers" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            مراكز التكلفة
-          </TabsTrigger>
-          <TabsTrigger value="ai" className="flex items-center gap-2">
-            <Brain className="h-4 w-4" />
-            الذكاء الاصطناعي
           </TabsTrigger>
         </TabsList>
 
@@ -84,18 +67,6 @@ export function FinancialControlDashboard() {
 
         <TabsContent value="alerts">
           <AutomatedAlerts />
-        </TabsContent>
-
-        <TabsContent value="journal">
-          <RecentJournalEntries />
-        </TabsContent>
-
-        <TabsContent value="cost-centers">
-          <CostCentersPanel />
-        </TabsContent>
-
-        <TabsContent value="ai">
-          <AIAnalyticsPanel />
         </TabsContent>
       </Tabs>
     </div>

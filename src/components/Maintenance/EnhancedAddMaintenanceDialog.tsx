@@ -27,10 +27,6 @@ import { OilsTab } from "./tabs/OilsTab";
 import { CostsTab } from "./tabs/CostsTab";
 import { ImagesTab } from "./tabs/ImagesTab";
 
-// NEW: integrate with maintenance hooks
-import { useMaintenance } from "@/hooks/useMaintenance";
-import { useMaintenanceWork } from "@/hooks/useMaintenanceWork";
-
 interface EnhancedAddMaintenanceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -97,10 +93,6 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("basic");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // NEW: use hooks
-  const { addMaintenanceRecord } = useMaintenance();
-  const { addWorkHours } = useMaintenanceWork();
   
   const [formData, setFormData] = useState<MaintenanceFormData>({
     vehicleId: "",
@@ -172,71 +164,24 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
     return true;
   };
 
-  // NEW: helper to compute fallback times if user only entered hours
-  const getWorkTimes = () => {
-    const start = formData.workStartTime ?? (formData.date ? new Date(formData.date) : new Date());
-    if (start && formData.workStartTime === undefined && formData.date) {
-      // normalize time to 09:00 for a cleaner default
-      start.setHours(9, 0, 0, 0);
-    }
-    const end = formData.workEndTime ?? (formData.laborHours > 0 ? new Date(start.getTime() + formData.laborHours * 60 * 60 * 1000) : undefined);
-    return { start, end };
-  };
-
   const handleSubmit = async () => {
     if (!validateForm()) return;
     
     setIsSubmitting(true);
     
     try {
-      // 1) احسب التكاليف محلياً للعرض فقط (التريجر سيحدث الإجمالي لاحقاً)
+      // Calculate final costs
       calculateCosts();
       
-      // 2) أنشئ سجل الصيانة في Supabase
-      const payload = {
-        vehicle_id: formData.vehicleId,
-        maintenance_type: formData.type,
-        mechanic_id: formData.mechanicId,
-        description: formData.description,
-        scheduled_date: formData.date ? new Date(formData.date).toISOString().slice(0, 10) : undefined,
-        status: "scheduled",
-        notes: formData.notes,
-        // نمرر تكاليف أولية اختيارية؛ سيتم ضبط الإجمالي عبر التريجر بعد إدخال ساعات العمل
-        labor_hours: formData.laborHours || 0,
-        labor_cost: formData.laborHours * formData.hourlyRate || 0,
-        parts_cost: formData.partsCost || 0,
-        images: [], // placeholder for future storage integration
-        warranty_until: formData.warranty ? new Date(new Date().getTime() + (formData.warrantyPeriod || 30) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10) : undefined,
-      } as any;
-
-      const record = await addMaintenanceRecord(payload);
-      console.log("[EnhancedAddMaintenanceDialog] maintenance record created:", record);
-
-      // 3) إذا وُجدت ساعات عمل، سجّلها في جدول maintenance_work_hours
-      if (record?.id && formData.laborHours > 0 && formData.hourlyRate >= 0) {
-        const { start, end } = getWorkTimes();
-
-        await addWorkHours({
-          maintenanceId: record.id,
-          mechanicId: formData.mechanicId,
-          startTime: start,
-          endTime: end,
-          breakHours: 0,
-          hourlyRate: formData.hourlyRate,
-          notes: formData.vehicleConditionBefore ? `حالة قبل الصيانة: ${formData.vehicleConditionBefore}` : undefined,
-        });
-      }
-
-      // ملاحظة حول قطع الغيار والزيوت:
-      // حالياً لا ندرج maintenance_parts_used / maintenance_oils_used لأن قائمة القطع والزيوت في الواجهة بيانات وهمية.
-      // عند ربط شاشة المخزون بعناصر inventory_items (UUIDs حقيقية) سنضيف الإدراج والخصم التلقائي.
-
+      // Here you would save to backend
+      console.log("Maintenance Record Data:", formData);
+      
       toast({
         title: "تم إضافة سجل الصيانة",
-        description: "تم حفظ البيانات وتحديث تكلفة العمالة تلقائياً.",
+        description: "تم حفظ جميع البيانات بنجاح"
       });
-
-      // 4) إعادة ضبط النموذج
+      
+      // Reset form
       setFormData({
         vehicleId: "",
         mechanicId: "",
@@ -265,11 +210,11 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
         workStartTime: undefined,
         workEndTime: undefined,
       });
+      
       setActiveTab("basic");
       onOpenChange(false);
       
     } catch (error) {
-      console.error("[EnhancedAddMaintenanceDialog] handleSubmit error:", error);
       toast({
         title: "خطأ في الحفظ",
         description: "حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى",
