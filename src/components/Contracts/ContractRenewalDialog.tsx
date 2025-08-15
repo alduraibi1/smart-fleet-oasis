@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, DollarSign, FileText, RefreshCw, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -35,14 +34,16 @@ interface ContractRenewalDialogProps {
     total_amount: number;
     status: string;
   } | null;
-  renewalType: 'renewal' | 'extension';
+  onCreated: () => void;
+  renewalType?: 'renewal' | 'extension';
 }
 
 export const ContractRenewalDialog: React.FC<ContractRenewalDialogProps> = ({
   open,
   onOpenChange,
   contract,
-  renewalType
+  onCreated,
+  renewalType = 'renewal'
 }) => {
   const [formData, setFormData] = useState({
     startDate: '',
@@ -137,6 +138,7 @@ export const ContractRenewalDialog: React.FC<ContractRenewalDialogProps> = ({
         });
       }
 
+      onCreated();
       onOpenChange(false);
     } catch (error) {
       toast({
