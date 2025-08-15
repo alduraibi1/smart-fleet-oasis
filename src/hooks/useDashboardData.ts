@@ -59,74 +59,95 @@ export const useDashboardData = () => {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchDashboardStats = async () => {
+  const fetchDashboardStats = async (): Promise<void> => {
     try {
-      // جلب إحصائيات المركبات
-      const { data: vehicles } = await supabase
+      // Fetch vehicles data
+      const vehiclesResponse = await supabase
         .from('vehicles')
         .select('id, status')
         .eq('is_active', true);
+      
+      const vehicles = vehiclesResponse.data || [];
 
-      // جلب العقود النشطة
-      const { data: contracts } = await supabase
+      // Fetch contracts data
+      const contractsResponse = await supabase
         .from('rental_contracts')
         .select('id, status, total_amount, end_date')
         .in('status', ['active', 'confirmed']);
+      
+      const contracts = contractsResponse.data || [];
 
-      // جلب إجمالي الإيرادات
-      const { data: receipts } = await supabase
+      // Fetch receipts data
+      const receiptsResponse = await supabase
         .from('payment_receipts')
         .select('amount, payment_date')
         .eq('status', 'confirmed');
+      
+      const receipts = receiptsResponse.data || [];
 
-      // جلب المصروفات
-      const { data: vouchers } = await supabase
+      // Fetch vouchers data
+      const vouchersResponse = await supabase
         .from('payment_vouchers')
         .select('amount, payment_date')
         .in('status', ['approved', 'paid']);
+      
+      const vouchers = vouchersResponse.data || [];
 
-      // جلب الصيانة المعلقة
-      const { data: maintenance } = await supabase
+      // Fetch maintenance data
+      const maintenanceResponse = await supabase
         .from('vehicle_maintenance')
         .select('id')
         .eq('status', 'pending');
+      
+      const maintenance = maintenanceResponse.data || [];
 
-      // جلب تقييمات العملاء
-      const { data: ratings } = await supabase
+      // Fetch ratings data
+      const ratingsResponse = await supabase
         .from('customer_ratings')
         .select('rating');
-
-      // حساب الإحصائيات
-      const totalVehicles = vehicles?.length || 0;
-      const availableVehicles = vehicles?.filter(v => v.status === 'available').length || 0;
-      const activeContracts = contracts?.length || 0;
-      const totalRevenue = receipts?.reduce((sum, r) => sum + r.amount, 0) || 0;
-      const totalExpenses = vouchers?.reduce((sum, v) => sum + v.amount, 0) || 0;
       
-      // الإيرادات الشهرية (آخر شهر)
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      const monthlyRevenue = receipts?.filter(r => {
-        const date = new Date(r.payment_date);
-        return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-      }).reduce((sum, r) => sum + r.amount, 0) || 0;
+      const ratings = ratingsResponse.data || [];
 
-      // العقود المتأخرة
-      const overdueContracts = contracts?.filter(c => 
-        new Date(c.end_date) < new Date() && c.status === 'active'
-      ).length || 0;
+      // Calculate stats with explicit typing
+      const totalVehicles: number = vehicles.length;
+      const availableVehicles: number = vehicles.filter((v: any) => v.status === 'available').length;
+      const activeContracts: number = contracts.length;
+      
+      const totalRevenue: number = receipts.reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
+      const totalExpenses: number = vouchers.reduce((sum: number, v: any) => sum + (v.amount || 0), 0);
+      
+      // Monthly revenue calculation
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth();
+      const currentYear = currentDate.getFullYear();
+      
+      const monthlyRevenue: number = receipts
+        .filter((r: any) => {
+          const date = new Date(r.payment_date);
+          return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        })
+        .reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
 
-      // متوسط رضا العملاء
-      const customerSatisfaction = ratings?.length ? 
-        ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length : 0;
+      // Overdue contracts calculation
+      const now = new Date();
+      const overdueContracts: number = contracts
+        .filter((c: any) => new Date(c.end_date) < now && c.status === 'active')
+        .length;
 
-      // معدل الاستخدام
-      const utilizationRate = totalVehicles > 0 ? 
-        (totalVehicles - availableVehicles) / totalVehicles * 100 : 0;
+      // Customer satisfaction calculation
+      const customerSatisfaction: number = ratings.length > 0 
+        ? ratings.reduce((sum: number, r: any) => sum + (r.rating || 0), 0) / ratings.length 
+        : 0;
 
-      // هامش الربح
-      const profitMargin = totalRevenue > 0 ? 
-        ((totalRevenue - totalExpenses) / totalRevenue) * 100 : 0;
+      // Utilization rate calculation
+      const utilizationRate: number = totalVehicles > 0 
+        ? ((totalVehicles - availableVehicles) / totalVehicles) * 100 
+        : 0;
+
+      // Profit margin calculation
+      const profitMargin: number = totalRevenue > 0 
+        ? ((totalRevenue - totalExpenses) / totalRevenue) * 100 
+        : 0;
 
       setStats({
         totalVehicles,
@@ -134,7 +155,7 @@ export const useDashboardData = () => {
         activeContracts,
         totalRevenue,
         monthlyRevenue,
-        pendingMaintenance: maintenance?.length || 0,
+        pendingMaintenance: maintenance.length,
         overdueContracts,
         customerSatisfaction,
         utilizationRate,
@@ -146,53 +167,61 @@ export const useDashboardData = () => {
     }
   };
 
-  const fetchRevenueData = async () => {
+  const fetchRevenueData = async (): Promise<void> => {
     try {
-      const { data: receipts } = await supabase
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      const dateFilter = sixMonthsAgo.toISOString();
+
+      const receiptsResponse = await supabase
         .from('payment_receipts')
         .select('amount, payment_date')
         .eq('status', 'confirmed')
-        .gte('payment_date', new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('payment_date', dateFilter);
 
-      const { data: vouchers } = await supabase
+      const vouchersResponse = await supabase
         .from('payment_vouchers')
         .select('amount, payment_date')
         .in('status', ['approved', 'paid'])
-        .gte('payment_date', new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('payment_date', dateFilter);
 
-      const { data: contracts } = await supabase
+      const contractsResponse = await supabase
         .from('rental_contracts')
         .select('start_date')
-        .gte('start_date', new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('start_date', dateFilter);
 
-      // تجميع البيانات حسب الشهر
-      const monthlyDataMap: Record<string, { revenue: number; expenses: number; contracts: number }> = {};
-      
-      receipts?.forEach(receipt => {
+      const receipts = receiptsResponse.data || [];
+      const vouchers = vouchersResponse.data || [];
+      const contracts = contractsResponse.data || [];
+
+      // Process monthly data with explicit typing
+      const monthlyMap = new Map<string, { revenue: number; expenses: number; contracts: number }>();
+
+      // Process receipts
+      receipts.forEach((receipt: any) => {
         const monthKey = new Date(receipt.payment_date).toLocaleString('ar-SA', { month: 'long' });
-        if (!monthlyDataMap[monthKey]) {
-          monthlyDataMap[monthKey] = { revenue: 0, expenses: 0, contracts: 0 };
-        }
-        monthlyDataMap[monthKey].revenue += receipt.amount;
+        const existing = monthlyMap.get(monthKey) || { revenue: 0, expenses: 0, contracts: 0 };
+        existing.revenue += receipt.amount || 0;
+        monthlyMap.set(monthKey, existing);
       });
 
-      vouchers?.forEach(voucher => {
+      // Process vouchers
+      vouchers.forEach((voucher: any) => {
         const monthKey = new Date(voucher.payment_date).toLocaleString('ar-SA', { month: 'long' });
-        if (!monthlyDataMap[monthKey]) {
-          monthlyDataMap[monthKey] = { revenue: 0, expenses: 0, contracts: 0 };
-        }
-        monthlyDataMap[monthKey].expenses += voucher.amount;
+        const existing = monthlyMap.get(monthKey) || { revenue: 0, expenses: 0, contracts: 0 };
+        existing.expenses += voucher.amount || 0;
+        monthlyMap.set(monthKey, existing);
       });
 
-      contracts?.forEach(contract => {
+      // Process contracts
+      contracts.forEach((contract: any) => {
         const monthKey = new Date(contract.start_date).toLocaleString('ar-SA', { month: 'long' });
-        if (!monthlyDataMap[monthKey]) {
-          monthlyDataMap[monthKey] = { revenue: 0, expenses: 0, contracts: 0 };
-        }
-        monthlyDataMap[monthKey].contracts += 1;
+        const existing = monthlyMap.get(monthKey) || { revenue: 0, expenses: 0, contracts: 0 };
+        existing.contracts += 1;
+        monthlyMap.set(monthKey, existing);
       });
 
-      const revenueData = Object.entries(monthlyDataMap).map(([month, data]) => ({
+      const revenueData: RevenueData[] = Array.from(monthlyMap.entries()).map(([month, data]) => ({
         month,
         revenue: data.revenue,
         contracts: data.contracts,
@@ -205,38 +234,47 @@ export const useDashboardData = () => {
     }
   };
 
-  const fetchTopVehicles = async () => {
+  const fetchTopVehicles = async (): Promise<void> => {
     try {
-      const { data: vehicles } = await supabase
+      const vehiclesResponse = await supabase
         .from('vehicles')
         .select('id, plate_number, brand, model')
         .eq('is_active', true);
 
-      if (!vehicles) return;
-
+      const vehicles = vehiclesResponse.data || [];
       const vehiclePerformance: VehiclePerformance[] = [];
 
       for (const vehicle of vehicles) {
-        const { data: contracts } = await supabase
+        const contractsResponse = await supabase
           .from('rental_contracts')
           .select('id, total_amount')
           .eq('vehicle_id', vehicle.id);
 
-        const { data: receipts } = await supabase
-          .from('payment_receipts')
-          .select('amount')
-          .in('contract_id', contracts?.map(c => c.id) || [])
-          .eq('status', 'confirmed');
+        const contracts = contractsResponse.data || [];
+        const contractIds = contracts.map((c: any) => c.id);
 
-        const contractsCount = contracts?.length || 0;
-        const revenue = receipts?.reduce((sum, r) => sum + r.amount, 0) || 0;
+        let receiptsResponse;
+        if (contractIds.length > 0) {
+          receiptsResponse = await supabase
+            .from('payment_receipts')
+            .select('amount')
+            .in('contract_id', contractIds)
+            .eq('status', 'confirmed');
+        } else {
+          receiptsResponse = { data: [] };
+        }
+
+        const receipts = receiptsResponse.data || [];
+        const contractsCount = contracts.length;
+        const revenue = receipts.reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
+        const utilization = contractsCount > 0 ? Math.min((contractsCount / 10) * 100, 100) : 0;
 
         vehiclePerformance.push({
           id: vehicle.id,
-          plateNumber: vehicle.plate_number,
-          model: `${vehicle.brand} ${vehicle.model}`,
+          plateNumber: vehicle.plate_number || '',
+          model: `${vehicle.brand || ''} ${vehicle.model || ''}`.trim(),
           revenue,
-          utilization: contractsCount > 0 ? Math.min((contractsCount / 10) * 100, 100) : 0,
+          utilization,
           contracts: contractsCount,
         });
       }
@@ -251,18 +289,19 @@ export const useDashboardData = () => {
     }
   };
 
-  const fetchRecentActivity = async () => {
+  const fetchRecentActivity = async (): Promise<void> => {
     try {
       const activities: RecentActivity[] = [];
 
-      // جلب العقود الحديثة
-      const { data: recentContracts } = await supabase
+      // Fetch recent contracts
+      const contractsResponse = await supabase
         .from('rental_contracts')
         .select('id, contract_number, status, created_at')
         .order('created_at', { ascending: false })
         .limit(3);
 
-      recentContracts?.forEach(contract => {
+      const recentContracts = contractsResponse.data || [];
+      recentContracts.forEach((contract: any) => {
         activities.push({
           id: contract.id,
           type: 'contract',
@@ -273,14 +312,15 @@ export const useDashboardData = () => {
         });
       });
 
-      // جلب المدفوعات الحديثة
-      const { data: recentPayments } = await supabase
+      // Fetch recent payments
+      const paymentsResponse = await supabase
         .from('payment_receipts')
         .select('id, receipt_number, amount, status, created_at, customer_name')
         .order('created_at', { ascending: false })
         .limit(3);
 
-      recentPayments?.forEach(payment => {
+      const recentPayments = paymentsResponse.data || [];
+      recentPayments.forEach((payment: any) => {
         activities.push({
           id: payment.id,
           type: 'payment',
@@ -291,9 +331,12 @@ export const useDashboardData = () => {
         });
       });
 
-      // ترتيب النشاطات حسب التاريخ
-      activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-      setRecentActivity(activities.slice(0, 6));
+      // Sort by timestamp and take first 6
+      const sortedActivities = activities
+        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+        .slice(0, 6);
+
+      setRecentActivity(sortedActivities);
 
     } catch (error) {
       console.error('Error fetching recent activity:', error);
@@ -301,7 +344,7 @@ export const useDashboardData = () => {
   };
 
   useEffect(() => {
-    const loadDashboardData = async () => {
+    const loadDashboardData = async (): Promise<void> => {
       setLoading(true);
       await Promise.all([
         fetchDashboardStats(),
@@ -315,17 +358,19 @@ export const useDashboardData = () => {
     loadDashboardData();
   }, []);
 
+  const refetch = (): void => {
+    fetchDashboardStats();
+    fetchRevenueData();
+    fetchTopVehicles();
+    fetchRecentActivity();
+  };
+
   return {
     stats,
     revenueData,
     topVehicles,
     recentActivity,
     loading,
-    refetch: () => {
-      fetchDashboardStats();
-      fetchRevenueData();
-      fetchTopVehicles();
-      fetchRecentActivity();
-    },
+    refetch,
   };
 };
