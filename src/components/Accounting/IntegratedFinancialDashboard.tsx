@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CreatePaymentReceiptDialog } from "./PaymentReceipts/CreatePaymentReceiptDialog";
 import { CreatePaymentVoucherDialog } from "./PaymentVouchers/CreatePaymentVoucherDialog";
 import { FinancialWarningsTable } from "./FinancialWarnings/FinancialWarningsTable";
-import { ProfitabilityDashboard } from "./Profitability/ProfitabilityDashboard";
+import { useNavigate } from "react-router-dom";
 
 interface FinancialSummary {
   totalReceipts: number;
@@ -21,6 +22,7 @@ interface FinancialSummary {
 }
 
 export function IntegratedFinancialDashboard() {
+  const navigate = useNavigate();
   const [summary, setSummary] = useState<FinancialSummary>({
     totalReceipts: 0,
     totalVouchers: 0,
@@ -190,9 +192,13 @@ export function IntegratedFinancialDashboard() {
               <FileText className="h-4 w-4" />
               تقرير مالي
             </Button>
-            <Button variant="outline" className="gap-2">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              onClick={() => navigate('/profitability-reports')}
+            >
               <Car className="h-4 w-4" />
-              أرباح المركبات
+              تقارير الربحية
             </Button>
             <Button variant="outline" className="gap-2">
               <Users className="h-4 w-4" />
@@ -298,17 +304,6 @@ export function IntegratedFinancialDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Profitability Reports */}
-      <Card>
-        <CardHeader>
-          <CardTitle>تقارير الربحية</CardTitle>
-          <CardDescription>حلل ربحية المركبات والمالكين والعملاء لفترة زمنية محددة</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ProfitabilityDashboard />
-        </CardContent>
-      </Card>
     </div>
   );
 }
