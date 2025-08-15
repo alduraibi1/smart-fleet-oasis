@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,12 +30,6 @@ const EnhancedContractManagement = () => {
     loading,
     stats,
     fetchContracts,
-    searchContracts,
-    totalPages,
-    currentPage,
-    nextPage,
-    prevPage,
-    goToPage,
   } = useContracts();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -65,7 +60,15 @@ const EnhancedContractManagement = () => {
     setTerminationDialogOpen(true);
   };
 
-  const filteredContracts = contracts;
+  const filteredContracts = contracts.filter(contract => {
+    const matchesSearch = search === "" || 
+      contract.contract_number?.toLowerCase().includes(search.toLowerCase()) ||
+      contract.customer?.name?.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || contract.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   const ActionButtons = ({ contract }: { contract: any }) => (
     <div className="flex gap-2">
@@ -111,6 +114,10 @@ const EnhancedContractManagement = () => {
       </Button>
     </div>
   );
+
+  useEffect(() => {
+    fetchContracts();
+  }, [fetchContracts]);
 
   return (
     <div className="space-y-6">

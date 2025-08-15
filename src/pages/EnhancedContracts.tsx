@@ -1,6 +1,6 @@
 
 import { AppLayout } from "@/components/Layout/AppLayout";
-import { EnhancedContractManagement } from "@/components/Contracts/EnhancedContractManagement";
+import EnhancedContractManagement from "@/components/Contracts/EnhancedContractManagement";
 import { PendingTerminationRequests } from "@/components/Contracts/PendingTerminationRequests";
 import { ContractTerminationTest } from "@/components/Contracts/ContractTerminationTest";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

@@ -8,8 +8,8 @@ import { MinimalContractForEarlyTermination } from '@/utils/earlyTerminationUtil
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface Contract extends MinimalContractForEarlyTermination {
-  contract_number?: string;
+interface ContractForTermination extends MinimalContractForEarlyTermination {
+  contract_number: string;
   customer?: { id?: string; name?: string };
   vehicle?: { brand: string; model: string; year: number; plate_number: string };
   status: string;
@@ -18,7 +18,7 @@ interface Contract extends MinimalContractForEarlyTermination {
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  contract: Contract;
+  contract: ContractForTermination;
   onCompleted?: () => void;
 }
 
