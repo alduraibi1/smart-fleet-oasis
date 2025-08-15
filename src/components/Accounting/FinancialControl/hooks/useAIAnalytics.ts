@@ -1,4 +1,5 @@
 
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -70,7 +71,7 @@ export const useFinancialAnomalies = () => {
         .limit(50);
       if (error) throw error;
       
-      // Map the data to match our interface, using status field that exists
+      // Map the data to match our interface, using the actual column names from the database
       return (data || []).map(item => ({
         id: item.id,
         anomaly_type: item.anomaly_type,
@@ -80,8 +81,8 @@ export const useFinancialAnomalies = () => {
         expected_value: item.expected_value,
         actual_value: item.actual_value,
         deviation_percentage: item.deviation_percentage,
-        status: item.status || 'detected',
-        detection_date: item.detection_date,
+        status: 'detected', // Default status since the column doesn't exist in DB
+        detection_date: item.created_at, // Use created_at as detection_date
         created_at: item.created_at
       })) as FinancialAnomaly[];
     },
@@ -131,3 +132,4 @@ export const analyzeCustomerBehavior = async (customerId: string) => {
   if (error) throw error;
   return data;
 };
+
