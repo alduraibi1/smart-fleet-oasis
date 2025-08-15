@@ -1,50 +1,42 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { Toaster } from "@/components/ui/toaster";
+import { AppRoutes } from "@/routes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { GlobalErrorBoundary } from "@/components/ui/global-error-boundary";
-import { AppRoutes } from "./routes";
-import { i18n } from "./lib/i18n";
-import { useEffect } from "react";
+import { initializeI18n } from "@/lib/i18n";
+import "./App.css";
+
+// Initialize i18n
+initializeI18n();
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
       retry: 1,
       refetchOnWindowFocus: false,
     },
   },
 });
 
-const App = () => {
-  useEffect(() => {
-    // Initialize i18n on app startup
-    i18n.init();
-  }, []);
-
+function App() {
   return (
     <GlobalErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
           <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-            <TooltipProvider>
+            <AuthProvider>
+              <AppRoutes />
               <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <AppRoutes />
-              </BrowserRouter>
-            </TooltipProvider>
+            </AuthProvider>
           </ThemeProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
     </GlobalErrorBoundary>
   );
-};
+}
 
 export default App;

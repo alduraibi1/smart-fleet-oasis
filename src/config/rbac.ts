@@ -1,7 +1,7 @@
 
 import { lazy } from 'react';
 
-// Lazy load all pages
+// Lazy load components for better performance
 const Index = lazy(() => import('@/pages/Index'));
 const EnhancedDashboard = lazy(() => import('@/pages/EnhancedDashboard'));
 const Vehicles = lazy(() => import('@/pages/Vehicles'));
@@ -17,110 +17,185 @@ const Owners = lazy(() => import('@/pages/Owners'));
 const SystemManagement = lazy(() => import('@/pages/SystemManagement'));
 const NotificationSettings = lazy(() => import('@/pages/NotificationSettings'));
 
-export interface RouteConfig {
-  path: string;
-  element: React.ComponentType;
-  requiredRole?: string;
-  requiredPermission?: string;
-  title: string;
-  description?: string;
-}
+// Define roles
+export type UserRole = 'admin' | 'manager' | 'employee' | 'viewer';
 
-export const protectedRoutes: RouteConfig[] = [
+// Define permissions
+export type Permission = 
+  | 'view_dashboard'
+  | 'manage_vehicles'
+  | 'manage_customers'
+  | 'manage_contracts'
+  | 'manage_maintenance'
+  | 'view_reports'
+  | 'manage_accounting'
+  | 'manage_inventory'
+  | 'manage_suppliers'
+  | 'manage_hr'
+  | 'manage_owners'
+  | 'manage_system'
+  | 'manage_notifications';
+
+// Define protected routes with RBAC
+export const protectedRoutes = [
   {
     path: '/',
     element: Index,
     title: 'الصفحة الرئيسية',
-    description: 'لوحة التحكم الرئيسية'
+    description: 'نظرة عامة على النظام'
   },
   {
-    path: '/enhanced-dashboard',
+    path: '/dashboard',
     element: EnhancedDashboard,
     title: 'لوحة التحكم المتقدمة',
-    description: 'إحصائيات وتحليلات متقدمة'
+    description: 'إحصائيات وتحليلات شاملة',
+    requiredPermission: 'view_dashboard'
   },
   {
     path: '/vehicles',
     element: Vehicles,
     title: 'إدارة المركبات',
-    description: 'عرض وإدارة المركبات'
+    description: 'عرض وإدارة المركبات',
+    requiredPermission: 'manage_vehicles'
   },
   {
     path: '/contracts',
     element: ContractsMain,
     title: 'إدارة العقود',
-    description: 'عرض وإدارة عقود الإيجار'
+    description: 'عرض وإدارة عقود الإيجار',
+    requiredPermission: 'manage_contracts'
   },
   {
     path: '/maintenance',
     element: Maintenance,
-    title: 'الصيانة',
-    description: 'إدارة صيانة المركبات'
+    title: 'إدارة الصيانة',
+    description: 'عرض وإدارة عمليات الصيانة',
+    requiredPermission: 'manage_maintenance'
   },
   {
     path: '/reports',
     element: EnhancedReports,
-    title: 'التقارير',
-    description: 'التقارير والإحصائيات'
+    title: 'التقارير المتقدمة',
+    description: 'تقارير شاملة وتحليلات',
+    requiredPermission: 'view_reports'
   },
   {
     path: '/accounting',
     element: Accounting,
-    requiredRole: 'accountant',
     title: 'المحاسبة',
-    description: 'إدارة الحسابات والمالية'
+    description: 'إدارة الحسابات والمالية',
+    requiredPermission: 'manage_accounting'
   },
   {
     path: '/financial-control',
     element: FinancialControl,
-    requiredRole: 'manager',
     title: 'الرقابة المالية',
-    description: 'مراقبة الأداء المالي'
+    description: 'مراقبة وتحليل الأداء المالي',
+    requiredPermission: 'manage_accounting'
   },
   {
     path: '/inventory',
     element: Inventory,
-    title: 'المخزون',
-    description: 'إدارة المخزون والقطع'
+    title: 'إدارة المخزون',
+    description: 'عرض وإدارة المخزون',
+    requiredPermission: 'manage_inventory'
   },
   {
     path: '/suppliers',
     element: Suppliers,
-    title: 'الموردين',
-    description: 'إدارة الموردين'
+    title: 'إدارة الموردين',
+    description: 'عرض وإدارة الموردين',
+    requiredPermission: 'manage_suppliers'
   },
   {
     path: '/hr',
     element: EnhancedHR,
-    requiredRole: 'manager',
-    title: 'الموارد البشرية',
-    description: 'إدارة الموظفين'
+    title: 'إدارة الموارد البشرية',
+    description: 'إدارة الموظفين والحضور',
+    requiredPermission: 'manage_hr'
   },
   {
     path: '/owners',
     element: Owners,
-    title: 'الملاك',
-    description: 'إدارة ملاك المركبات'
+    title: 'إدارة الملاك',
+    description: 'عرض وإدارة ملاك المركبات',
+    requiredPermission: 'manage_owners'
   },
   {
-    path: '/system-management',
+    path: '/system',
     element: SystemManagement,
-    requiredRole: 'admin',
     title: 'إدارة النظام',
-    description: 'إعدادات النظام والصلاحيات'
+    description: 'إعدادات النظام والمستخدمين',
+    requiredRole: 'admin',
+    requiredPermission: 'manage_system'
   },
   {
-    path: '/notification-settings',
+    path: '/notifications',
     element: NotificationSettings,
     title: 'إعدادات الإشعارات',
-    description: 'تخصيص الإشعارات'
+    description: 'إدارة إعدادات الإشعارات',
+    requiredPermission: 'manage_notifications'
   }
 ];
 
-// Get user's accessible routes based on their roles
-export const getAccessibleRoutes = (userRoles: string[]) => {
-  return protectedRoutes.filter(route => {
-    if (!route.requiredRole) return true;
-    return userRoles.includes(route.requiredRole) || userRoles.includes('admin');
-  });
+// Role-based permissions mapping
+export const rolePermissions: Record<UserRole, Permission[]> = {
+  admin: [
+    'view_dashboard',
+    'manage_vehicles',
+    'manage_customers',
+    'manage_contracts',
+    'manage_maintenance',
+    'view_reports',
+    'manage_accounting',
+    'manage_inventory',
+    'manage_suppliers',
+    'manage_hr',
+    'manage_owners',
+    'manage_system',
+    'manage_notifications'
+  ],
+  manager: [
+    'view_dashboard',
+    'manage_vehicles',
+    'manage_customers',
+    'manage_contracts',
+    'manage_maintenance',
+    'view_reports',
+    'manage_accounting',
+    'manage_inventory',
+    'manage_suppliers',
+    'manage_hr',
+    'manage_owners',
+    'manage_notifications'
+  ],
+  employee: [
+    'view_dashboard',
+    'manage_vehicles',
+    'manage_customers',
+    'manage_contracts',
+    'manage_maintenance',
+    'view_reports'
+  ],
+  viewer: [
+    'view_dashboard',
+    'view_reports'
+  ]
+};
+
+// Check if user has specific permission
+export const hasPermission = (userRole: UserRole, permission: Permission): boolean => {
+  return rolePermissions[userRole]?.includes(permission) ?? false;
+};
+
+// Check if user has required role
+export const hasRole = (userRole: UserRole, requiredRole: UserRole): boolean => {
+  const roleHierarchy: Record<UserRole, number> = {
+    viewer: 1,
+    employee: 2,
+    manager: 3,
+    admin: 4
+  };
+  
+  return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
 };
