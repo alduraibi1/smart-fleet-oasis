@@ -9,7 +9,8 @@ import {
   Users,
   BarChart3,
   AlertTriangle,
-  FileText
+  FileText,
+  Brain
 } from "lucide-react";
 
 import { OwnerBalanceReport } from "../FinancialReports/OwnerBalanceReport";
@@ -18,6 +19,7 @@ import { AutomatedAlerts } from "../FinancialReports/AutomatedAlerts";
 import { FinancialWarningsTable } from "../FinancialWarnings/FinancialWarningsTable";
 import RecentJournalEntries from "./RecentJournalEntries";
 import CostCentersPanel from "./CostCentersPanel";
+import AIAnalyticsPanel from "./AIAnalyticsPanel";
 
 export function FinancialControlDashboard() {
   return (
@@ -37,7 +39,7 @@ export function FinancialControlDashboard() {
 
       {/* التبويبات الرئيسية */}
       <Tabs defaultValue="balances" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="balances" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             أرصدة المالكين
@@ -61,6 +63,10 @@ export function FinancialControlDashboard() {
           <TabsTrigger value="cost-centers" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             مراكز التكلفة
+          </TabsTrigger>
+          <TabsTrigger value="ai" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            الذكاء الاصطناعي
           </TabsTrigger>
         </TabsList>
 
@@ -87,8 +93,11 @@ export function FinancialControlDashboard() {
         <TabsContent value="cost-centers">
           <CostCentersPanel />
         </TabsContent>
+
+        <TabsContent value="ai">
+          <AIAnalyticsPanel />
+        </TabsContent>
       </Tabs>
     </div>
   );
 }
-

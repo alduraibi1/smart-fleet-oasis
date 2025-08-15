@@ -162,6 +162,54 @@ export type Database = {
         }
         Relationships: []
       }
+      behavioral_analytics: {
+        Row: {
+          analysis_period_end: string
+          analysis_period_start: string
+          analysis_type: string
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          insights: Json | null
+          opportunity_score: number | null
+          pattern_data: Json
+          recommendations: Json | null
+          risk_score: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          analysis_period_end: string
+          analysis_period_start: string
+          analysis_type: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          insights?: Json | null
+          opportunity_score?: number | null
+          pattern_data?: Json
+          recommendations?: Json | null
+          risk_score?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          analysis_period_end?: string
+          analysis_period_start?: string
+          analysis_type?: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          insights?: Json | null
+          opportunity_score?: number | null
+          pattern_data?: Json
+          recommendations?: Json | null
+          risk_score?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       chart_of_accounts: {
         Row: {
           account_code: string
@@ -788,6 +836,98 @@ export type Database = {
           },
         ]
       }
+      dynamic_pricing_log: {
+        Row: {
+          adjusted_price: number
+          adjustment_reason: string | null
+          applied_at: string | null
+          id: string
+          original_price: number
+          rule_id: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          adjusted_price: number
+          adjustment_reason?: string | null
+          applied_at?: string | null
+          id?: string
+          original_price: number
+          rule_id?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          adjusted_price?: number
+          adjustment_reason?: string | null
+          applied_at?: string | null
+          id?: string
+          original_price?: number
+          rule_id?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dynamic_pricing_log_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "dynamic_pricing_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dynamic_pricing_rules: {
+        Row: {
+          base_price_adjustment: number | null
+          competition_factors: Json | null
+          created_at: string | null
+          created_by: string | null
+          demand_factors: Json | null
+          effective_from: string
+          effective_to: string | null
+          id: string
+          is_active: boolean | null
+          max_price_limit: number | null
+          min_price_limit: number | null
+          rule_name: string
+          seasonal_factors: Json | null
+          updated_at: string | null
+          vehicle_criteria: Json | null
+        }
+        Insert: {
+          base_price_adjustment?: number | null
+          competition_factors?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          demand_factors?: Json | null
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_price_limit?: number | null
+          min_price_limit?: number | null
+          rule_name: string
+          seasonal_factors?: Json | null
+          updated_at?: string | null
+          vehicle_criteria?: Json | null
+        }
+        Update: {
+          base_price_adjustment?: number | null
+          competition_factors?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          demand_factors?: Json | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_price_limit?: number | null
+          min_price_limit?: number | null
+          rule_name?: string
+          seasonal_factors?: Json | null
+          updated_at?: string | null
+          vehicle_criteria?: Json | null
+        }
+        Relationships: []
+      }
       failed_login_attempts: {
         Row: {
           attempt_time: string | null
@@ -812,6 +952,108 @@ export type Database = {
           id?: string
           ip_address?: unknown | null
           user_agent?: string | null
+        }
+        Relationships: []
+      }
+      financial_ai_predictions: {
+        Row: {
+          accuracy_metrics: Json | null
+          confidence_score: number | null
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          input_features: Json | null
+          model_version: string | null
+          predicted_value: number
+          prediction_date: string
+          prediction_period: string
+          prediction_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          accuracy_metrics?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          input_features?: Json | null
+          model_version?: string | null
+          predicted_value: number
+          prediction_date: string
+          prediction_period?: string
+          prediction_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          accuracy_metrics?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          input_features?: Json | null
+          model_version?: string | null
+          predicted_value?: number
+          prediction_date?: string
+          prediction_period?: string
+          prediction_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      financial_anomalies: {
+        Row: {
+          actual_value: number | null
+          anomaly_score: number
+          anomaly_type: string
+          context_data: Json | null
+          created_at: string | null
+          detected_at: string | null
+          deviation_percentage: number | null
+          entity_id: string | null
+          entity_type: string
+          expected_value: number | null
+          id: string
+          investigation_status: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          actual_value?: number | null
+          anomaly_score: number
+          anomaly_type: string
+          context_data?: Json | null
+          created_at?: string | null
+          detected_at?: string | null
+          deviation_percentage?: number | null
+          entity_id?: string | null
+          entity_type: string
+          expected_value?: number | null
+          id?: string
+          investigation_status?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          actual_value?: number | null
+          anomaly_score?: number
+          anomaly_type?: string
+          context_data?: Json | null
+          created_at?: string | null
+          detected_at?: string | null
+          deviation_percentage?: number | null
+          entity_id?: string | null
+          entity_type?: string
+          expected_value?: number | null
+          id?: string
+          investigation_status?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
         }
         Relationships: []
       }
@@ -2400,6 +2642,98 @@ export type Database = {
         }
         Relationships: []
       }
+      smart_alert_log: {
+        Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_data: Json | null
+          created_at: string | null
+          entity_id: string | null
+          id: string
+          notification_sent: boolean | null
+          rule_id: string | null
+          threshold_value: number | null
+          trigger_value: number | null
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_data?: Json | null
+          created_at?: string | null
+          entity_id?: string | null
+          id?: string
+          notification_sent?: boolean | null
+          rule_id?: string | null
+          threshold_value?: number | null
+          trigger_value?: number | null
+        }
+        Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_data?: Json | null
+          created_at?: string | null
+          entity_id?: string | null
+          id?: string
+          notification_sent?: boolean | null
+          rule_id?: string | null
+          threshold_value?: number | null
+          trigger_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_alert_log_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "smart_alert_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smart_alert_rules: {
+        Row: {
+          alert_template: Json
+          conditions: Json
+          created_at: string | null
+          created_by: string | null
+          entity_type: string
+          id: string
+          is_active: boolean | null
+          rule_name: string
+          rule_type: string
+          severity_level: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          alert_template: Json
+          conditions: Json
+          created_at?: string | null
+          created_by?: string | null
+          entity_type: string
+          id?: string
+          is_active?: boolean | null
+          rule_name: string
+          rule_type: string
+          severity_level?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          alert_template?: Json
+          conditions?: Json
+          created_at?: string | null
+          created_by?: string | null
+          entity_type?: string
+          id?: string
+          is_active?: boolean | null
+          rule_name?: string
+          rule_type?: string
+          severity_level?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       smart_notifications: {
         Row: {
           action_data: Json | null
@@ -3069,6 +3403,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      analyze_customer_behavior: {
+        Args: { p_customer_id: string }
+        Returns: Json
+      }
       check_profitability_thresholds: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -3103,6 +3441,10 @@ export type Database = {
         }
         Returns: string
       }
+      detect_financial_anomalies: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       ensure_cost_center_for_entity: {
         Args: {
           p_center_code?: string
@@ -3115,6 +3457,14 @@ export type Database = {
       generate_discount_number: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      generate_financial_predictions: {
+        Args: {
+          p_entity_id: string
+          p_entity_type: string
+          p_prediction_months?: number
+        }
+        Returns: Json
       }
       generate_receipt_number: {
         Args: Record<PropertyKey, never>
