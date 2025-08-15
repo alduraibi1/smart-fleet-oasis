@@ -57,6 +57,12 @@ export const ContractTerminationDialog = ({ open, onOpenChange, contract, onComp
     return today < endDate;
   };
 
+  // Create a compatible contract object for VehicleReturnForm
+  const vehicleReturnContract = {
+    ...contract,
+    customer: contract.customer?.name ? { name: contract.customer.name } : { name: 'غير محدد' },
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -75,7 +81,7 @@ export const ContractTerminationDialog = ({ open, onOpenChange, contract, onComp
 
           <TabsContent value="normal" className="mt-6">
             <VehicleReturnForm
-              contract={contract}
+              contract={vehicleReturnContract}
               onReturn={handleNormalReturn}
               onCancel={() => onOpenChange(false)}
             />

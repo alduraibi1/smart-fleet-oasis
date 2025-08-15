@@ -254,7 +254,7 @@ const EnhancedContractManagement = () => {
             open={renewalDialogOpen}
             onOpenChange={setRenewalDialogOpen}
             contract={selectedContract}
-            onRenewed={() => {
+            onCreated={() => {
               fetchContracts();
               setSelectedContract(null);
             }}
