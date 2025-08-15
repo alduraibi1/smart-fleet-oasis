@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,8 +24,8 @@ export interface FinancialAnomaly {
   expected_value: number | null;
   actual_value: number | null;
   deviation_percentage: number | null;
-  investigation_status: string;
-  detected_at: string | null;
+  status: string;
+  detection_date: string | null;
   created_at: string | null;
 }
 
@@ -65,7 +64,9 @@ export const useFinancialAnomalies = () => {
     queryFn: async (): Promise<FinancialAnomaly[]> => {
       const { data, error } = await supabase
         .from("financial_anomalies")
-        .select("id, anomaly_type, entity_type, entity_id, anomaly_score, expected_value, actual_value, deviation_percentage, investigation_status, detected_at, created_at")
+        .select(
+          "id, anomaly_type, entity_type, entity_id, anomaly_score, expected_value, actual_value, deviation_percentage, status, detection_date, created_at"
+        )
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
