@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CreatePaymentReceiptDialog } from "./PaymentReceipts/CreatePaymentReceiptDialog";
 import { CreatePaymentVoucherDialog } from "./PaymentVouchers/CreatePaymentVoucherDialog";
 import { FinancialWarningsTable } from "./FinancialWarnings/FinancialWarningsTable";
+import { ProfitabilityDashboard } from "./Profitability/ProfitabilityDashboard";
 
 interface FinancialSummary {
   totalReceipts: number;
@@ -297,6 +298,17 @@ export function IntegratedFinancialDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Profitability Reports */}
+      <Card>
+        <CardHeader>
+          <CardTitle>تقارير الربحية</CardTitle>
+          <CardDescription>حلل ربحية المركبات والمالكين والعملاء لفترة زمنية محددة</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ProfitabilityDashboard />
+        </CardContent>
+      </Card>
     </div>
   );
 }
