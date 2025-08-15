@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import ProtectedRoute from "@/components/Auth/ProtectedRoute";
+import { AuthProvider } from "@/hooks/useAuth";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 // Lazy load components
@@ -37,39 +38,41 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Suspense 
-              fallback={
-                <div className="flex items-center justify-center min-h-screen">
-                  <LoadingSpinner size="lg" />
-                </div>
-              }
-            >
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                <Route path="/vehicles" element={<ProtectedRoute><Vehicles /></ProtectedRoute>} />
-                <Route path="/owners" element={<ProtectedRoute><Owners /></ProtectedRoute>} />
-                <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
-                <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
-                <Route path="/maintenance" element={<ProtectedRoute><Maintenance /></ProtectedRoute>} />
-                <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-                <Route path="/accounting" element={<ProtectedRoute><Accounting /></ProtectedRoute>} />
-                <Route path="/profitability-reports" element={<ProtectedRoute><ProfitabilityReports /></ProtectedRoute>} />
-                <Route path="/hr" element={<ProtectedRoute><HR /></ProtectedRoute>} />
-                <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
-                <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
-                <Route path="/system" element={<ProtectedRoute><SystemManagement /></ProtectedRoute>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Suspense 
+                fallback={
+                  <div className="flex items-center justify-center min-h-screen">
+                    <LoadingSpinner size="lg" />
+                  </div>
+                }
+              >
+                <Routes>
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                  <Route path="/vehicles" element={<ProtectedRoute><Vehicles /></ProtectedRoute>} />
+                  <Route path="/owners" element={<ProtectedRoute><Owners /></ProtectedRoute>} />
+                  <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+                  <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
+                  <Route path="/maintenance" element={<ProtectedRoute><Maintenance /></ProtectedRoute>} />
+                  <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+                  <Route path="/accounting" element={<ProtectedRoute><Accounting /></ProtectedRoute>} />
+                  <Route path="/profitability-reports" element={<ProtectedRoute><ProfitabilityReports /></ProtectedRoute>} />
+                  <Route path="/hr" element={<ProtectedRoute><HR /></ProtectedRoute>} />
+                  <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+                  <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
+                  <Route path="/system" element={<ProtectedRoute><SystemManagement /></ProtectedRoute>} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
