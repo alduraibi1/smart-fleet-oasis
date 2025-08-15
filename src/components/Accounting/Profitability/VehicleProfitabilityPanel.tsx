@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,9 @@ import { useVehiclesList, useVehicleProfitability } from './hooks/useProfitabili
 import { ExportControls } from './components/ExportControls';
 import { AdvancedFilters } from './components/AdvancedFilters';
 import { SmartKPIs } from './components/SmartKPIs';
+import { SaveReportSettings } from './components/SaveReportSettings';
+import { ScheduleReportButton } from './components/ScheduleReportButton';
+import { useSnapshots } from './hooks/useSnapshots';
 
 export default function VehicleProfitabilityPanel() {
   const { toast } = useToast();
@@ -33,15 +37,47 @@ export default function VehicleProfitabilityPanel() {
   const endDate = useMemo(() => end ? new Date(end) : undefined, [end]);
 
   const { data, isLoading, error } = useVehicleProfitability(vehicleId, startDate, endDate);
+  const { saveSnapshot } = useSnapshots();
+  const savedKeyRef = useRef<string | null>(null);
 
-  if (listError) {
-    console.error(listError);
-    toast({ title: 'خطأ في جلب المركبات', description: String(listError), variant: 'destructive' });
-  }
-  if (error) {
-    console.error(error);
-    toast({ title: 'خطأ في حساب ربحية المركبة', description: String(error), variant: 'destructive' });
-  }
+  useEffect(() => {
+    if (listError) {
+      console.error(listError);
+      toast({ title: 'خطأ في جلب المركبات', description: String(listError), variant: 'destructive' });
+    }
+  }, [listError, toast]);
+
+  useEffect(() => {
+    if (error) {
+      console.error(error);
+      toast({ title: 'خطأ في حساب ربحية المركبة', description: String(error), variant: 'destructive' });
+    }
+  }, [error, toast]);
+
+  // حفظ لقطة الربحية تلقائياً عند توفر البيانات مع منع التكرار
+  useEffect(() => {
+    const doSave = async () => {
+      if (!vehicleId || !data || !start || !end) return;
+      const key = `${vehicleId}-${start}-${end}`;
+      if (savedKeyRef.current === key) return;
+      savedKeyRef.current = key;
+
+      try {
+        await saveSnapshot({
+          entityType: "vehicle",
+          entityId: vehicleId,
+          metrics: data as Record<string, any>,
+          periodStart: start,
+          periodEnd: end,
+        });
+        console.log("Snapshot saved for vehicle", key);
+      } catch (e) {
+        console.error("Failed to save snapshot", e);
+        // لا نظهر توست هنا لتجنب الإزعاج المتكرر
+      }
+    };
+    doSave();
+  }, [vehicleId, data, start, end, saveSnapshot]);
 
   const handleFiltersChange = (newFilters: any) => {
     setFilters(newFilters);
@@ -59,19 +95,38 @@ export default function VehicleProfitabilityPanel() {
     ? `تقرير ربحية المركبة - ${selectedVehicle.plate_number}`
     : 'تقرير ربحية المركبة';
 
+  const currentSettings = useMemo(() => ({
+    vehicleId,
+    start,
+    end,
+    filters,
+  }), [vehicleId, start, end, filters]);
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex items-center justify-between gap-3">
             <span>اختيار المركبة ونطاق التاريخ</span>
-            {data && (
-              <ExportControls 
-                data={data} 
-                reportType="vehicle" 
-                title={reportTitle}
+            <div className="flex items-center gap-2">
+              {data && (
+                <ExportControls 
+                  data={data} 
+                  reportType="vehicle" 
+                  title={reportTitle}
+                />
+              )}
+              <SaveReportSettings
+                reportType="vehicle"
+                defaultName={reportTitle}
+                settings={currentSettings}
               />
-            )}
+              <ScheduleReportButton
+                reportType="vehicle"
+                defaultName={reportTitle}
+                settings={currentSettings}
+              />
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -109,7 +164,6 @@ export default function VehicleProfitabilityPanel() {
         filters={filters}
         onFiltersChange={handleFiltersChange}
         onApplyFilters={() => {
-          // Trigger refetch or apply additional filters
           console.log('Applying filters:', filters);
         }}
       />

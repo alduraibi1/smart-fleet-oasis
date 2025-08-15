@@ -1060,6 +1060,7 @@ export type Database = {
           entry_date: string
           entry_number: string
           id: string
+          profitability_snapshot_id: string | null
           reference_id: string | null
           reference_type: string | null
           status: string
@@ -1073,6 +1074,7 @@ export type Database = {
           entry_date: string
           entry_number: string
           id?: string
+          profitability_snapshot_id?: string | null
           reference_id?: string | null
           reference_type?: string | null
           status?: string
@@ -1086,13 +1088,22 @@ export type Database = {
           entry_date?: string
           entry_number?: string
           id?: string
+          profitability_snapshot_id?: string | null
           reference_id?: string | null
           reference_type?: string | null
           status?: string
           total_amount?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_profitability_snapshot_id_fkey"
+            columns: ["profitability_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "profitability_snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       journal_entry_lines: {
         Row: {
@@ -1912,6 +1923,72 @@ export type Database = {
         }
         Relationships: []
       }
+      profitability_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          notification_config: Json
+          threshold_config: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          notification_config?: Json
+          threshold_config?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          notification_config?: Json
+          threshold_config?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profitability_snapshots: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          metrics: Json
+          period_end: string
+          period_start: string
+          snapshot_date: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          metrics?: Json
+          period_end: string
+          period_start: string
+          snapshot_date: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          metrics?: Json
+          period_end?: string
+          period_start?: string
+          snapshot_date?: string
+        }
+        Relationships: []
+      }
       purchase_order_items: {
         Row: {
           created_at: string
@@ -2173,6 +2250,87 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saved_report_settings: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean | null
+          report_name: string
+          report_type: string
+          settings: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          report_name: string
+          report_type: string
+          settings?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          report_name?: string
+          report_type?: string
+          settings?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      scheduled_reports: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          last_sent_at: string | null
+          next_run_at: string | null
+          recipients: string[]
+          report_name: string
+          report_type: string
+          schedule_config: Json
+          schedule_type: string
+          settings: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          next_run_at?: string | null
+          recipients?: string[]
+          report_name: string
+          report_type: string
+          schedule_config?: Json
+          schedule_type?: string
+          settings?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          next_run_at?: string | null
+          recipients?: string[]
+          report_name?: string
+          report_type?: string
+          schedule_config?: Json
+          schedule_type?: string
+          settings?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       smart_notifications: {
         Row: {
@@ -2843,6 +3001,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_profitability_thresholds: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          alert_type: string
+          current_value: number
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          severity: string
+          threshold_value: number
+        }[]
+      }
       cleanup_old_activity_logs: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -2881,6 +3051,17 @@ export type Database = {
         Args: { p_owner_id: string }
         Returns: Json
       }
+      get_profitability_comparison: {
+        Args: {
+          p_current_end: string
+          p_current_start: string
+          p_entity_id: string
+          p_entity_type: string
+          p_previous_end: string
+          p_previous_start: string
+        }
+        Returns: Json
+      }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
@@ -2899,6 +3080,16 @@ export type Database = {
       is_ip_blocked: {
         Args: { p_ip_address: unknown }
         Returns: boolean
+      }
+      save_profitability_snapshot: {
+        Args: {
+          p_entity_id: string
+          p_entity_type: string
+          p_metrics: Json
+          p_period_end: string
+          p_period_start: string
+        }
+        Returns: string
       }
       track_failed_login: {
         Args: { p_email: string; p_ip_address: unknown; p_user_agent?: string }

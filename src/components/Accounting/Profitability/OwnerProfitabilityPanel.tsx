@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,9 @@ import { useOwnersList, useOwnerProfitability } from './hooks/useProfitability';
 import { ExportControls } from './components/ExportControls';
 import { AdvancedFilters } from './components/AdvancedFilters';
 import { SmartKPIs } from './components/SmartKPIs';
+import { SaveReportSettings } from './components/SaveReportSettings';
+import { ScheduleReportButton } from './components/ScheduleReportButton';
+import { useSnapshots } from './hooks/useSnapshots';
 
 export default function OwnerProfitabilityPanel() {
   const { toast } = useToast();
@@ -33,15 +37,46 @@ export default function OwnerProfitabilityPanel() {
   const endDate = useMemo(() => end ? new Date(end) : undefined, [end]);
 
   const { data, isLoading, error } = useOwnerProfitability(ownerId, startDate, endDate);
+  const { saveSnapshot } = useSnapshots();
+  const savedKeyRef = useRef<string | null>(null);
 
-  if (listError) {
-    console.error(listError);
-    toast({ title: 'خطأ في جلب المالكين', description: String(listError), variant: 'destructive' });
-  }
-  if (error) {
-    console.error(error);
-    toast({ title: 'خطأ في حساب ربحية المالك', description: String(error), variant: 'destructive' });
-  }
+  useEffect(() => {
+    if (listError) {
+      console.error(listError);
+      toast({ title: 'خطأ في جلب المالكين', description: String(listError), variant: 'destructive' });
+    }
+  }, [listError, toast]);
+
+  useEffect(() => {
+    if (error) {
+      console.error(error);
+      toast({ title: 'خطأ في حساب ربحية المالك', description: String(error), variant: 'destructive' });
+    }
+  }, [error, toast]);
+
+  // حفظ لقطة الربحية تلقائياً عند توفر البيانات مع منع التكرار
+  useEffect(() => {
+    const doSave = async () => {
+      if (!ownerId || !data || !start || !end) return;
+      const key = `${ownerId}-${start}-${end}`;
+      if (savedKeyRef.current === key) return;
+      savedKeyRef.current = key;
+
+      try {
+        await saveSnapshot({
+          entityType: "owner",
+          entityId: ownerId,
+          metrics: data as Record<string, any>,
+          periodStart: start,
+          periodEnd: end,
+        });
+        console.log("Snapshot saved for owner", key);
+      } catch (e) {
+        console.error("Failed to save snapshot", e);
+      }
+    };
+    doSave();
+  }, [ownerId, data, start, end, saveSnapshot]);
 
   const handleFiltersChange = (newFilters: any) => {
     setFilters(newFilters);
@@ -58,19 +93,38 @@ export default function OwnerProfitabilityPanel() {
     ? `تقرير ربحية المالك - ${selectedOwner.name}`
     : 'تقرير ربحية المالك';
 
+  const currentSettings = useMemo(() => ({
+    ownerId,
+    start,
+    end,
+    filters,
+  }), [ownerId, start, end, filters]);
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex items-center justify-between gap-3">
             <span>اختيار المالك ونطاق التاريخ</span>
-            {data && (
-              <ExportControls 
-                data={data} 
-                reportType="owner" 
-                title={reportTitle}
+            <div className="flex items-center gap-2">
+              {data && (
+                <ExportControls 
+                  data={data} 
+                  reportType="owner" 
+                  title={reportTitle}
+                />
+              )}
+              <SaveReportSettings
+                reportType="owner"
+                defaultName={reportTitle}
+                settings={currentSettings}
               />
-            )}
+              <ScheduleReportButton
+                reportType="owner"
+                defaultName={reportTitle}
+                settings={currentSettings}
+              />
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -97,7 +151,7 @@ export default function OwnerProfitabilityPanel() {
             <label className="text-sm text-muted-foreground">تاريخ البداية</label>
             <Input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
           </div>
-          <div>
+            <div>
             <label className="text-sm text-muted-foreground">تاريخ النهاية</label>
             <Input type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
           </div>
