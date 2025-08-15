@@ -25,6 +25,7 @@ import { SmartAlerts } from "./SmartAlerts";
 import { PerformanceComparison } from "./PerformanceComparison";
 import { PersonalizedDashboard } from "./PersonalizedDashboard";
 import { useRealtimeDashboard } from "@/hooks/useRealtimeDashboard";
+import { useSystemHealth } from "@/hooks/useSystemHealth";
 import { DateRange } from "react-day-picker";
 
 export const EnhancedDashboard = () => {
@@ -43,6 +44,8 @@ export const EnhancedDashboard = () => {
     refetch,
     reconnect
   } = useRealtimeDashboard();
+
+  const { health, isHealthy } = useSystemHealth();
 
   const handleDateRangeChange = (range: DateRange | undefined) => {
     setSelectedDateRange(range);
@@ -99,15 +102,25 @@ export const EnhancedDashboard = () => {
       {/* Header with Controls */}
       <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
         <div>
-          <h1 className="text-3xl font-bold">لوحة التحكم المتقدمة</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent">
+            لوحة التحكم المتقدمة
+          </h1>
+          <p className="text-muted-foreground mt-2">
             نظرة شاملة على الأداء والإحصائيات التفاعلية مع المميزات الذكية
           </p>
+          {!isHealthy && (
+            <div className="flex items-center gap-2 mt-2">
+              <AlertTriangle className="h-4 w-4 text-orange-500" />
+              <span className="text-sm text-orange-600">
+                تحذير: قد تكون بعض الخدمات غير متاحة
+              </span>
+            </div>
+          )}
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <RealtimeIndicator 
-            isConnected={isConnected}
+            isConnected={isConnected && isHealthy}
             lastUpdated={lastUpdated}
             onReconnect={reconnect}
           />
@@ -285,6 +298,37 @@ export const EnhancedDashboard = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* System Health Status */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                حالة النظام
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <span>قاعدة البيانات</span>
+                  <Badge variant={health.databaseConnected ? "default" : "destructive"}>
+                    {health.databaseConnected ? "متصلة" : "غير متصلة"}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <span>التحديث المباشر</span>
+                  <Badge variant={health.realtimeConnected ? "default" : "destructive"}>
+                    {health.realtimeConnected ? "نشط" : "غير نشط"}
+                  </Badge>
+                </div>
+              </div>
+              {health.lastChecked && (
+                <p className="text-sm text-muted-foreground mt-3">
+                  آخر فحص: {health.lastChecked.toLocaleString('ar-SA')}
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Personalized Dashboard Tab */}

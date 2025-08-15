@@ -26,6 +26,7 @@ const Inventory = lazy(() => import("./pages/Inventory"));
 const Suppliers = lazy(() => import("./pages/Suppliers"));
 const SystemManagement = lazy(() => import("./pages/SystemManagement"));
 const NotificationSettings = lazy(() => import("./pages/NotificationSettings"));
+const EnhancedDashboard = lazy(() => import("./pages/EnhancedDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -69,6 +70,7 @@ function App() {
                   <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
                   <Route path="/system" element={<ProtectedRoute><SystemManagement /></ProtectedRoute>} />
                   <Route path="/notification-settings" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
+                  <Route path="/enhanced-dashboard" element={<ProtectedRoute><EnhancedDashboard /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

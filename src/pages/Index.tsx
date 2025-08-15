@@ -7,9 +7,11 @@ import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Car, LogIn } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Car, LogIn, BarChart3, TrendingUp } from 'lucide-react';
 import { SmartNotifications } from '@/components/Notifications/SmartNotifications';
 import { AppLayout } from '@/components/Layout/AppLayout';
+import { EnhancedDashboard } from '@/components/Dashboard/EnhancedDashboard';
 
 const Index = () => {
   const { user } = useAuth();
@@ -61,9 +63,24 @@ const Index = () => {
               <h1 className="text-4xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent">
                 مرحباً بك في نظام إدارة تأجير المركبات
               </h1>
-              <p className="text-lg text-muted-foreground">
+              <p className="text-lg text-muted-foreground mb-4">
                 نظرة عامة على أداء شركتك وأهم المؤشرات
               </p>
+              
+              <div className="flex gap-3 mt-6">
+                <Link to="/enhanced-dashboard">
+                  <Button className="gap-2 bg-gradient-to-r from-primary to-primary-variant hover:from-primary/90 hover:to-primary-variant/90">
+                    <TrendingUp className="h-4 w-4" />
+                    لوحة التحكم المتقدمة
+                  </Button>
+                </Link>
+                <Link to="/vehicles">
+                  <Button variant="outline" className="gap-2">
+                    <Car className="h-4 w-4" />
+                    إدارة المركبات
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
           
@@ -72,13 +89,45 @@ const Index = () => {
             <SmartNotifications />
           </div>
           
-          <div className="scale-in">
-            <DashboardOverview />
-          </div>
+          {/* لوحات التحكم */}
+          <Tabs defaultValue="overview" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="overview" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                نظرة عامة
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="gap-2">
+                <TrendingUp className="h-4 w-4" />
+                التحليلات
+              </TabsTrigger>
+              <TabsTrigger value="enhanced" className="gap-2">
+                <Car className="h-4 w-4" />
+                متقدمة
+              </TabsTrigger>
+            </TabsList>
 
-          <div className="scale-in" style={{ animationDelay: '0.2s' }}>
-            <AnalyticsDashboard />
-          </div>
+            <TabsContent value="overview" className="scale-in">
+              <DashboardOverview />
+            </TabsContent>
+
+            <TabsContent value="analytics" className="scale-in" style={{ animationDelay: '0.2s' }}>
+              <AnalyticsDashboard />
+            </TabsContent>
+
+            <TabsContent value="enhanced" className="scale-in" style={{ animationDelay: '0.4s' }}>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold">لوحة التحكم المتقدمة</h2>
+                  <Link to="/enhanced-dashboard">
+                    <Button variant="outline" size="sm">
+                      عرض كامل
+                    </Button>
+                  </Link>
+                </div>
+                <EnhancedDashboard />
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </AppLayout>
     </ProtectedRoute>
