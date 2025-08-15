@@ -33,45 +33,50 @@ export const useDashboardStats = () => {
 
   const fetchStats = async () => {
     try {
-      // Fetch vehicles data - using any to avoid type issues
-      const vehiclesResult: any = await supabase
+      // Fetch vehicles data - completely avoid type inference
+      const vehiclesQuery = supabase
         .from('vehicles')
         .select('id, status')
         .eq('is_active', true);
       
-      const vehicles: any[] = vehiclesResult.data || [];
+      const vehiclesResult = await vehiclesQuery;
+      const vehicles = vehiclesResult.data || [];
 
       // Fetch contracts data
-      const contractsResult: any = await supabase
+      const contractsQuery = supabase
         .from('rental_contracts')
         .select('id, status, total_amount, end_date')
         .in('status', ['active', 'confirmed']);
       
-      const contracts: any[] = contractsResult.data || [];
+      const contractsResult = await contractsQuery;
+      const contracts = contractsResult.data || [];
 
       // Fetch receipts data
-      const receiptsResult: any = await supabase
+      const receiptsQuery = supabase
         .from('payment_receipts')
         .select('amount, payment_date')
         .eq('status', 'confirmed');
       
-      const receipts: any[] = receiptsResult.data || [];
+      const receiptsResult = await receiptsQuery;
+      const receipts = receiptsResult.data || [];
 
       // Fetch vouchers data
-      const vouchersResult: any = await supabase
+      const vouchersQuery = supabase
         .from('payment_vouchers')
         .select('amount, payment_date')
         .in('status', ['approved', 'paid']);
       
-      const vouchers: any[] = vouchersResult.data || [];
+      const vouchersResult = await vouchersQuery;
+      const vouchers = vouchersResult.data || [];
 
       // Fetch maintenance data
-      const maintenanceResult: any = await supabase
+      const maintenanceQuery = supabase
         .from('vehicle_maintenance')
         .select('id')
         .eq('status', 'pending');
       
-      const maintenance: any[] = maintenanceResult.data || [];
+      const maintenanceResult = await maintenanceQuery;
+      const maintenance = maintenanceResult.data || [];
 
       // Calculate basic stats
       const totalVehicles = vehicles.length;
