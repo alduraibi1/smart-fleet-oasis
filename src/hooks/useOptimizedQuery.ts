@@ -11,12 +11,18 @@ interface OptimizedQueryOptions<T> extends Omit<UseQueryOptions<T>, 'queryKey' |
 export const useOptimizedQuery = <T>(options: OptimizedQueryOptions<T>) => {
   const memoizedQueryKey = useMemo(() => options.queryKey, [JSON.stringify(options.queryKey)]);
   
-  return useQuery({
+  const queryOptions: UseQueryOptions<T> = {
     ...options,
     queryKey: memoizedQueryKey,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnWindowFocus: false,
-    placeholderData: options.keepPreviousData ? (previousData: T | undefined) => previousData : undefined,
-  });
+  };
+
+  // Use placeholderData correctly for the new version
+  if (options.keepPreviousData) {
+    queryOptions.placeholderData = (previousData) => previousData;
+  }
+
+  return useQuery(queryOptions);
 };
