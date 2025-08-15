@@ -203,6 +203,74 @@ export type Database = {
           },
         ]
       }
+      cost_center_mappings: {
+        Row: {
+          cost_center_id: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          cost_center_id: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          cost_center_id?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_center_mappings_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cost_centers: {
+        Row: {
+          center_code: string
+          center_name: string
+          center_type: string
+          created_at: string
+          entity_id: string | null
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          center_code: string
+          center_name: string
+          center_type: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          center_code?: string
+          center_name?: string
+          center_type?: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customer_documents: {
         Row: {
           created_at: string | null
@@ -3032,6 +3100,15 @@ export type Database = {
           p_title: string
           p_type?: string
           p_user_id?: string
+        }
+        Returns: string
+      }
+      ensure_cost_center_for_entity: {
+        Args: {
+          p_center_code?: string
+          p_center_name?: string
+          p_entity_id: string
+          p_entity_type: string
         }
         Returns: string
       }

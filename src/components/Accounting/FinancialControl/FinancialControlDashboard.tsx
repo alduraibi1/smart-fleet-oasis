@@ -17,6 +17,7 @@ import { CashFlowAnalysis } from "../FinancialReports/CashFlowAnalysis";
 import { AutomatedAlerts } from "../FinancialReports/AutomatedAlerts";
 import { FinancialWarningsTable } from "../FinancialWarnings/FinancialWarningsTable";
 import RecentJournalEntries from "./RecentJournalEntries";
+import CostCentersPanel from "./CostCentersPanel";
 
 export function FinancialControlDashboard() {
   return (
@@ -36,7 +37,7 @@ export function FinancialControlDashboard() {
 
       {/* التبويبات الرئيسية */}
       <Tabs defaultValue="balances" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="balances" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             أرصدة المالكين
@@ -56,6 +57,10 @@ export function FinancialControlDashboard() {
           <TabsTrigger value="journal" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             القيود اليومية
+          </TabsTrigger>
+          <TabsTrigger value="cost-centers" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            مراكز التكلفة
           </TabsTrigger>
         </TabsList>
 
@@ -78,7 +83,12 @@ export function FinancialControlDashboard() {
         <TabsContent value="journal">
           <RecentJournalEntries />
         </TabsContent>
+
+        <TabsContent value="cost-centers">
+          <CostCentersPanel />
+        </TabsContent>
       </Tabs>
     </div>
   );
 }
+
