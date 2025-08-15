@@ -4,6 +4,7 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from './button';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { useNavigate } from 'react-router-dom';
+import { useI18n } from '@/hooks/useI18n';
 
 interface GlobalErrorBoundaryState {
   hasError: boolean;
@@ -54,6 +55,7 @@ interface ErrorFallbackProps {
 
 const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, onReset }) => {
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   const handleGoHome = () => {
     onReset();
@@ -73,12 +75,12 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, onReset }) => {
             <AlertTriangle className="h-6 w-6 text-destructive" />
           </div>
           <CardTitle className="text-xl text-destructive">
-            حدث خطأ غير متوقع
+            {t('error.unexpected', 'حدث خطأ غير متوقع')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-center text-muted-foreground">
-            عذراً، حدث خطأ أثناء تشغيل التطبيق. يرجى المحاولة مرة أخرى أو العودة إلى الصفحة الرئيسية.
+            {t('error.unexpected', 'عذراً، حدث خطأ أثناء تشغيل التطبيق. يرجى المحاولة مرة أخرى أو العودة إلى الصفحة الرئيسية.')}
           </p>
           
           {error && (
