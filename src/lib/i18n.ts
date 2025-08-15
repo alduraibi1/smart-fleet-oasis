@@ -63,3 +63,8 @@ class I18n {
 }
 
 export const i18n = new I18n();
+
+// Initialize i18n function
+export const initializeI18n = () => {
+  i18n.init();
+};

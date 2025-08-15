@@ -130,6 +130,17 @@ export function AppSidebar() {
     return true;
   };
 
+  const getRoleDisplayName = (role: UserRole): string => {
+    const roleNames: Record<UserRole, string> = {
+      admin: 'مدير',
+      manager: 'مشرف',
+      accountant: 'محاسب',
+      employee: 'موظف',
+      viewer: 'مشاهد'
+    };
+    return roleNames[role];
+  };
+
   return (
     <div className="flex h-full w-64 flex-col bg-card border-r">
       <div className="flex h-14 items-center border-b px-4">
@@ -171,7 +182,7 @@ export function AppSidebar() {
           مرحباً، {user?.email}
         </div>
         <div className="text-xs text-muted-foreground">
-          الدور: {userRole === 'admin' ? 'مدير' : userRole === 'manager' ? 'مشرف' : userRole === 'employee' ? 'موظف' : 'مشاهد'}
+          الدور: {getRoleDisplayName(userRole)}
         </div>
       </div>
     </div>

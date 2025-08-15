@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<UserRole>('viewer');
   const [loading, setLoading] = useState(true);
 
-  const fetchUserRole = async (userId: string) => {
+  const fetchUserRole = async (userId: string): Promise<UserRole> => {
     try {
       const { data, error } = await supabase
         .from('user_roles')
@@ -34,7 +34,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return 'viewer';
       }
 
-      return data?.role || 'viewer';
+      // Type guard to ensure valid role
+      const validRoles: UserRole[] = ['admin', 'manager', 'employee', 'viewer', 'accountant'];
+      const role = data?.role as UserRole;
+      
+      return validRoles.includes(role) ? role : 'viewer';
     } catch (error) {
       console.error('Error fetching user role:', error);
       return 'viewer';
@@ -50,11 +54,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (session?.user) {
           // Fetch user role after setting user
-          setTimeout(async () => {
-            const role = await fetchUserRole(session.user.id);
-            setUserRole(role);
-            setLoading(false);
-          }, 0);
+          const role = await fetchUserRole(session.user.id);
+          setUserRole(role);
+          setLoading(false);
         } else {
           setUserRole('viewer');
           setLoading(false);
@@ -63,16 +65,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        setTimeout(async () => {
-          const role = await fetchUserRole(session.user.id);
-          setUserRole(role);
-          setLoading(false);
-        }, 0);
+        const role = await fetchUserRole(session.user.id);
+        setUserRole(role);
+        setLoading(false);
       } else {
         setLoading(false);
       }
@@ -93,8 +93,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const roleHierarchy: Record<UserRole, number> = {
       viewer: 1,
       employee: 2,
-      manager: 3,
-      admin: 4
+      accountant: 3,
+      manager: 4,
+      admin: 5
     };
     
     return roleHierarchy[userRole] >= roleHierarchy[role];

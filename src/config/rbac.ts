@@ -18,7 +18,7 @@ const SystemManagement = lazy(() => import('@/pages/SystemManagement'));
 const NotificationSettings = lazy(() => import('@/pages/NotificationSettings'));
 
 // Define roles
-export type UserRole = 'admin' | 'manager' | 'employee' | 'viewer';
+export type UserRole = 'admin' | 'manager' | 'employee' | 'viewer' | 'accountant';
 
 // Define permissions
 export type Permission = 
@@ -169,6 +169,12 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     'manage_owners',
     'manage_notifications'
   ],
+  accountant: [
+    'view_dashboard',
+    'view_reports',
+    'manage_accounting',
+    'manage_contracts'
+  ],
   employee: [
     'view_dashboard',
     'manage_vehicles',
@@ -193,8 +199,9 @@ export const hasRole = (userRole: UserRole, requiredRole: UserRole): boolean => 
   const roleHierarchy: Record<UserRole, number> = {
     viewer: 1,
     employee: 2,
-    manager: 3,
-    admin: 4
+    accountant: 3,
+    manager: 4,
+    admin: 5
   };
   
   return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
