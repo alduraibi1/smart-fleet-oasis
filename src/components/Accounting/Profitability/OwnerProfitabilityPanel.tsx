@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
@@ -7,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useOwnersList, useOwnerProfitability } from './hooks/useProfitability';
+import { ExportControls } from './components/ExportControls';
+import { AdvancedFilters } from './components/AdvancedFilters';
+import { SmartKPIs } from './components/SmartKPIs';
 
 export default function OwnerProfitabilityPanel() {
   const { toast } = useToast();
@@ -17,6 +19,15 @@ export default function OwnerProfitabilityPanel() {
     const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0,10);
   });
   const [end, setEnd] = useState<string>(() => new Date().toISOString().slice(0,10));
+
+  const [filters, setFilters] = useState({
+    dateRange: {},
+    quickPeriod: 'last_30_days',
+    contractTypes: [],
+    vehicleStatuses: [],
+    customerTypes: [],
+    amountThreshold: 0
+  });
 
   const startDate = useMemo(() => start ? new Date(start) : undefined, [start]);
   const endDate = useMemo(() => end ? new Date(end) : undefined, [end]);
@@ -32,11 +43,35 @@ export default function OwnerProfitabilityPanel() {
     toast({ title: 'خطأ في حساب ربحية المالك', description: String(error), variant: 'destructive' });
   }
 
+  const handleFiltersChange = (newFilters: any) => {
+    setFilters(newFilters);
+    if (newFilters.dateRange.from) {
+      setStart(newFilters.dateRange.from.toISOString().slice(0, 10));
+    }
+    if (newFilters.dateRange.to) {
+      setEnd(newFilters.dateRange.to.toISOString().slice(0, 10));
+    }
+  };
+
+  const selectedOwner = owners?.find(o => o.id === ownerId);
+  const reportTitle = selectedOwner 
+    ? `تقرير ربحية المالك - ${selectedOwner.name}`
+    : 'تقرير ربحية المالك';
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>اختيار المالك ونطاق التاريخ</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>اختيار المالك ونطاق التاريخ</span>
+            {data && (
+              <ExportControls 
+                data={data} 
+                reportType="owner" 
+                title={reportTitle}
+              />
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -68,6 +103,16 @@ export default function OwnerProfitabilityPanel() {
           </div>
         </CardContent>
       </Card>
+
+      <AdvancedFilters 
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        onApplyFilters={() => {
+          console.log('Applying filters:', filters);
+        }}
+      />
+
+      {data && <SmartKPIs data={data} reportType="owner" />}
 
       <Card>
         <CardHeader>

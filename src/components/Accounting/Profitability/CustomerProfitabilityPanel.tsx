@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
@@ -7,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomersList, useCustomerProfitability } from './hooks/useProfitability';
+import { ExportControls } from './components/ExportControls';
+import { AdvancedFilters } from './components/AdvancedFilters';
+import { SmartKPIs } from './components/SmartKPIs';
 
 export default function CustomerProfitabilityPanel() {
   const { toast } = useToast();
@@ -17,6 +19,15 @@ export default function CustomerProfitabilityPanel() {
     const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0,10);
   });
   const [end, setEnd] = useState<string>(() => new Date().toISOString().slice(0,10));
+
+  const [filters, setFilters] = useState({
+    dateRange: {},
+    quickPeriod: 'last_30_days',
+    contractTypes: [],
+    vehicleStatuses: [],
+    customerTypes: [],
+    amountThreshold: 0
+  });
 
   const startDate = useMemo(() => start ? new Date(start) : undefined, [start]);
   const endDate = useMemo(() => end ? new Date(end) : undefined, [end]);
@@ -32,11 +43,35 @@ export default function CustomerProfitabilityPanel() {
     toast({ title: 'خطأ في حساب ربحية العميل', description: String(error), variant: 'destructive' });
   }
 
+  const handleFiltersChange = (newFilters: any) => {
+    setFilters(newFilters);
+    if (newFilters.dateRange.from) {
+      setStart(newFilters.dateRange.from.toISOString().slice(0, 10));
+    }
+    if (newFilters.dateRange.to) {
+      setEnd(newFilters.dateRange.to.toISOString().slice(0, 10));
+    }
+  };
+
+  const selectedCustomer = customers?.find(c => c.id === customerId);
+  const reportTitle = selectedCustomer 
+    ? `تقرير ربحية العميل - ${selectedCustomer.name}`
+    : 'تقرير ربحية العميل';
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>اختيار العميل ونطاق التاريخ</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>اختيار العميل ونطاق التاريخ</span>
+            {data && (
+              <ExportControls 
+                data={data} 
+                reportType="customer" 
+                title={reportTitle}
+              />
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -51,7 +86,7 @@ export default function CustomerProfitabilityPanel() {
                 <SelectContent>
                   {customers?.map(c => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.name}{c.phone ? ` - ${c.phone}` : ''}
+                      {c.name} - {c.phone}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -69,13 +104,23 @@ export default function CustomerProfitabilityPanel() {
         </CardContent>
       </Card>
 
+      <AdvancedFilters 
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        onApplyFilters={() => {
+          console.log('Applying filters:', filters);
+        }}
+      />
+
+      {data && <SmartKPIs data={data} reportType="customer" />}
+
       <Card>
         <CardHeader>
           <CardTitle>نتائج الربحية</CardTitle>
         </CardHeader>
         <CardContent>
           {!customerId ? (
-            <p className="text-muted-foreground text-center py-6">اختر عميلًا ونطاق تاريخ لعرض النتائج</p>
+            <p className="text-muted-foreground text-center py-6">اختر عميلاً ونطاق تاريخ لعرض النتائج</p>
           ) : isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
@@ -85,25 +130,26 @@ export default function CustomerProfitabilityPanel() {
           ) : (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <SummaryCard title="إجمالي العقود" value={data.total_contracts} />
                 <SummaryCard title="إجمالي الإيرادات" value={formatCurrency(data.total_revenue)} />
-                <SummaryCard title="المدفوع" value={formatCurrency(data.total_paid)} />
-                <SummaryCard title="المتبقي" value={formatCurrency(data.outstanding_amount)} emphasis />
+                <SummaryCard title="إجمالي المدفوع" value={formatCurrency(data.total_paid)} />
+                <SummaryCard title="المبلغ المتبقي" value={formatCurrency(data.outstanding_amount)} />
+                <SummaryCard 
+                  title="تصنيف الربحية" 
+                  value={data.profitability_rank} 
+                  emphasis={data.profitability_rank === 'Premium'} 
+                />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <MetricCard label="عدد العقود" value={data.total_contracts} />
                 <MetricCard label="أيام التأجير" value={data.total_rental_days} />
                 <MetricCard label="متوسط قيمة العقد" value={formatCurrency(data.average_contract_value)} />
-                <MetricCard label="متوسط المعدل اليومي" value={formatCurrency(data.average_daily_rate)} />
+                <MetricCard label="المعدل اليومي" value={formatCurrency(data.average_daily_rate)} />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <MetricCard label="قيمة العميل المتوقعة (CLV)" value={formatCurrency(data.customer_lifetime_value)} />
-                <MetricCard label="انضباط الدفع" value={`${(data.payment_behavior_score || 0).toFixed(0)}%`} />
-                <div className="p-4 rounded-lg border bg-card">
-                  <p className="text-sm text-muted-foreground">تصنيف الربحية</p>
-                  <p className="text-xl font-semibold">{data.profitability_rank}</p>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <MetricCard label="قيمة العميل مدى الحياة" value={formatCurrency(data.customer_lifetime_value)} />
+                <MetricCard label="نقاط السلوك المالي" value={`${(data.payment_behavior_score || 0).toFixed(1)}%`} />
               </div>
             </div>
           )}

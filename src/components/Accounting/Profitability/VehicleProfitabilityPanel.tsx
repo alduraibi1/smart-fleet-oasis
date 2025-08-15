@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
@@ -7,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useVehiclesList, useVehicleProfitability } from './hooks/useProfitability';
+import { ExportControls } from './components/ExportControls';
+import { AdvancedFilters } from './components/AdvancedFilters';
+import { SmartKPIs } from './components/SmartKPIs';
 
 export default function VehicleProfitabilityPanel() {
   const { toast } = useToast();
@@ -17,6 +19,15 @@ export default function VehicleProfitabilityPanel() {
     const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0,10);
   });
   const [end, setEnd] = useState<string>(() => new Date().toISOString().slice(0,10));
+
+  const [filters, setFilters] = useState({
+    dateRange: {},
+    quickPeriod: 'last_30_days',
+    contractTypes: [],
+    vehicleStatuses: [],
+    customerTypes: [],
+    amountThreshold: 0
+  });
 
   const startDate = useMemo(() => start ? new Date(start) : undefined, [start]);
   const endDate = useMemo(() => end ? new Date(end) : undefined, [end]);
@@ -32,11 +43,36 @@ export default function VehicleProfitabilityPanel() {
     toast({ title: 'خطأ في حساب ربحية المركبة', description: String(error), variant: 'destructive' });
   }
 
+  const handleFiltersChange = (newFilters: any) => {
+    setFilters(newFilters);
+    // Apply date range from filters if available
+    if (newFilters.dateRange.from) {
+      setStart(newFilters.dateRange.from.toISOString().slice(0, 10));
+    }
+    if (newFilters.dateRange.to) {
+      setEnd(newFilters.dateRange.to.toISOString().slice(0, 10));
+    }
+  };
+
+  const selectedVehicle = vehicles?.find(v => v.id === vehicleId);
+  const reportTitle = selectedVehicle 
+    ? `تقرير ربحية المركبة - ${selectedVehicle.plate_number}`
+    : 'تقرير ربحية المركبة';
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>اختيار المركبة ونطاق التاريخ</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>اختيار المركبة ونطاق التاريخ</span>
+            {data && (
+              <ExportControls 
+                data={data} 
+                reportType="vehicle" 
+                title={reportTitle}
+              />
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -68,6 +104,17 @@ export default function VehicleProfitabilityPanel() {
           </div>
         </CardContent>
       </Card>
+
+      <AdvancedFilters 
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        onApplyFilters={() => {
+          // Trigger refetch or apply additional filters
+          console.log('Applying filters:', filters);
+        }}
+      />
+
+      {data && <SmartKPIs data={data} reportType="vehicle" />}
 
       <Card>
         <CardHeader>
