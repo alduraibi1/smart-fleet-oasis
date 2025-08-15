@@ -133,7 +133,7 @@ export const useVehicleProfitability = (vehicleId?: string, start?: Date, end?: 
     queryKey: ['vehicle-profitability', vehicleId, start ? toISO(start) : null, end ? toISO(end) : null],
     enabled: !!vehicleId && !!start && !!end,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_vehicle_profitability', {
+      const { data, error } = await supabase.rpc('get_vehicle_profitability' as any, {
         p_vehicle_id: vehicleId,
         p_start_date: toISO(start!),
         p_end_date: toISO(end!),
@@ -154,7 +154,7 @@ export const useOwnerProfitability = (ownerId?: string, start?: Date, end?: Date
     queryKey: ['owner-profitability', ownerId, start ? toISO(start) : null, end ? toISO(end) : null],
     enabled: !!ownerId && !!start && !!end,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_owner_profitability', {
+      const { data, error } = await supabase.rpc('get_owner_profitability' as any, {
         p_owner_id: ownerId,
         p_start_date: toISO(start!),
         p_end_date: toISO(end!),
@@ -175,7 +175,7 @@ export const useCustomerProfitability = (customerId?: string, start?: Date, end?
     queryKey: ['customer-profitability', customerId, start ? toISO(start) : null, end ? toISO(end) : null],
     enabled: !!customerId && !!start && !!end,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_customer_profitability', {
+      const { data, error } = await supabase.rpc('get_customer_profitability' as any, {
         p_customer_id: customerId,
         p_start_date: toISO(start!),
         p_end_date: toISO(end!),
