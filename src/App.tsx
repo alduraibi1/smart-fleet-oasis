@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Vehicles from "./pages/Vehicles";
 import Customers from "./pages/Customers";
@@ -37,43 +38,45 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/enhanced-dashboard" element={<EnhancedDashboard />} />
-            <Route path="/vehicles" element={<Vehicles />} />
-            <Route path="/customers" element={<Customers />} />
-            <Route path="/customers-v2" element={<CustomersV2 />} />
-            <Route path="/enhanced-customers" element={<EnhancedCustomers />} />
-            <Route path="/contracts" element={<ContractsMain />} />
-            <Route path="/contracts-simple" element={<ContractsSimple />} />
-            <Route path="/contracts-optimized" element={<ContractsOptimized />} />
-            <Route path="/contracts-essential" element={<ContractsEssential />} />
-            <Route path="/contracts-enhanced" element={<EnhancedContracts />} />
-            <Route path="/contracts-legacy" element={<Contracts />} />
-            <Route path="/maintenance" element={<Maintenance />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/enhanced-reports" element={<EnhancedReports />} />
-            <Route path="/accounting" element={<Accounting />} />
-            <Route path="/financial-control" element={<FinancialControl />} />
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/suppliers" element={<Suppliers />} />
-            <Route path="/hr" element={<HR />} />
-            <Route path="/enhanced-hr" element={<EnhancedHR />} />
-            <Route path="/owners" element={<Owners />} />
-            <Route path="/system-management" element={<SystemManagement />} />
-            <Route path="/notification-settings" element={<NotificationSettings />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/button-test" element={<ButtonTest />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/enhanced-dashboard" element={<EnhancedDashboard />} />
+              <Route path="/vehicles" element={<Vehicles />} />
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/customers-v2" element={<CustomersV2 />} />
+              <Route path="/enhanced-customers" element={<EnhancedCustomers />} />
+              <Route path="/contracts" element={<ContractsMain />} />
+              <Route path="/contracts-simple" element={<ContractsSimple />} />
+              <Route path="/contracts-optimized" element={<ContractsOptimized />} />
+              <Route path="/contracts-essential" element={<ContractsEssential />} />
+              <Route path="/contracts-enhanced" element={<EnhancedContracts />} />
+              <Route path="/contracts-legacy" element={<Contracts />} />
+              <Route path="/maintenance" element={<Maintenance />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/enhanced-reports" element={<EnhancedReports />} />
+              <Route path="/accounting" element={<Accounting />} />
+              <Route path="/financial-control" element={<FinancialControl />} />
+              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/suppliers" element={<Suppliers />} />
+              <Route path="/hr" element={<HR />} />
+              <Route path="/enhanced-hr" element={<EnhancedHR />} />
+              <Route path="/owners" element={<Owners />} />
+              <Route path="/system-management" element={<SystemManagement />} />
+              <Route path="/notification-settings" element={<NotificationSettings />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/button-test" element={<ButtonTest />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
