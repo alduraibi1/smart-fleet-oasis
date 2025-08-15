@@ -33,67 +33,86 @@ export const useDashboardStats = () => {
 
   const fetchStats = async () => {
     try {
-      // Fetch vehicles data
-      const { data: vehicles } = await supabase
+      // Fetch vehicles data with explicit typing
+      const vehiclesQuery = await supabase
         .from('vehicles')
         .select('id, status')
         .eq('is_active', true);
+      
+      const vehicles: Array<{ id: string; status: string }> = vehiclesQuery.data || [];
 
-      // Fetch contracts data
-      const { data: contracts } = await supabase
+      // Fetch contracts data with explicit typing
+      const contractsQuery = await supabase
         .from('rental_contracts')
         .select('id, status, total_amount, end_date')
         .in('status', ['active', 'confirmed']);
+      
+      const contracts: Array<{ 
+        id: string; 
+        status: string; 
+        total_amount: number; 
+        end_date: string; 
+      }> = contractsQuery.data || [];
 
-      // Fetch receipts data
-      const { data: receipts } = await supabase
+      // Fetch receipts data with explicit typing
+      const receiptsQuery = await supabase
         .from('payment_receipts')
         .select('amount, payment_date')
         .eq('status', 'confirmed');
+      
+      const receipts: Array<{ amount: number; payment_date: string }> = receiptsQuery.data || [];
 
-      // Fetch vouchers data
-      const { data: vouchers } = await supabase
+      // Fetch vouchers data with explicit typing
+      const vouchersQuery = await supabase
         .from('payment_vouchers')
         .select('amount, payment_date')
         .in('status', ['approved', 'paid']);
+      
+      const vouchers: Array<{ amount: number; payment_date: string }> = vouchersQuery.data || [];
 
-      // Fetch maintenance data
-      const { data: maintenance } = await supabase
+      // Fetch maintenance data with explicit typing
+      const maintenanceQuery = await supabase
         .from('vehicle_maintenance')
         .select('id')
         .eq('status', 'pending');
+      
+      const maintenance: Array<{ id: string }> = maintenanceQuery.data || [];
 
-      // Fetch ratings data
-      const { data: ratings } = await supabase
+      // Fetch ratings data with explicit typing
+      const ratingsQuery = await supabase
         .from('customer_ratings')
         .select('rating');
-
-      // Calculate stats
-      const totalVehicles = vehicles?.length || 0;
-      const availableVehicles = vehicles?.filter(v => v.status === 'available').length || 0;
-      const activeContracts = contracts?.length || 0;
       
-      const totalRevenue = receipts?.reduce((sum, r) => sum + (r.amount || 0), 0) || 0;
-      const totalExpenses = vouchers?.reduce((sum, v) => sum + (v.amount || 0), 0) || 0;
+      const ratings: Array<{ rating: number }> = ratingsQuery.data || [];
+
+      // Calculate stats with simple operations
+      const totalVehicles = vehicles.length;
+      const availableVehicles = vehicles.filter(v => v.status === 'available').length;
+      const activeContracts = contracts.length;
+      
+      const totalRevenue = receipts.reduce((sum, r) => sum + (r.amount || 0), 0);
+      const totalExpenses = vouchers.reduce((sum, v) => sum + (v.amount || 0), 0);
       
       // Monthly revenue calculation
       const currentDate = new Date();
       const currentMonth = currentDate.getMonth();
       const currentYear = currentDate.getFullYear();
       
-      const monthlyRevenue = receipts?.filter(r => {
-        const date = new Date(r.payment_date);
-        return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-      }).reduce((sum, r) => sum + (r.amount || 0), 0) || 0;
+      const monthlyRevenue = receipts
+        .filter(r => {
+          const date = new Date(r.payment_date);
+          return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        })
+        .reduce((sum, r) => sum + (r.amount || 0), 0);
 
       // Overdue contracts calculation
       const now = new Date();
-      const overdueContracts = contracts?.filter(c => 
+      const overdueContracts = contracts.filter(c => 
         new Date(c.end_date) < now && c.status === 'active'
-      ).length || 0;
+      ).length;
 
       // Customer satisfaction calculation
-      const customerSatisfaction = ratings?.length > 0 
+      const customerSatisfaction = ratings.length > 0 
         ? ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / ratings.length 
         : 0;
 
@@ -107,18 +126,20 @@ export const useDashboardStats = () => {
         ? ((totalRevenue - totalExpenses) / totalRevenue) * 100 
         : 0;
 
-      setStats({
+      const newStats: DashboardStats = {
         totalVehicles,
         availableVehicles,
         activeContracts,
         totalRevenue,
         monthlyRevenue,
-        pendingMaintenance: maintenance?.length || 0,
+        pendingMaintenance: maintenance.length,
         overdueContracts,
         customerSatisfaction,
         utilizationRate,
         profitMargin,
-      });
+      };
+
+      setStats(newStats);
 
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
