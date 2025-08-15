@@ -33,83 +33,70 @@ export const useDashboardStats = () => {
 
   const fetchStats = async () => {
     try {
-      // Fetch vehicles data - cast the entire query as any to avoid type inference
-      const vehiclesQuery = supabase
+      // Fetch vehicles data - remove is_active filter since column doesn't exist
+      const { data: vehicles } = await supabase
         .from('vehicles')
-        .select('id, status')
-        .eq('is_active', true) as any;
-      const vehiclesResponse = await vehiclesQuery;
-      const vehicles = vehiclesResponse.data as any[] || [];
+        .select('id, status');
 
       // Fetch contracts data
-      const contractsQuery = supabase
+      const { data: contracts } = await supabase
         .from('rental_contracts')
         .select('id, status, total_amount, end_date')
-        .in('status', ['active', 'confirmed']) as any;
-      const contractsResponse = await contractsQuery;
-      const contracts = contractsResponse.data as any[] || [];
+        .in('status', ['active', 'confirmed']);
 
       // Fetch receipts data
-      const receiptsQuery = supabase
+      const { data: receipts } = await supabase
         .from('payment_receipts')
         .select('amount, payment_date')
-        .eq('status', 'confirmed') as any;
-      const receiptsResponse = await receiptsQuery;
-      const receipts = receiptsResponse.data as any[] || [];
+        .eq('status', 'confirmed');
 
       // Fetch vouchers data
-      const vouchersQuery = supabase
+      const { data: vouchers } = await supabase
         .from('payment_vouchers')
         .select('amount, payment_date')
-        .in('status', ['approved', 'paid']) as any;
-      const vouchersResponse = await vouchersQuery;
-      const vouchers = vouchersResponse.data as any[] || [];
+        .in('status', ['approved', 'paid']);
 
       // Fetch maintenance data
-      const maintenanceQuery = supabase
+      const { data: maintenance } = await supabase
         .from('vehicle_maintenance')
         .select('id')
-        .eq('status', 'pending') as any;
-      const maintenanceResponse = await maintenanceQuery;
-      const maintenance = maintenanceResponse.data as any[] || [];
+        .eq('status', 'pending');
 
       // Calculate basic stats
-      const totalVehicles = vehicles.length;
-      const availableVehicles = vehicles.filter((v: any) => v.status === 'available').length;
-      const activeContracts = contracts.length;
+      const totalVehicles = vehicles?.length || 0;
+      const availableVehicles = vehicles?.filter(v => v.status === 'available').length || 0;
+      const activeContracts = contracts?.length || 0;
       
       // Calculate revenue and expenses
-      const totalRevenue = receipts.reduce((sum: number, r: any) => {
+      const totalRevenue = receipts?.reduce((sum, r) => {
         const amount = Number(r.amount) || 0;
         return sum + amount;
-      }, 0);
+      }, 0) || 0;
       
-      const totalExpenses = vouchers.reduce((sum: number, v: any) => {
+      const totalExpenses = vouchers?.reduce((sum, v) => {
         const amount = Number(v.amount) || 0;
         return sum + amount;
-      }, 0);
+      }, 0) || 0;
       
       // Monthly revenue calculation
       const currentDate = new Date();
       const currentMonth = currentDate.getMonth();
       const currentYear = currentDate.getFullYear();
       
-      const monthlyRevenue = receipts
-        .filter((r: any) => {
-          const date = new Date(r.payment_date);
-          return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-        })
-        .reduce((sum: number, r: any) => {
-          const amount = Number(r.amount) || 0;
-          return sum + amount;
-        }, 0);
+      const monthlyRevenue = receipts?.filter(r => {
+        const date = new Date(r.payment_date);
+        return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+      }).reduce((sum, r) => {
+        const amount = Number(r.amount) || 0;
+        return sum + amount;
+      }, 0) || 0;
 
       // Overdue contracts calculation
       const now = new Date();
-      const overdueContracts = contracts.filter((c: any) => {
+      const overdueContracts = contracts?.filter(c => {
         const endDate = new Date(c.end_date);
         return endDate < now && c.status === 'active';
-      }).length;
+      }).length || 0;
 
       // Customer satisfaction - set to 0 as requested (no calculation from ratings)
       const customerSatisfaction = 0;
@@ -130,7 +117,7 @@ export const useDashboardStats = () => {
         activeContracts,
         totalRevenue,
         monthlyRevenue,
-        pendingMaintenance: maintenance.length,
+        pendingMaintenance: maintenance?.length || 0,
         overdueContracts,
         customerSatisfaction,
         utilizationRate,
