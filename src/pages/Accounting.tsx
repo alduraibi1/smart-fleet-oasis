@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +16,7 @@ import { VouchersManagement } from "@/components/Accounting/VouchersManagement/V
 import { InvoiceManagement } from "@/components/Accounting/IntegratedInvoicing/InvoiceManagement";
 import { CostTracking } from "@/components/Accounting/IntegratedCosts/CostTracking";
 import { FinancialAnalytics } from "@/components/Accounting/AdvancedReports/FinancialAnalytics";
+import { SmartNotificationsCard } from "@/components/Accounting/SmartNotificationsCard";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { useNavigate } from "react-router-dom";
 
@@ -104,6 +104,9 @@ export default function Accounting() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Smart Notifications Card */}
+        <SmartNotificationsCard />
 
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
