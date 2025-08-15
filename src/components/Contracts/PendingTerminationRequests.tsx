@@ -39,7 +39,8 @@ export const PendingTerminationRequests = () => {
   const fetchRows = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Use type assertion for the new table
+      const { data, error } = await (supabase as any)
         .from("early_termination_requests")
         .select(`
           *,
@@ -76,7 +77,8 @@ export const PendingTerminationRequests = () => {
       const user = await supabase.auth.getUser();
       const approverId = user?.data?.user?.id || null;
 
-      const { error: updErr } = await supabase
+      // Use type assertion for the new table
+      const { error: updErr } = await (supabase as any)
         .from("early_termination_requests")
         .update({ status: "approved", approved_by: approverId, approved_at: new Date().toISOString() })
         .eq("id", req.id);
@@ -112,7 +114,8 @@ export const PendingTerminationRequests = () => {
 
   const reject = async (req: RequestRow) => {
     try {
-      const { error } = await supabase
+      // Use type assertion for the new table
+      const { error } = await (supabase as any)
         .from("early_termination_requests")
         .update({ status: "rejected" })
         .eq("id", req.id);

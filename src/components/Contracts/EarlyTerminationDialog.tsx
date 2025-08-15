@@ -39,7 +39,8 @@ export const EarlyTerminationDialog = ({ open, onOpenChange, contract, onCreated
     try {
       const breakdown = calculateEarlyTerminationCharges(contract, requestedDateISO);
 
-      const { data, error } = await supabase
+      // Use type assertion for the new table
+      const { data, error } = await (supabase as any)
         .from("early_termination_requests")
         .insert([{
           contract_id: contract.id,
