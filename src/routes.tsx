@@ -129,19 +129,6 @@ export function AppRoutes() {
             </ProtectedRoute>
           } />
           
-          {/* Redirect legacy routes to main versions */}
-          <Route path="/customers-v2" element={<Navigate to="/customers" replace />} />
-          <Route path="/enhanced-customers" element={<Navigate to="/customers" replace />} />
-          <Route path="/contracts-simple" element={<Navigate to="/contracts" replace />} />
-          <Route path="/contracts-optimized" element={<Navigate to="/contracts" replace />} />
-          <Route path="/contracts-essential" element={<Navigate to="/contracts" replace />} />
-          <Route path="/contracts-enhanced" element={<Navigate to="/contracts" replace />} />
-          <Route path="/contracts-legacy" element={<Navigate to="/contracts" replace />} />
-          <Route path="/enhanced-reports" element={<Navigate to="/reports" replace />} />
-          <Route path="/enhanced-hr" element={<Navigate to="/hr" replace />} />
-          
-          {/* Remove experimental/test routes from production */}
-          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

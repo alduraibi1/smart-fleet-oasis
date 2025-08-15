@@ -1,14 +1,15 @@
 
-# Experimental Components
+# Experimental Files
 
-This folder contains experimental or alternative implementations of components that are not part of the main application.
+This folder contains experimental features and test implementations that are not part of the main application.
 
-## Guidelines
+## Files moved here:
+- Duplicate customer pages (Customers.tsx, CustomersV2.tsx - consolidated into EnhancedCustomers.tsx)
+- Multiple contract page variations (Contracts.tsx, ContractsSimple.tsx, etc. - consolidated into ContractsMain.tsx)
+- Legacy report and HR pages (consolidated into enhanced versions)
 
-- Components in this folder should not be imported by the main application
-- Use this space for testing new features or alternative approaches
-- Clean up regularly - move stable components to main codebase or delete unused experiments
-
-## Current Experiments
-
-- None (moved legacy pages here or removed duplicates)
+## Guidelines:
+- Use this folder for testing new features before integrating them into the main app
+- Keep experimental code separate from production code
+- Clean up unused experiments regularly
+- Document any useful patterns or components that could be extracted
