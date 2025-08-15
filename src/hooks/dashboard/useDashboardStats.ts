@@ -33,39 +33,44 @@ export const useDashboardStats = () => {
 
   const fetchStats = async () => {
     try {
-      // Fetch vehicles data - avoid destructuring to prevent type inference issues
-      const vehiclesResponse = await supabase
+      // Fetch vehicles data - cast the entire query as any to avoid type inference
+      const vehiclesQuery = supabase
         .from('vehicles')
         .select('id, status')
-        .eq('is_active', true);
+        .eq('is_active', true) as any;
+      const vehiclesResponse = await vehiclesQuery;
       const vehicles = vehiclesResponse.data as any[] || [];
 
       // Fetch contracts data
-      const contractsResponse = await supabase
+      const contractsQuery = supabase
         .from('rental_contracts')
         .select('id, status, total_amount, end_date')
-        .in('status', ['active', 'confirmed']);
+        .in('status', ['active', 'confirmed']) as any;
+      const contractsResponse = await contractsQuery;
       const contracts = contractsResponse.data as any[] || [];
 
       // Fetch receipts data
-      const receiptsResponse = await supabase
+      const receiptsQuery = supabase
         .from('payment_receipts')
         .select('amount, payment_date')
-        .eq('status', 'confirmed');
+        .eq('status', 'confirmed') as any;
+      const receiptsResponse = await receiptsQuery;
       const receipts = receiptsResponse.data as any[] || [];
 
       // Fetch vouchers data
-      const vouchersResponse = await supabase
+      const vouchersQuery = supabase
         .from('payment_vouchers')
         .select('amount, payment_date')
-        .in('status', ['approved', 'paid']);
+        .in('status', ['approved', 'paid']) as any;
+      const vouchersResponse = await vouchersQuery;
       const vouchers = vouchersResponse.data as any[] || [];
 
       // Fetch maintenance data
-      const maintenanceResponse = await supabase
+      const maintenanceQuery = supabase
         .from('vehicle_maintenance')
         .select('id')
-        .eq('status', 'pending');
+        .eq('status', 'pending') as any;
+      const maintenanceResponse = await maintenanceQuery;
       const maintenance = maintenanceResponse.data as any[] || [];
 
       // Calculate basic stats
