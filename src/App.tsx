@@ -1,4 +1,3 @@
-
 import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -6,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { ProtectedRoute } from "@/components/Auth/ProtectedRoute";
+import ProtectedRoute from "@/components/Auth/ProtectedRoute";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 // Lazy load components
