@@ -1,12 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+// تمت إزالة Select وملحقاته لأنها لن تُستخدم بعد الآن
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Calculator, AlertCircle, Info } from 'lucide-react';
+import { Calculator, AlertCircle } from 'lucide-react';
 import { FieldRequirement } from './ContractValidation';
 import { PaymentSection } from './PaymentSection';
 
@@ -33,13 +33,8 @@ export const EnhancedContractForm = ({
       
       const subtotal = daysDiff * formData.dailyRate;
       
-      // Calculate insurance
-      let insuranceAmount = 0;
-      if (formData.insuranceType === 'percentage' && formData.insurancePercentage) {
-        insuranceAmount = subtotal * (formData.insurancePercentage / 100);
-      } else if (formData.insuranceType === 'fixed' && formData.insuranceAmount) {
-        insuranceAmount = formData.insuranceAmount;
-      }
+      // إلغاء التأمين بشكل كامل في العقود الجديدة
+      const insuranceAmount = 0;
       
       // Calculate VAT
       let vatAmount = 0;
@@ -53,7 +48,7 @@ export const EnhancedContractForm = ({
         ...prev,
         totalDays: daysDiff,
         subtotal: subtotal,
-        calculatedInsuranceAmount: insuranceAmount,
+        calculatedInsuranceAmount: 0, // تثبيت التأمين على صفر
         vat: vatAmount,
         totalAmount: totalAmount,
       }));
@@ -199,69 +194,7 @@ export const EnhancedContractForm = ({
         </CardContent>
       </Card>
 
-      {/* Insurance Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            إعدادات التأمين
-            <FieldRequirement optional />
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="insuranceType">نوع التأمين</Label>
-            <Select 
-              value={formData.insuranceType || 'none'} 
-              onValueChange={(value) => setFormData(prev => ({ ...prev, insuranceType: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">بدون تأمين</SelectItem>
-                <SelectItem value="percentage">نسبة مئوية</SelectItem>
-                <SelectItem value="fixed">مبلغ مقطوع</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {formData.insuranceType === 'percentage' && (
-            <div>
-              <Label htmlFor="insurancePercentage">نسبة التأمين (%)</Label>
-              <Input
-                id="insurancePercentage"
-                type="number"
-                min="0"
-                max="100"
-                value={formData.insurancePercentage || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, insurancePercentage: parseFloat(e.target.value) || 0 }))}
-              />
-            </div>
-          )}
-
-          {formData.insuranceType === 'fixed' && (
-            <div>
-              <Label htmlFor="insuranceAmount">مبلغ التأمين (ر.س)</Label>
-              <Input
-                id="insuranceAmount"
-                type="number"
-                min="0"
-                value={formData.insuranceAmount || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, insuranceAmount: parseFloat(e.target.value) || 0 }))}
-              />
-            </div>
-          )}
-
-          {formData.insuranceType !== 'none' && (
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <div className="text-sm font-medium text-blue-800">
-                مبلغ التأمين المحسوب: {(formData.calculatedInsuranceAmount || 0).toLocaleString()} ر.س
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
+      {/* تم إلغاء قسم إعدادات التأمين */}
       {/* VAT Settings */}
       <Card>
         <CardHeader>
@@ -364,12 +297,7 @@ export const EnhancedContractForm = ({
               </div>
             )}
             
-            {formData.insuranceType !== 'none' && (formData.calculatedInsuranceAmount || 0) > 0 && (
-              <div className="flex justify-between">
-                <span>التأمين:</span>
-                <span className="font-bold">{(formData.calculatedInsuranceAmount || 0).toLocaleString()} ر.س</span>
-              </div>
-            )}
+            {/* لن يظهر التأمين لأننا نثبته على صفر */}
             
             {formData.vatEnabled && (formData.vat || 0) > 0 && (
               <div className="flex justify-between">
