@@ -56,44 +56,44 @@ export const useDashboardStats = () => {
   const fetchStats = async () => {
     try {
       // Fetch vehicles data with explicit typing
-      const { data: vehiclesRaw } = await supabase
+      const vehiclesQuery = await supabase
         .from('vehicles')
         .select('id, status')
         .eq('is_active', true);
       
-      const vehicles: VehicleData[] = vehiclesRaw || [];
+      const vehicles = (vehiclesQuery.data as VehicleData[]) || [];
 
       // Fetch contracts data with explicit typing
-      const { data: contractsRaw } = await supabase
+      const contractsQuery = await supabase
         .from('rental_contracts')
         .select('id, status, total_amount, end_date')
         .in('status', ['active', 'confirmed']);
       
-      const contracts: ContractData[] = contractsRaw || [];
+      const contracts = (contractsQuery.data as ContractData[]) || [];
 
       // Fetch receipts data with explicit typing
-      const { data: receiptsRaw } = await supabase
+      const receiptsQuery = await supabase
         .from('payment_receipts')
         .select('amount, payment_date')
         .eq('status', 'confirmed');
       
-      const receipts: PaymentData[] = receiptsRaw || [];
+      const receipts = (receiptsQuery.data as PaymentData[]) || [];
 
       // Fetch vouchers data with explicit typing
-      const { data: vouchersRaw } = await supabase
+      const vouchersQuery = await supabase
         .from('payment_vouchers')
         .select('amount, payment_date')
         .in('status', ['approved', 'paid']);
       
-      const vouchers: PaymentData[] = vouchersRaw || [];
+      const vouchers = (vouchersQuery.data as PaymentData[]) || [];
 
       // Fetch maintenance data with explicit typing
-      const { data: maintenanceRaw } = await supabase
+      const maintenanceQuery = await supabase
         .from('vehicle_maintenance')
         .select('id')
         .eq('status', 'pending');
       
-      const maintenance: MaintenanceData[] = maintenanceRaw || [];
+      const maintenance = (maintenanceQuery.data as MaintenanceData[]) || [];
 
       // Calculate basic stats
       const totalVehicles = vehicles.length;
