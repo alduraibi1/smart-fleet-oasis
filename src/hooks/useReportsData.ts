@@ -360,7 +360,7 @@ export const useMonthlyTrends = (months: number = 6) => {
 
         trends.push({
           month: format(monthStart, 'yyyy-MM'),
-          monthName: format(monthStart, 'MMMM yyyy', { locale: { localize: { month: () => format(monthStart, 'MM/yyyy') } } }),
+          monthName: format(monthStart, 'MM/yyyy'),
           revenue,
           expenses,
           profit,
