@@ -15,6 +15,28 @@ interface DashboardStats {
   profitMargin: number;
 }
 
+// Define explicit types for database queries
+interface VehicleData {
+  id: string;
+  status: string;
+}
+
+interface ContractData {
+  id: string;
+  status: string;
+  total_amount: number;
+  end_date: string;
+}
+
+interface PaymentData {
+  amount: number;
+  payment_date: string;
+}
+
+interface MaintenanceData {
+  id: string;
+}
+
 export const useDashboardStats = () => {
   const [stats, setStats] = useState<DashboardStats>({
     totalVehicles: 0,
@@ -33,45 +55,45 @@ export const useDashboardStats = () => {
 
   const fetchStats = async () => {
     try {
-      // Fetch vehicles data
-      const { data: vehiclesData } = await supabase
+      // Fetch vehicles data with explicit typing
+      const { data: vehiclesRaw } = await supabase
         .from('vehicles')
         .select('id, status')
         .eq('is_active', true);
       
-      const vehicles = vehiclesData || [];
+      const vehicles: VehicleData[] = vehiclesRaw || [];
 
-      // Fetch contracts data
-      const { data: contractsData } = await supabase
+      // Fetch contracts data with explicit typing
+      const { data: contractsRaw } = await supabase
         .from('rental_contracts')
         .select('id, status, total_amount, end_date')
         .in('status', ['active', 'confirmed']);
       
-      const contracts = contractsData || [];
+      const contracts: ContractData[] = contractsRaw || [];
 
-      // Fetch receipts data
-      const { data: receiptsData } = await supabase
+      // Fetch receipts data with explicit typing
+      const { data: receiptsRaw } = await supabase
         .from('payment_receipts')
         .select('amount, payment_date')
         .eq('status', 'confirmed');
       
-      const receipts = receiptsData || [];
+      const receipts: PaymentData[] = receiptsRaw || [];
 
-      // Fetch vouchers data
-      const { data: vouchersData } = await supabase
+      // Fetch vouchers data with explicit typing
+      const { data: vouchersRaw } = await supabase
         .from('payment_vouchers')
         .select('amount, payment_date')
         .in('status', ['approved', 'paid']);
       
-      const vouchers = vouchersData || [];
+      const vouchers: PaymentData[] = vouchersRaw || [];
 
-      // Fetch maintenance data
-      const { data: maintenanceData } = await supabase
+      // Fetch maintenance data with explicit typing
+      const { data: maintenanceRaw } = await supabase
         .from('vehicle_maintenance')
         .select('id')
         .eq('status', 'pending');
       
-      const maintenance = maintenanceData || [];
+      const maintenance: MaintenanceData[] = maintenanceRaw || [];
 
       // Calculate basic stats
       const totalVehicles = vehicles.length;
