@@ -55,45 +55,45 @@ export const useDashboardStats = () => {
 
   const fetchStats = async () => {
     try {
-      // Fetch vehicles data with explicit typing
-      const vehiclesQuery = await supabase
+      // Fetch vehicles data - using any to avoid type issues
+      const vehiclesResult: any = await supabase
         .from('vehicles')
         .select('id, status')
         .eq('is_active', true);
       
-      const vehicles = (vehiclesQuery.data as VehicleData[]) || [];
+      const vehicles: VehicleData[] = vehiclesResult.data || [];
 
-      // Fetch contracts data with explicit typing
-      const contractsQuery = await supabase
+      // Fetch contracts data
+      const contractsResult: any = await supabase
         .from('rental_contracts')
         .select('id, status, total_amount, end_date')
         .in('status', ['active', 'confirmed']);
       
-      const contracts = (contractsQuery.data as ContractData[]) || [];
+      const contracts: ContractData[] = contractsResult.data || [];
 
-      // Fetch receipts data with explicit typing
-      const receiptsQuery = await supabase
+      // Fetch receipts data
+      const receiptsResult: any = await supabase
         .from('payment_receipts')
         .select('amount, payment_date')
         .eq('status', 'confirmed');
       
-      const receipts = (receiptsQuery.data as PaymentData[]) || [];
+      const receipts: PaymentData[] = receiptsResult.data || [];
 
-      // Fetch vouchers data with explicit typing
-      const vouchersQuery = await supabase
+      // Fetch vouchers data
+      const vouchersResult: any = await supabase
         .from('payment_vouchers')
         .select('amount, payment_date')
         .in('status', ['approved', 'paid']);
       
-      const vouchers = (vouchersQuery.data as PaymentData[]) || [];
+      const vouchers: PaymentData[] = vouchersResult.data || [];
 
-      // Fetch maintenance data with explicit typing
-      const maintenanceQuery = await supabase
+      // Fetch maintenance data
+      const maintenanceResult: any = await supabase
         .from('vehicle_maintenance')
         .select('id')
         .eq('status', 'pending');
       
-      const maintenance = (maintenanceQuery.data as MaintenanceData[]) || [];
+      const maintenance: MaintenanceData[] = maintenanceResult.data || [];
 
       // Calculate basic stats
       const totalVehicles = vehicles.length;
