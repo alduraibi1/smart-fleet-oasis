@@ -33,63 +33,55 @@ export const useDashboardStats = () => {
 
   const fetchStats = async () => {
     try {
-      // Fetch vehicles data - completely avoid type inference
-      const vehiclesQuery = supabase
+      // Fetch vehicles data - use explicit any typing to avoid inference
+      const { data: vehicles }: { data: any[] | null } = await supabase
         .from('vehicles')
         .select('id, status')
         .eq('is_active', true);
-      
-      const vehiclesResult = await vehiclesQuery;
-      const vehicles = vehiclesResult.data || [];
 
       // Fetch contracts data
-      const contractsQuery = supabase
+      const { data: contracts }: { data: any[] | null } = await supabase
         .from('rental_contracts')
         .select('id, status, total_amount, end_date')
         .in('status', ['active', 'confirmed']);
-      
-      const contractsResult = await contractsQuery;
-      const contracts = contractsResult.data || [];
 
       // Fetch receipts data
-      const receiptsQuery = supabase
+      const { data: receipts }: { data: any[] | null } = await supabase
         .from('payment_receipts')
         .select('amount, payment_date')
         .eq('status', 'confirmed');
-      
-      const receiptsResult = await receiptsQuery;
-      const receipts = receiptsResult.data || [];
 
       // Fetch vouchers data
-      const vouchersQuery = supabase
+      const { data: vouchers }: { data: any[] | null } = await supabase
         .from('payment_vouchers')
         .select('amount, payment_date')
         .in('status', ['approved', 'paid']);
-      
-      const vouchersResult = await vouchersQuery;
-      const vouchers = vouchersResult.data || [];
 
       // Fetch maintenance data
-      const maintenanceQuery = supabase
+      const { data: maintenance }: { data: any[] | null } = await supabase
         .from('vehicle_maintenance')
         .select('id')
         .eq('status', 'pending');
-      
-      const maintenanceResult = await maintenanceQuery;
-      const maintenance = maintenanceResult.data || [];
+
+      // Use fallback empty arrays if data is null
+      const vehiclesData = vehicles || [];
+      const contractsData = contracts || [];
+      const receiptsData = receipts || [];
+      const vouchersData = vouchers || [];
+      const maintenanceData = maintenance || [];
 
       // Calculate basic stats
-      const totalVehicles = vehicles.length;
-      const availableVehicles = vehicles.filter((v: any) => v.status === 'available').length;
-      const activeContracts = contracts.length;
+      const totalVehicles = vehiclesData.length;
+      const availableVehicles = vehiclesData.filter((v: any) => v.status === 'available').length;
+      const activeContracts = contractsData.length;
       
       // Calculate revenue and expenses
-      const totalRevenue = receipts.reduce((sum: number, r: any) => {
+      const totalRevenue = receiptsData.reduce((sum: number, r: any) => {
         const amount = Number(r.amount) || 0;
         return sum + amount;
       }, 0);
       
-      const totalExpenses = vouchers.reduce((sum: number, v: any) => {
+      const totalExpenses = vouchersData.reduce((sum: number, v: any) => {
         const amount = Number(v.amount) || 0;
         return sum + amount;
       }, 0);
@@ -99,7 +91,7 @@ export const useDashboardStats = () => {
       const currentMonth = currentDate.getMonth();
       const currentYear = currentDate.getFullYear();
       
-      const monthlyRevenue = receipts
+      const monthlyRevenue = receiptsData
         .filter((r: any) => {
           const date = new Date(r.payment_date);
           return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
@@ -111,7 +103,7 @@ export const useDashboardStats = () => {
 
       // Overdue contracts calculation
       const now = new Date();
-      const overdueContracts = contracts.filter((c: any) => {
+      const overdueContracts = contractsData.filter((c: any) => {
         const endDate = new Date(c.end_date);
         return endDate < now && c.status === 'active';
       }).length;
@@ -135,7 +127,7 @@ export const useDashboardStats = () => {
         activeContracts,
         totalRevenue,
         monthlyRevenue,
-        pendingMaintenance: maintenance.length,
+        pendingMaintenance: maintenanceData.length,
         overdueContracts,
         customerSatisfaction,
         utilizationRate,
