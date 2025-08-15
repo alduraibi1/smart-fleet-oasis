@@ -1463,6 +1463,105 @@ export type Database = {
           },
         ]
       }
+      maintenance_oils_used: {
+        Row: {
+          created_at: string | null
+          id: string
+          inventory_item_id: string
+          maintenance_id: string
+          notes: string | null
+          quantity_used: number
+          total_cost: number | null
+          unit_cost: number
+          viscosity: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          inventory_item_id: string
+          maintenance_id: string
+          notes?: string | null
+          quantity_used: number
+          total_cost?: number | null
+          unit_cost?: number
+          viscosity?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          inventory_item_id?: string
+          maintenance_id?: string
+          notes?: string | null
+          quantity_used?: number
+          total_cost?: number | null
+          unit_cost?: number
+          viscosity?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_oils_used_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_oils_used_maintenance_id_fkey"
+            columns: ["maintenance_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_maintenance"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_parts_used: {
+        Row: {
+          created_at: string | null
+          id: string
+          inventory_item_id: string
+          maintenance_id: string
+          notes: string | null
+          quantity_used: number
+          total_cost: number | null
+          unit_cost: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          inventory_item_id: string
+          maintenance_id: string
+          notes?: string | null
+          quantity_used: number
+          total_cost?: number | null
+          unit_cost?: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          inventory_item_id?: string
+          maintenance_id?: string
+          notes?: string | null
+          quantity_used?: number
+          total_cost?: number | null
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_parts_used_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_parts_used_maintenance_id_fkey"
+            columns: ["maintenance_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_maintenance"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_schedules: {
         Row: {
           created_at: string
@@ -1564,6 +1663,66 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      maintenance_work_hours: {
+        Row: {
+          break_hours: number | null
+          created_at: string | null
+          end_time: string | null
+          hourly_rate: number
+          id: string
+          maintenance_id: string
+          mechanic_id: string
+          notes: string | null
+          start_time: string
+          total_cost: number | null
+          total_hours: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          break_hours?: number | null
+          created_at?: string | null
+          end_time?: string | null
+          hourly_rate?: number
+          id?: string
+          maintenance_id: string
+          mechanic_id: string
+          notes?: string | null
+          start_time: string
+          total_cost?: number | null
+          total_hours?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          break_hours?: number | null
+          created_at?: string | null
+          end_time?: string | null
+          hourly_rate?: number
+          id?: string
+          maintenance_id?: string
+          mechanic_id?: string
+          notes?: string | null
+          start_time?: string
+          total_cost?: number | null
+          total_hours?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_work_hours_maintenance_id_fkey"
+            columns: ["maintenance_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_maintenance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_work_hours_mechanic_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: false
+            referencedRelation: "mechanics"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mechanics: {
         Row: {
@@ -3119,6 +3278,7 @@ export type Database = {
       }
       vehicle_maintenance: {
         Row: {
+          actual_duration_hours: number | null
           completed_date: string | null
           cost: number | null
           created_at: string
@@ -3141,8 +3301,11 @@ export type Database = {
           updated_at: string
           vehicle_id: string
           warranty_until: string | null
+          work_end_time: string | null
+          work_start_time: string | null
         }
         Insert: {
+          actual_duration_hours?: number | null
           completed_date?: string | null
           cost?: number | null
           created_at?: string
@@ -3165,8 +3328,11 @@ export type Database = {
           updated_at?: string
           vehicle_id: string
           warranty_until?: string | null
+          work_end_time?: string | null
+          work_start_time?: string | null
         }
         Update: {
+          actual_duration_hours?: number | null
           completed_date?: string | null
           cost?: number | null
           created_at?: string
@@ -3189,6 +3355,8 @@ export type Database = {
           updated_at?: string
           vehicle_id?: string
           warranty_until?: string | null
+          work_end_time?: string | null
+          work_start_time?: string | null
         }
         Relationships: [
           {
@@ -3445,6 +3613,10 @@ export type Database = {
       analyze_customer_behavior: {
         Args: { p_customer_id: string }
         Returns: Json
+      }
+      calculate_maintenance_total_cost: {
+        Args: { maintenance_record_id: string }
+        Returns: number
       }
       check_profitability_thresholds: {
         Args: Record<PropertyKey, never>
