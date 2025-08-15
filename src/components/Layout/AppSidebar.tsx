@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Car, Calendar, Settings, Users, Database, 
   DollarSign, Home, BarChart3, TrendingUp, Building2, 
@@ -147,6 +148,7 @@ const menuSections: MenuSection[] = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
   const [openSections, setOpenSections] = useState<string[]>([
     'الرئيسية', 'إدارة الأسطول', 'إدارة النظام'
   ]);
@@ -157,6 +159,10 @@ export function AppSidebar() {
         ? prev.filter(s => s !== sectionTitle)
         : [...prev, sectionTitle]
     );
+  };
+
+  const handleNotificationClick = () => {
+    navigate('/notification-settings');
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -222,7 +228,10 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t p-4">
-        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors cursor-pointer">
+        <div 
+          className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors cursor-pointer"
+          onClick={handleNotificationClick}
+        >
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-full bg-destructive flex items-center justify-center">
               <Bell className="h-4 w-4 text-destructive-foreground" />
