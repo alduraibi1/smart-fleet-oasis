@@ -33,55 +33,53 @@ export const useDashboardStats = () => {
 
   const fetchStats = async () => {
     try {
-      // Fetch vehicles data - use explicit any typing to avoid inference
-      const { data: vehicles }: { data: any[] | null } = await supabase
+      // Fetch vehicles data - avoid destructuring to prevent type inference issues
+      const vehiclesResponse = await supabase
         .from('vehicles')
         .select('id, status')
         .eq('is_active', true);
+      const vehicles = vehiclesResponse.data as any[] || [];
 
       // Fetch contracts data
-      const { data: contracts }: { data: any[] | null } = await supabase
+      const contractsResponse = await supabase
         .from('rental_contracts')
         .select('id, status, total_amount, end_date')
         .in('status', ['active', 'confirmed']);
+      const contracts = contractsResponse.data as any[] || [];
 
       // Fetch receipts data
-      const { data: receipts }: { data: any[] | null } = await supabase
+      const receiptsResponse = await supabase
         .from('payment_receipts')
         .select('amount, payment_date')
         .eq('status', 'confirmed');
+      const receipts = receiptsResponse.data as any[] || [];
 
       // Fetch vouchers data
-      const { data: vouchers }: { data: any[] | null } = await supabase
+      const vouchersResponse = await supabase
         .from('payment_vouchers')
         .select('amount, payment_date')
         .in('status', ['approved', 'paid']);
+      const vouchers = vouchersResponse.data as any[] || [];
 
       // Fetch maintenance data
-      const { data: maintenance }: { data: any[] | null } = await supabase
+      const maintenanceResponse = await supabase
         .from('vehicle_maintenance')
         .select('id')
         .eq('status', 'pending');
-
-      // Use fallback empty arrays if data is null
-      const vehiclesData = vehicles || [];
-      const contractsData = contracts || [];
-      const receiptsData = receipts || [];
-      const vouchersData = vouchers || [];
-      const maintenanceData = maintenance || [];
+      const maintenance = maintenanceResponse.data as any[] || [];
 
       // Calculate basic stats
-      const totalVehicles = vehiclesData.length;
-      const availableVehicles = vehiclesData.filter((v: any) => v.status === 'available').length;
-      const activeContracts = contractsData.length;
+      const totalVehicles = vehicles.length;
+      const availableVehicles = vehicles.filter((v: any) => v.status === 'available').length;
+      const activeContracts = contracts.length;
       
       // Calculate revenue and expenses
-      const totalRevenue = receiptsData.reduce((sum: number, r: any) => {
+      const totalRevenue = receipts.reduce((sum: number, r: any) => {
         const amount = Number(r.amount) || 0;
         return sum + amount;
       }, 0);
       
-      const totalExpenses = vouchersData.reduce((sum: number, v: any) => {
+      const totalExpenses = vouchers.reduce((sum: number, v: any) => {
         const amount = Number(v.amount) || 0;
         return sum + amount;
       }, 0);
@@ -91,7 +89,7 @@ export const useDashboardStats = () => {
       const currentMonth = currentDate.getMonth();
       const currentYear = currentDate.getFullYear();
       
-      const monthlyRevenue = receiptsData
+      const monthlyRevenue = receipts
         .filter((r: any) => {
           const date = new Date(r.payment_date);
           return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
@@ -103,7 +101,7 @@ export const useDashboardStats = () => {
 
       // Overdue contracts calculation
       const now = new Date();
-      const overdueContracts = contractsData.filter((c: any) => {
+      const overdueContracts = contracts.filter((c: any) => {
         const endDate = new Date(c.end_date);
         return endDate < now && c.status === 'active';
       }).length;
@@ -127,7 +125,7 @@ export const useDashboardStats = () => {
         activeContracts,
         totalRevenue,
         monthlyRevenue,
-        pendingMaintenance: maintenanceData.length,
+        pendingMaintenance: maintenance.length,
         overdueContracts,
         customerSatisfaction,
         utilizationRate,
