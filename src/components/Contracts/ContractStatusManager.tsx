@@ -292,6 +292,7 @@ export const ContractStatusManager: React.FC<ContractStatusManagerProps> = ({
         onOpenChange={setRenewalDialogOpen}
         contract={contract}
         renewalType={renewalType}
+        onCreated={handleRenewalSuccess}
       />
     </>
   );

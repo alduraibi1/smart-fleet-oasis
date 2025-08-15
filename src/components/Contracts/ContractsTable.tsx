@@ -95,6 +95,12 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
     return new Date(dateString).toLocaleDateString('ar-SA');
   };
 
+  const handleRenewalSuccess = () => {
+    setRenewalDialogOpen(false);
+    setSelectedContract(null);
+    // You might want to refresh the contracts list here if needed
+  };
+
   return (
     <div className="space-y-6">
       {/* Filters and Search */}
@@ -252,6 +258,7 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
         onOpenChange={setRenewalDialogOpen}
         contract={selectedContract}
         renewalType={renewalType}
+        onCreated={handleRenewalSuccess}
       />
     </div>
   );
