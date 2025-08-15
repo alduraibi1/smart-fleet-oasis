@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,6 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Calculator, AlertCircle } from 'lucide-react';
 import { FieldRequirement } from './ContractValidation';
-import { SmartPaymentSection } from './SmartPaymentSection';
 
 interface EnhancedContractFormProps {
   formData: any;
@@ -31,22 +31,18 @@ export const EnhancedContractForm = ({
       
       const subtotal = daysDiff * formData.dailyRate;
       
-      // Insurance is disabled for new contracts
-      const insuranceAmount = 0;
-      
       // Calculate VAT
       let vatAmount = 0;
       if (formData.vatEnabled && formData.vatRate) {
-        vatAmount = (subtotal + (formData.additionalCharges || 0) + (formData.delegationFee || 0) - (formData.discount || 0) + insuranceAmount) * (formData.vatRate / 100);
+        vatAmount = (subtotal + (formData.additionalCharges || 0) + (formData.delegationFee || 0) - (formData.discount || 0)) * (formData.vatRate / 100);
       }
       
-      const totalAmount = subtotal + (formData.additionalCharges || 0) + (formData.delegationFee || 0) + insuranceAmount + vatAmount - (formData.discount || 0);
+      const totalAmount = subtotal + (formData.additionalCharges || 0) + (formData.delegationFee || 0) + vatAmount - (formData.discount || 0);
       
       setFormData(prev => ({
         ...prev,
         totalDays: daysDiff,
         subtotal: subtotal,
-        calculatedInsuranceAmount: 0,
         vat: vatAmount,
         totalAmount: totalAmount,
       }));
@@ -62,9 +58,6 @@ export const EnhancedContractForm = ({
     formData.additionalCharges, 
     formData.discount, 
     formData.delegationFee, 
-    formData.insuranceType,
-    formData.insurancePercentage,
-    formData.insuranceAmount,
     formData.vatEnabled,
     formData.vatRate
   ]);
@@ -132,6 +125,41 @@ export const EnhancedContractForm = ({
                 readOnly
                 className="bg-muted"
               />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Deposit/Security Amount */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            مبلغ التأمين
+            <FieldRequirement required />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="depositAmount" className="flex items-center gap-1">
+                مبلغ التأمين (ر.س)
+                <FieldRequirement required />
+              </Label>
+              <Input
+                id="depositAmount"
+                type="number"
+                min="0"
+                value={formData.depositAmount || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, depositAmount: parseFloat(e.target.value) || 0 }))}
+                className="border-red-200 focus:border-red-500"
+                placeholder="أدخل مبلغ التأمين المطلوب"
+              />
+            </div>
+            <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-blue-600 mr-2" />
+              <span className="text-sm text-blue-800">
+                سيتم إنشاء فاتورة منفصلة لمبلغ التأمين من قبل قسم المحاسبة
+              </span>
             </div>
           </div>
         </CardContent>
@@ -234,9 +262,6 @@ export const EnhancedContractForm = ({
         </CardContent>
       </Card>
 
-      {/* Smart Payment Section */}
-      <SmartPaymentSection formData={formData} setFormData={setFormData} />
-
       {/* Notes */}
       <Card>
         <CardHeader>
@@ -263,7 +288,7 @@ export const EnhancedContractForm = ({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            الملخص المالي
+            الملخص المالي للعقد
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -294,8 +319,6 @@ export const EnhancedContractForm = ({
               </div>
             )}
             
-            {/* لن يظهر التأمين لأننا نثبته على صفر */}
-            
             {formData.vatEnabled && (formData.vat || 0) > 0 && (
               <div className="flex justify-between">
                 <span>ضريبة القيمة المضافة ({formData.vatRate || 15}%):</span>
@@ -305,31 +328,30 @@ export const EnhancedContractForm = ({
             
             <div className="border-t pt-2">
               <div className="flex justify-between text-lg font-bold">
-                <span>المبلغ الإجمالي:</span>
+                <span>إجمالي مبلغ الإيجار:</span>
                 <span className="text-primary">{(formData.totalAmount || 0).toLocaleString()} ر.س</span>
               </div>
             </div>
 
-            {/* Enhanced Payment Summary */}
-            {formData.paidAmount > 0 && (
-              <div className="border-t pt-2">
+            {/* Deposit Summary */}
+            {(formData.depositAmount || 0) > 0 && (
+              <div className="border-t pt-2 bg-blue-50 p-3 rounded-lg">
                 <div className="flex justify-between">
-                  <span>المبلغ المدفوع:</span>
-                  <span className="font-bold text-green-600">{(formData.paidAmount || 0).toLocaleString()} ر.س</span>
+                  <span className="font-medium">مبلغ التأمين (منفصل):</span>
+                  <span className="font-bold text-blue-600">{(formData.depositAmount || 0).toLocaleString()} ر.س</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>المبلغ المتبقي:</span>
-                  <span className="font-bold text-orange-600">{(formData.remainingBalance || 0).toLocaleString()} ر.س</span>
-                </div>
+                <p className="text-xs text-blue-700 mt-1">
+                  * سيتم إنشاء فاتورة منفصلة لمبلغ التأمين من قبل قسم المحاسبة
+                </p>
               </div>
             )}
           </div>
 
-          {(!formData.startDate || !formData.endDate || !formData.dailyRate) && (
+          {(!formData.startDate || !formData.endDate || !formData.dailyRate || !formData.depositAmount) && (
             <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg">
               <AlertCircle className="h-4 w-4 text-yellow-600" />
               <span className="text-sm text-yellow-800">
-                يرجى إكمال الحقول الإلزامية لحساب المبلغ الإجمالي
+                يرجى إكمال الحقول الإلزامية: التواريخ، السعر اليومي، ومبلغ التأمين
               </span>
             </div>
           )}
