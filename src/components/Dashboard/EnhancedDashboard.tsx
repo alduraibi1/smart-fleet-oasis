@@ -11,13 +11,19 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  TrendingUp
+  TrendingUp,
+  Map,
+  Settings
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { InteractiveKPICard } from "./InteractiveKPICard";
 import { DateRangeFilter } from "./DateRangeFilter";
 import { ExportControls } from "./ExportControls";
 import { RealtimeIndicator } from "./RealtimeIndicator";
+import { LiveVehicleMap } from "./LiveVehicleMap";
+import { SmartAlerts } from "./SmartAlerts";
+import { PerformanceComparison } from "./PerformanceComparison";
+import { PersonalizedDashboard } from "./PersonalizedDashboard";
 import { useRealtimeDashboard } from "@/hooks/useRealtimeDashboard";
 import { DateRange } from "react-day-picker";
 
@@ -40,14 +46,11 @@ export const EnhancedDashboard = () => {
 
   const handleDateRangeChange = (range: DateRange | undefined) => {
     setSelectedDateRange(range);
-    // Here you would typically filter the data based on the selected range
-    // For now, we'll just refresh the data
     refetch();
   };
 
   const handlePresetChange = (preset: string) => {
     setSelectedPreset(preset);
-    // Apply preset logic and refresh data
     refetch();
   };
 
@@ -58,40 +61,6 @@ export const EnhancedDashboard = () => {
       minimumFractionDigits: 0
     }).format(amount);
   };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'destructive';
-      case 'medium': return 'default';
-      case 'low': return 'secondary';
-      default: return 'default';
-    }
-  };
-
-  // Mock alert data - in real implementation, this would come from your alerts system
-  const alerts = [
-    {
-      id: 1,
-      type: 'maintenance',
-      title: 'صيانة مجدولة',
-      message: '5 مركبات بحاجة لصيانة خلال الأسبوع القادم',
-      priority: 'medium'
-    },
-    {
-      id: 2,
-      type: 'document',
-      title: 'وثائق منتهية الصلاحية',
-      message: '3 رخص تسجيل ستنتهي صلاحيتها قريباً',
-      priority: 'high'
-    },
-    {
-      id: 3,
-      type: 'revenue',
-      title: 'زيادة في الإيرادات',
-      message: 'زيادة 15% في الإيرادات مقارنة بالشهر الماضي',
-      priority: 'low'
-    }
-  ];
 
   // Vehicle status distribution
   const availableVehicles = stats.totalVehicles - stats.activeContracts;
@@ -132,7 +101,7 @@ export const EnhancedDashboard = () => {
         <div>
           <h1 className="text-3xl font-bold">لوحة التحكم المتقدمة</h1>
           <p className="text-muted-foreground mt-1">
-            نظرة شاملة على الأداء والإحصائيات التفاعلية
+            نظرة شاملة على الأداء والإحصائيات التفاعلية مع المميزات الذكية
           </p>
         </div>
         
@@ -203,55 +172,19 @@ export const EnhancedDashboard = () => {
         />
       </div>
 
-      {/* Real-time Alerts */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
-            التنبيهات والإشعارات الفورية
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {alerts.map((alert) => (
-              <div key={alert.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <div className={`p-1 rounded-full ${
-                    alert.priority === 'high' ? 'bg-red-100' :
-                    alert.priority === 'medium' ? 'bg-yellow-100' : 'bg-green-100'
-                  }`}>
-                    {alert.priority === 'high' ? (
-                      <AlertTriangle className="h-4 w-4 text-red-600" />
-                    ) : alert.priority === 'medium' ? (
-                      <Clock className="h-4 w-4 text-yellow-600" />
-                    ) : (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium">{alert.title}</p>
-                    <p className="text-sm text-muted-foreground">{alert.message}</p>
-                  </div>
-                </div>
-                <Badge variant={getPriorityColor(alert.priority) as any}>
-                  {alert.priority === 'high' ? 'عالي' : 
-                   alert.priority === 'medium' ? 'متوسط' : 'منخفض'}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Charts and Analytics */}
-      <Tabs defaultValue="revenue" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="revenue">الإيرادات</TabsTrigger>
-          <TabsTrigger value="vehicles">المركبات</TabsTrigger>
-          <TabsTrigger value="performance">الأداء</TabsTrigger>
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList className="grid grid-cols-6 w-full">
+          <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
+          <TabsTrigger value="alerts">التنبيهات</TabsTrigger>
+          <TabsTrigger value="map">الخريطة الحية</TabsTrigger>
+          <TabsTrigger value="comparison">المقارنات</TabsTrigger>
+          <TabsTrigger value="analytics">التحليلات</TabsTrigger>
+          <TabsTrigger value="personalize">التخصيص</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="revenue">
+        {/* Overview Tab */}
+        <TabsContent value="overview">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -272,52 +205,49 @@ export const EnhancedDashboard = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>العقود الشهرية</CardTitle>
+                <CardTitle>توزيع حالة المركبات</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={monthlyTrend}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
+                  <PieChart>
+                    <Pie
+                      data={vehicleStatusData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {vehicleStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
                     <Tooltip />
-                    <Bar dataKey="contracts" fill="#10b981" />
-                  </BarChart>
+                  </PieChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        <TabsContent value="vehicles">
-          <Card>
-            <CardHeader>
-              <CardTitle>توزيع حالة المركبات</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={vehicleStatusData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {vehicleStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+        {/* Smart Alerts Tab */}
+        <TabsContent value="alerts">
+          <SmartAlerts />
         </TabsContent>
 
-        <TabsContent value="performance">
+        {/* Live Map Tab */}
+        <TabsContent value="map">
+          <LiveVehicleMap />
+        </TabsContent>
+
+        {/* Performance Comparison Tab */}
+        <TabsContent value="comparison">
+          <PerformanceComparison />
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
@@ -355,6 +285,11 @@ export const EnhancedDashboard = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* Personalized Dashboard Tab */}
+        <TabsContent value="personalize">
+          <PersonalizedDashboard />
         </TabsContent>
       </Tabs>
     </div>
