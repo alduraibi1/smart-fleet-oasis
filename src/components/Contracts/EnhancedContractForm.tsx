@@ -1,14 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-// تمت إزالة Select وملحقاته لأنها لن تُستخدم بعد الآن
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Calculator, AlertCircle } from 'lucide-react';
 import { FieldRequirement } from './ContractValidation';
-import { PaymentSection } from './PaymentSection';
+import { SmartPaymentSection } from './SmartPaymentSection';
 
 interface EnhancedContractFormProps {
   formData: any;
@@ -33,7 +31,7 @@ export const EnhancedContractForm = ({
       
       const subtotal = daysDiff * formData.dailyRate;
       
-      // إلغاء التأمين بشكل كامل في العقود الجديدة
+      // Insurance is disabled for new contracts
       const insuranceAmount = 0;
       
       // Calculate VAT
@@ -48,7 +46,7 @@ export const EnhancedContractForm = ({
         ...prev,
         totalDays: daysDiff,
         subtotal: subtotal,
-        calculatedInsuranceAmount: 0, // تثبيت التأمين على صفر
+        calculatedInsuranceAmount: 0,
         vat: vatAmount,
         totalAmount: totalAmount,
       }));
@@ -194,7 +192,6 @@ export const EnhancedContractForm = ({
         </CardContent>
       </Card>
 
-      {/* تم إلغاء قسم إعدادات التأمين */}
       {/* VAT Settings */}
       <Card>
         <CardHeader>
@@ -237,8 +234,8 @@ export const EnhancedContractForm = ({
         </CardContent>
       </Card>
 
-      {/* Enhanced Payment Section */}
-      <PaymentSection formData={formData} setFormData={setFormData} />
+      {/* Smart Payment Section */}
+      <SmartPaymentSection formData={formData} setFormData={setFormData} />
 
       {/* Notes */}
       <Card>
