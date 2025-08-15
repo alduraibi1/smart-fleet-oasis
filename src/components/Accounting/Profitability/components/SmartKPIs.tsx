@@ -14,12 +14,15 @@ import {
   Users
 } from 'lucide-react';
 
+type KPIStatus = 'excellent' | 'good' | 'warning' | 'critical';
+type KPITrend = 'up' | 'down' | 'stable';
+
 interface KPIData {
   value: number;
   target?: number;
   previousValue?: number;
-  trend: 'up' | 'down' | 'stable';
-  status: 'excellent' | 'good' | 'warning' | 'critical';
+  trend: KPITrend;
+  status: KPIStatus;
 }
 
 interface SmartKPIsProps {
@@ -31,6 +34,19 @@ export function SmartKPIs({ data, reportType }: SmartKPIsProps) {
   const kpis = useMemo(() => {
     if (!data) return [];
 
+    const getStatus = (value: number, excellent: number, good: number, warning: number): KPIStatus => {
+      if (value > excellent) return 'excellent';
+      if (value > good) return 'good';
+      if (value > warning) return 'warning';
+      return 'critical';
+    };
+
+    const getTrend = (value: number, high: number, medium: number): KPITrend => {
+      if (value > high) return 'up';
+      if (value > medium) return 'stable';
+      return 'down';
+    };
+
     if (reportType === 'vehicle') {
       return [
         {
@@ -39,8 +55,8 @@ export function SmartKPIs({ data, reportType }: SmartKPIsProps) {
           target: 25,
           format: 'percentage',
           icon: TrendingUp,
-          trend: data.profit_margin > 25 ? 'up' : data.profit_margin > 15 ? 'stable' : 'down',
-          status: data.profit_margin > 25 ? 'excellent' : data.profit_margin > 15 ? 'good' : data.profit_margin > 5 ? 'warning' : 'critical'
+          trend: getTrend(data.profit_margin || 0, 25, 15),
+          status: getStatus(data.profit_margin || 0, 25, 15, 5)
         },
         {
           title: 'معدل الاستخدام',
@@ -48,8 +64,8 @@ export function SmartKPIs({ data, reportType }: SmartKPIsProps) {
           target: 80,
           format: 'percentage',
           icon: BarChart3,
-          trend: data.utilization_rate > 80 ? 'up' : data.utilization_rate > 60 ? 'stable' : 'down',
-          status: data.utilization_rate > 80 ? 'excellent' : data.utilization_rate > 60 ? 'good' : data.utilization_rate > 40 ? 'warning' : 'critical'
+          trend: getTrend(data.utilization_rate || 0, 80, 60),
+          status: getStatus(data.utilization_rate || 0, 80, 60, 40)
         },
         {
           title: 'العائد على الاستثمار',
@@ -57,8 +73,8 @@ export function SmartKPIs({ data, reportType }: SmartKPIsProps) {
           target: 15,
           format: 'percentage',
           icon: DollarSign,
-          trend: data.roi > 15 ? 'up' : data.roi > 10 ? 'stable' : 'down',
-          status: data.roi > 15 ? 'excellent' : data.roi > 10 ? 'good' : data.roi > 5 ? 'warning' : 'critical'
+          trend: getTrend(data.roi || 0, 15, 10),
+          status: getStatus(data.roi || 0, 15, 10, 5)
         },
         {
           title: 'نقطة التعادل',
@@ -66,8 +82,9 @@ export function SmartKPIs({ data, reportType }: SmartKPIsProps) {
           target: 15,
           format: 'days',
           icon: Target,
-          trend: data.break_even_days < 15 ? 'up' : data.break_even_days < 25 ? 'stable' : 'down',
-          status: data.break_even_days < 15 ? 'excellent' : data.break_even_days < 25 ? 'good' : data.break_even_days < 35 ? 'warning' : 'critical'
+          // For break-even days, lower is better, so we reverse the logic
+          trend: (data.break_even_days || 0) < 15 ? 'up' : (data.break_even_days || 0) < 25 ? 'stable' : 'down',
+          status: (data.break_even_days || 0) < 15 ? 'excellent' : (data.break_even_days || 0) < 25 ? 'good' : (data.break_even_days || 0) < 35 ? 'warning' : 'critical'
         }
       ];
     } else if (reportType === 'owner') {
@@ -78,8 +95,8 @@ export function SmartKPIs({ data, reportType }: SmartKPIsProps) {
           target: 20,
           format: 'percentage',
           icon: TrendingUp,
-          trend: data.profit_margin > 20 ? 'up' : data.profit_margin > 15 ? 'stable' : 'down',
-          status: data.profit_margin > 20 ? 'excellent' : data.profit_margin > 15 ? 'good' : data.profit_margin > 10 ? 'warning' : 'critical'
+          trend: getTrend(data.profit_margin || 0, 20, 15),
+          status: getStatus(data.profit_margin || 0, 20, 15, 10)
         },
         {
           title: 'متوسط الإيراد للمركبة',
@@ -87,8 +104,8 @@ export function SmartKPIs({ data, reportType }: SmartKPIsProps) {
           target: 10000,
           format: 'currency',
           icon: DollarSign,
-          trend: data.avg_revenue_per_vehicle > 10000 ? 'up' : data.avg_revenue_per_vehicle > 7500 ? 'stable' : 'down',
-          status: data.avg_revenue_per_vehicle > 10000 ? 'excellent' : data.avg_revenue_per_vehicle > 7500 ? 'good' : data.avg_revenue_per_vehicle > 5000 ? 'warning' : 'critical'
+          trend: getTrend(data.avg_revenue_per_vehicle || 0, 10000, 7500),
+          status: getStatus(data.avg_revenue_per_vehicle || 0, 10000, 7500, 5000)
         },
         {
           title: 'معدل الاستخدام',
@@ -96,16 +113,16 @@ export function SmartKPIs({ data, reportType }: SmartKPIsProps) {
           target: 75,
           format: 'percentage',
           icon: BarChart3,
-          trend: data.utilization_rate > 75 ? 'up' : data.utilization_rate > 60 ? 'stable' : 'down',
-          status: data.utilization_rate > 75 ? 'excellent' : data.utilization_rate > 60 ? 'good' : data.utilization_rate > 40 ? 'warning' : 'critical'
+          trend: getTrend(data.utilization_rate || 0, 75, 60),
+          status: getStatus(data.utilization_rate || 0, 75, 60, 40)
         },
         {
           title: 'عدد المركبات النشطة',
           value: data.vehicle_count || 0,
           format: 'number',
           icon: Users,
-          trend: 'stable',
-          status: data.vehicle_count > 10 ? 'excellent' : data.vehicle_count > 5 ? 'good' : data.vehicle_count > 2 ? 'warning' : 'critical'
+          trend: 'stable' as KPITrend,
+          status: getStatus(data.vehicle_count || 0, 10, 5, 2)
         }
       ];
     } else if (reportType === 'customer') {
@@ -116,8 +133,8 @@ export function SmartKPIs({ data, reportType }: SmartKPIsProps) {
           target: 90,
           format: 'percentage',
           icon: TrendingUp,
-          trend: data.payment_behavior_score > 90 ? 'up' : data.payment_behavior_score > 70 ? 'stable' : 'down',
-          status: data.payment_behavior_score > 90 ? 'excellent' : data.payment_behavior_score > 70 ? 'good' : data.payment_behavior_score > 50 ? 'warning' : 'critical'
+          trend: getTrend(data.payment_behavior_score || 0, 90, 70),
+          status: getStatus(data.payment_behavior_score || 0, 90, 70, 50)
         },
         {
           title: 'قيمة العميل مدى الحياة',
@@ -125,8 +142,8 @@ export function SmartKPIs({ data, reportType }: SmartKPIsProps) {
           target: 50000,
           format: 'currency',
           icon: DollarSign,
-          trend: data.customer_lifetime_value > 50000 ? 'up' : data.customer_lifetime_value > 25000 ? 'stable' : 'down',
-          status: data.customer_lifetime_value > 50000 ? 'excellent' : data.customer_lifetime_value > 25000 ? 'good' : data.customer_lifetime_value > 10000 ? 'warning' : 'critical'
+          trend: getTrend(data.customer_lifetime_value || 0, 50000, 25000),
+          status: getStatus(data.customer_lifetime_value || 0, 50000, 25000, 10000)
         },
         {
           title: 'متوسط قيمة العقد',
@@ -134,16 +151,16 @@ export function SmartKPIs({ data, reportType }: SmartKPIsProps) {
           target: 5000,
           format: 'currency',
           icon: BarChart3,
-          trend: data.average_contract_value > 5000 ? 'up' : data.average_contract_value > 3000 ? 'stable' : 'down',
-          status: data.average_contract_value > 5000 ? 'excellent' : data.average_contract_value > 3000 ? 'good' : data.average_contract_value > 1000 ? 'warning' : 'critical'
+          trend: getTrend(data.average_contract_value || 0, 5000, 3000),
+          status: getStatus(data.average_contract_value || 0, 5000, 3000, 1000)
         },
         {
           title: 'معدل تكرار التأجير',
           value: data.total_contracts || 0,
           format: 'number',
           icon: Calendar,
-          trend: data.total_contracts > 5 ? 'up' : data.total_contracts > 2 ? 'stable' : 'down',
-          status: data.total_contracts > 5 ? 'excellent' : data.total_contracts > 2 ? 'good' : data.total_contracts > 1 ? 'warning' : 'critical'
+          trend: getTrend(data.total_contracts || 0, 5, 2),
+          status: getStatus(data.total_contracts || 0, 5, 2, 1)
         }
       ];
     }
@@ -170,7 +187,7 @@ export function SmartKPIs({ data, reportType }: SmartKPIsProps) {
     }
   };
 
-  const getStatusColor = (status: KPIData['status']) => {
+  const getStatusColor = (status: KPIStatus) => {
     switch (status) {
       case 'excellent':
         return 'text-green-600 bg-green-50 border-green-200';
@@ -183,7 +200,7 @@ export function SmartKPIs({ data, reportType }: SmartKPIsProps) {
     }
   };
 
-  const getStatusBadge = (status: KPIData['status']) => {
+  const getStatusBadge = (status: KPIStatus) => {
     switch (status) {
       case 'excellent':
         return { label: 'ممتاز', variant: 'default' as const };
