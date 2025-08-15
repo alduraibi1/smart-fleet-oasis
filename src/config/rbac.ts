@@ -5,7 +5,6 @@ import { lazy } from 'react';
 const Index = lazy(() => import('@/pages/Index'));
 const EnhancedDashboard = lazy(() => import('@/pages/EnhancedDashboard'));
 const Vehicles = lazy(() => import('@/pages/Vehicles'));
-const EnhancedCustomers = lazy(() => import('@/pages/EnhancedCustomers'));
 const ContractsMain = lazy(() => import('@/pages/ContractsMain'));
 const Maintenance = lazy(() => import('@/pages/Maintenance'));
 const EnhancedReports = lazy(() => import('@/pages/EnhancedReports'));
@@ -45,12 +44,6 @@ export const protectedRoutes: RouteConfig[] = [
     element: Vehicles,
     title: 'إدارة المركبات',
     description: 'عرض وإدارة المركبات'
-  },
-  {
-    path: '/customers',
-    element: EnhancedCustomers,
-    title: 'إدارة العملاء',
-    description: 'عرض وإدارة العملاء'
   },
   {
     path: '/contracts',
