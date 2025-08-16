@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { EnhancedCustomerFilters, CustomerFilters } from '@/components/Customers/EnhancedCustomerFilters';
@@ -289,7 +288,7 @@ export default function Customers() {
         <AddCustomerDialog
           open={showAddDialog}
           onOpenChange={setShowAddDialog}
-          customer={editingCustomer}
+          editingCustomer={editingCustomer}
           onClose={handleDialogClose}
         />
 

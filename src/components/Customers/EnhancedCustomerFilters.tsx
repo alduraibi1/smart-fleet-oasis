@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -169,7 +168,6 @@ export const EnhancedCustomerFilters = ({
                 <DatePickerWithRange
                   date={filters.dateRange}
                   onDateChange={handleDateRangeChange}
-                  placeholder="فترة التسجيل"
                 />
               </div>
 
