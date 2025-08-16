@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { EnhancedCustomerFilters } from '@/components/Customers/EnhancedCustomerFilters';
