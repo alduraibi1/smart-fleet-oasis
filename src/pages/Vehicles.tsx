@@ -9,7 +9,7 @@ import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/Layout/AppLayout';
-import { VehicleFilters as VehicleFiltersType } from '@/types/vehicles';
+import { VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
 import { Vehicle } from '@/types/vehicle';
 
 const Vehicles = () => {
@@ -82,15 +82,15 @@ const Vehicles = () => {
   }));
 
   const handleUpdateVehicle = async (id: string, vehicleData: Partial<Vehicle>) => {
-    // Convert back to the format expected by the hook
+    // Convert back to the format expected by the hook - fix property names
     const convertedData = {
       ...vehicleData,
-      plate_number: vehicleData.plateNumber || vehicleData.plate_number,
-      daily_rate: vehicleData.dailyRate || vehicleData.daily_rate,
-      engine_number: vehicleData.engineNumber || vehicleData.engine_number,
-      chassis_number: vehicleData.chassisNumber || vehicleData.chassis_number,
-      fuel_type: vehicleData.fuelType || vehicleData.fuel_type,
-      seating_capacity: vehicleData.seatingCapacity || vehicleData.seating_capacity,
+      plate_number: vehicleData.plate_number || (vehicleData as any).plateNumber,
+      daily_rate: vehicleData.daily_rate || (vehicleData as any).dailyRate,
+      engine_number: vehicleData.engine_number || (vehicleData as any).engineNumber,
+      chassis_number: vehicleData.chassis_number || (vehicleData as any).chassisNumber,
+      fuel_type: vehicleData.fuel_type || (vehicleData as any).fuelType,
+      seating_capacity: vehicleData.seating_capacity || (vehicleData as any).seatingCapacity,
       // Convert maintenance back to array format if needed
       maintenance: vehicleData.maintenance ? 
         vehicleData.maintenance.map(m => ({

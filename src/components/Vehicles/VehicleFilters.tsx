@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Search, Filter, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { VehicleFilters as VehicleFiltersType } from '@/types/vehicles';
+import { VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
 
 interface VehicleFiltersProps {
   filters: VehicleFiltersType;
