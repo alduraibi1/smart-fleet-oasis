@@ -72,6 +72,12 @@ export interface Customer {
   total_rentals: number;
   last_rental_date?: string;
   
+  // Legacy compatibility properties (for existing components)
+  nationalId: string;
+  licenseNumber?: string;
+  licenseExpiry?: string;
+  totalRentals: number;
+  
   // Notes
   notes?: string;
   
@@ -175,7 +181,7 @@ export const defaultCustomerFormData: CustomerFormData = {
 export interface CustomerFilters {
   search?: string;
   rating?: number;
-  status?: 'active' | 'inactive';
+  status?: 'active' | 'inactive' | 'all';
   blacklisted?: boolean;
   license_expiry?: 'all' | 'valid' | 'expiring' | 'expired';
   city?: string;
@@ -185,4 +191,5 @@ export interface CustomerFilters {
   marital_status?: string;
   dateFrom?: Date;
   dateTo?: Date;
+  dateRange?: { from?: Date; to?: Date };
 }

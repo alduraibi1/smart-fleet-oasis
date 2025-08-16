@@ -206,6 +206,10 @@ export default function CustomersNew() {
     toggleAll(checked, filteredCustomers.map(c => c.id));
   };
 
+  const handleFiltersChange = (newFilters: CustomerFilters) => {
+    setFilters(newFilters);
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -233,7 +237,7 @@ export default function CustomersNew() {
 
         <EnhancedCustomerFilters
           filters={filters}
-          onFiltersChange={setFilters}
+          onFiltersChange={handleFiltersChange}
           onExport={handleExport}
           onRefresh={refetch}
           totalCount={customers.length}

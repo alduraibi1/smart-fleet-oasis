@@ -137,6 +137,12 @@ export const convertDatabaseToCustomer = (data: any): Customer => {
     total_rentals: data.total_rentals || 0,
     last_rental_date: data.last_rental_date,
     
+    // Legacy compatibility
+    nationalId: data.national_id || '',
+    licenseNumber: data.license_number || '',
+    licenseExpiry: data.license_expiry,
+    totalRentals: data.total_rentals || 0,
+    
     notes: data.notes || '',
     
     created_at: data.created_at,
