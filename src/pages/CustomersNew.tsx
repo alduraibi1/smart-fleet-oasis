@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { EnhancedCustomerFilters } from '@/components/Customers/EnhancedCustomerFilters';
@@ -29,8 +28,8 @@ const convertToLegacyCustomer = (customer: NewCustomer): LegacyCustomer => {
     rating: customer.rating,
     is_active: customer.is_active,
     blacklisted: customer.blacklisted,
-    created_at: new Date(customer.created_at),
-    updated_at: new Date(customer.updated_at),
+    created_at: customer.created_at,
+    updated_at: customer.updated_at,
     city: customer.city || '',
     nationality: customer.nationality
   };
@@ -93,8 +92,8 @@ const convertToNewCustomer = (customer: LegacyCustomer): NewCustomer => {
     licenseExpiry: customer.licenseExpiry ? customer.licenseExpiry.toISOString().split('T')[0] : undefined,
     totalRentals: customer.totalRentals,
     notes: '',
-    created_at: customer.created_at.toISOString(),
-    updated_at: customer.updated_at.toISOString()
+    created_at: customer.created_at,
+    updated_at: customer.updated_at
   };
 };
 
