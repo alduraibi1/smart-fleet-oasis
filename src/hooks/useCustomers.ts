@@ -113,66 +113,65 @@ export const useCustomers = () => {
     console.log('🚀 Starting addCustomer function with data:', customerData);
     
     try {
-      // تحويل التواريخ إلى نصوص وإزالة الحقول المؤقتة
-      const { nationalId, licenseExpiry, totalRentals, blacklistReason, licenseNumber, documents, blacklistDate, ...cleanData } = customerData;
-      
-      console.log('📋 After removing temporary fields:', cleanData);
-      
       // التأكد من وجود البيانات الأساسية
-      if (!cleanData.name || !cleanData.phone || !cleanData.national_id) {
+      if (!customerData.name || !customerData.phone || !customerData.national_id) {
         console.error('❌ Missing required fields:', {
-          name: cleanData.name,
-          phone: cleanData.phone,
-          national_id: cleanData.national_id
+          name: customerData.name,
+          phone: customerData.phone,
+          national_id: customerData.national_id
         });
         
         throw new Error('الحقول الأساسية مطلوبة: الاسم، الهاتف، رقم الهوية');
       }
       
-      // إعداد البيانات للإدراج
+      // إعداد البيانات للإدراج - استخدام البيانات كما هي من النموذج
       const processedData = {
-        ...cleanData,
-        name: cleanData.name || '', // Required field
-        phone: cleanData.phone || '', // Required field
-        national_id: customerData.national_id || customerData.nationalId || '', // Required field
-        license_expiry: cleanData.license_expiry 
-          ? (typeof cleanData.license_expiry === 'string' 
-              ? cleanData.license_expiry 
-              : new Date(cleanData.license_expiry).toISOString().split('T')[0])
-          : null,
-        date_of_birth: cleanData.date_of_birth
-          ? (typeof cleanData.date_of_birth === 'string' 
-              ? cleanData.date_of_birth 
-              : new Date(cleanData.date_of_birth).toISOString().split('T')[0])
-          : null,
-        license_issue_date: cleanData.license_issue_date
-          ? (typeof cleanData.license_issue_date === 'string' 
-              ? cleanData.license_issue_date 
-              : new Date(cleanData.license_issue_date).toISOString().split('T')[0])
-          : null,
-        international_license_expiry: cleanData.international_license_expiry
-          ? (typeof cleanData.international_license_expiry === 'string' 
-              ? cleanData.international_license_expiry 
-              : new Date(cleanData.international_license_expiry).toISOString().split('T')[0])
-          : null,
-        insurance_expiry: cleanData.insurance_expiry
-          ? (typeof cleanData.insurance_expiry === 'string' 
-              ? cleanData.insurance_expiry 
-              : new Date(cleanData.insurance_expiry).toISOString().split('T')[0])
-          : null,
-        last_rental_date: cleanData.last_rental_date
-          ? (typeof cleanData.last_rental_date === 'string' 
-              ? cleanData.last_rental_date 
-              : new Date(cleanData.last_rental_date).toISOString().split('T')[0])
-          : null,
-        blacklist_date: cleanData.blacklist_date
-          ? (typeof cleanData.blacklist_date === 'string' 
-              ? cleanData.blacklist_date 
-              : new Date(cleanData.blacklist_date).toISOString().split('T')[0])
-          : null,
-        license_number: customerData.license_number || customerData.licenseNumber || '',
+        name: customerData.name,
+        phone: customerData.phone,
+        email: customerData.email || '',
+        national_id: customerData.national_id,
+        nationality: customerData.nationality || 'سعودي',
+        city: customerData.city || '',
+        address: customerData.address || '',
+        license_number: customerData.license_number || '',
+        license_expiry: customerData.license_expiry || null,
+        gender: customerData.gender || 'male',
+        marital_status: customerData.marital_status || 'single',
+        date_of_birth: customerData.date_of_birth || null,
+        license_type: customerData.license_type || 'private',
+        license_issue_date: customerData.license_issue_date || null,
+        international_license: customerData.international_license || false,
+        international_license_expiry: customerData.international_license_expiry || null,
+        country: customerData.country || 'السعودية',
+        district: customerData.district || '',
+        postal_code: customerData.postal_code || '',
+        address_type: customerData.address_type || 'residential',
+        preferred_language: customerData.preferred_language || 'ar',
+        marketing_consent: customerData.marketing_consent || false,
+        sms_notifications: customerData.sms_notifications !== false,
+        email_notifications: customer.email_notifications !== false,
+        customer_source: customerData.customer_source || 'website',
+        job_title: customerData.job_title || '',
+        company: customerData.company || '',
+        work_phone: customerData.work_phone || '',
+        monthly_income: customerData.monthly_income || 0,
+        bank_name: customerData.bank_name || '',
+        bank_account_number: customerData.bank_account_number || '',
+        credit_limit: customerData.credit_limit || 0,
+        payment_terms: customerData.payment_terms || 'immediate',
+        preferred_payment_method: customerData.preferred_payment_method || 'cash',
+        emergency_contact_name: customerData.emergency_contact_name || '',
+        emergency_contact_phone: customerData.emergency_contact_phone || '',
+        emergency_contact_relation: customerData.emergency_contact_relation || '',
+        has_insurance: customerData.has_insurance || false,
+        insurance_company: customerData.insurance_company || '',
+        insurance_policy_number: customerData.insurance_policy_number || '',
+        insurance_expiry: customerData.insurance_expiry || null,
+        notes: customerData.notes || '',
         is_active: true,
-        blacklisted: false
+        blacklisted: false,
+        rating: 5,
+        total_rentals: 0
       };
 
       console.log('📝 Final processed data for database:', processedData);
@@ -190,6 +189,12 @@ export const useCustomers = () => {
 
       console.log('✅ Customer added successfully:', data);
       await refetch();
+      
+      toast({
+        title: "تم الإضافة بنجاح",
+        description: "تم إضافة العميل الجديد بنجاح"
+      });
+      
       return { success: true, data };
     } catch (error) {
       console.error('💥 Error in addCustomer function:', error);

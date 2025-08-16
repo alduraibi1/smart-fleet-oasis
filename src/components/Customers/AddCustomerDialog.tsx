@@ -177,7 +177,15 @@ export function AddCustomerDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('🔍 Form submission started with data:', formData);
+    
     if (!formData.name || !formData.phone || !formData.national_id) {
+      console.error('❌ Validation failed - missing required fields:', {
+        name: formData.name,
+        phone: formData.phone,
+        national_id: formData.national_id
+      });
+      
       toast({
         title: "بيانات مفقودة",
         description: "يرجى ملء الحقول الأساسية (الاسم، الهاتف، رقم الهوية)",
@@ -191,13 +199,17 @@ export function AddCustomerDialog({
     try {
       let result;
       
+      console.log('📤 Sending data to useCustomers:', formData);
+      
       if (editingCustomer) {
         // Update existing customer
         result = await updateCustomer(editingCustomer.id, formData);
       } else {
-        // Add new customer
+        // Add new customer - إرسال البيانات بنفس التنسيق
         result = await addCustomer(formData);
       }
+
+      console.log('📥 Result from useCustomers:', result);
 
       if (result.success) {
         toast({
@@ -212,7 +224,7 @@ export function AddCustomerDialog({
         throw new Error(result.error || 'حدث خطأ');
       }
     } catch (error) {
-      console.error('Error saving customer:', error);
+      console.error('💥 Error in form submission:', error);
       toast({
         title: "خطأ",
         description: editingCustomer ? 
@@ -226,6 +238,7 @@ export function AddCustomerDialog({
   };
 
   const handleClose = () => {
+    console.log('🔒 Dialog closing from AddCustomerDialog');
     onOpenChange(false);
     if (onClose) {
       onClose();
@@ -233,6 +246,7 @@ export function AddCustomerDialog({
   };
 
   const handleInputChange = (field: string, value: any) => {
+    console.log(`📝 Field changed: ${field} = ${value}`);
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -468,7 +482,7 @@ export function AddCustomerDialog({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={handleClose}>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
               إلغاء
             </Button>
             <Button type="submit" disabled={loading}>
