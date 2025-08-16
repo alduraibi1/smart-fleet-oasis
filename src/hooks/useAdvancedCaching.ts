@@ -1,11 +1,11 @@
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface CacheConfig {
   strategy: 'memory' | 'localStorage' | 'sessionStorage' | 'indexedDB';
-  ttl: number; // Time to live in milliseconds
-  maxSize: number; // Maximum cache size
+  ttl: number;
+  maxSize: number;
   compression: boolean;
   encryption: boolean;
 }
@@ -33,7 +33,7 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
   
   const defaultConfig: CacheConfig = {
     strategy: 'memory',
-    ttl: 5 * 60 * 1000, // 5 minutes
+    ttl: 5 * 60 * 1000,
     maxSize: 100,
     compression: false,
     encryption: false
@@ -52,39 +52,28 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
     memoryUsage: 0
   });
 
-  // ضغط البيانات
-  const compressData = useCallback((data: T): string => {
+  const compressData = useCallback((data: CacheEntry<T>): string => {
     if (!cacheConfig.compression) return JSON.stringify(data);
-    
-    // تطبيق ضغط بسيط (في بيئة الإنتاج، استخدم مكتبة ضغط متخصصة)
     const jsonString = JSON.stringify(data);
     return btoa(jsonString);
   }, [cacheConfig.compression]);
 
-  // إلغاء ضغط البيانات
-  const decompressData = useCallback((compressedData: string): T => {
+  const decompressData = useCallback((compressedData: string): CacheEntry<T> => {
     if (!cacheConfig.compression) return JSON.parse(compressedData);
-    
     const jsonString = atob(compressedData);
     return JSON.parse(jsonString);
   }, [cacheConfig.compression]);
 
-  // تشفير البيانات
   const encryptData = useCallback((data: string): string => {
     if (!cacheConfig.encryption) return data;
-    
-    // تطبيق تشفير بسيط (في بيئة الإنتاج، استخدم تشفير قوي)
     return btoa(data);
   }, [cacheConfig.encryption]);
 
-  // إلغاء تشفير البيانات
   const decryptData = useCallback((encryptedData: string): string => {
     if (!cacheConfig.encryption) return encryptedData;
-    
     return atob(encryptedData);
   }, [cacheConfig.encryption]);
 
-  // حفظ في التخزين المحلي
   const saveToStorage = useCallback((key: string, data: CacheEntry<T>) => {
     const serialized = compressData(data);
     const encrypted = encryptData(serialized);
@@ -98,11 +87,9 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
           sessionStorage.setItem(`cache_${key}`, encrypted);
           break;
         case 'indexedDB':
-          // تطبيق IndexedDB (مبسط)
           console.log('IndexedDB storage not implemented in this demo');
           break;
         default:
-          // Memory storage - no persistence needed
           break;
       }
     } catch (error) {
@@ -110,7 +97,6 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
     }
   }, [cacheConfig.strategy, compressData, encryptData]);
 
-  // استرجاع من التخزين المحلي
   const loadFromStorage = useCallback((key: string): CacheEntry<T> | null => {
     try {
       let encrypted: string | null = null;
@@ -123,7 +109,6 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
           encrypted = sessionStorage.getItem(`cache_${key}`);
           break;
         case 'indexedDB':
-          // تطبيق IndexedDB (مبسط)
           console.log('IndexedDB loading not implemented in this demo');
           return null;
         default:
@@ -135,19 +120,17 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
       const decrypted = decryptData(encrypted);
       const data = decompressData(decrypted);
       
-      return data as CacheEntry<T>;
+      return data;
     } catch (error) {
       console.warn('Failed to load from storage:', error);
       return null;
     }
   }, [cacheConfig.strategy, decryptData, decompressData]);
 
-  // التحقق من انتهاء صلاحية البيانات المخزنة
   const isExpired = useCallback((entry: CacheEntry<T>): boolean => {
     return Date.now() - entry.timestamp > entry.ttl;
   }, []);
 
-  // إضافة إلى التخزين المؤقت
   const set = useCallback((key: string, data: T, customTTL?: number) => {
     const entry: CacheEntry<T> = {
       data,
@@ -160,13 +143,11 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
     setCache(prev => {
       const newCache = new Map(prev);
       
-      // تنظيف التخزين المؤقت إذا وصل للحد الأقصى
       if (newCache.size >= cacheConfig.maxSize) {
-        // إزالة أقل البيانات استخداماً
         const entries = Array.from(newCache.entries());
         entries.sort((a, b) => a[1].accessCount - b[1].accessCount);
         
-        const toRemove = Math.floor(cacheConfig.maxSize * 0.2); // إزالة 20%
+        const toRemove = Math.floor(cacheConfig.maxSize * 0.2);
         for (let i = 0; i < toRemove; i++) {
           newCache.delete(entries[i][0]);
         }
@@ -176,21 +157,17 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
       return newCache;
     });
 
-    // حفظ في التخزين المحلي
     saveToStorage(key, entry);
   }, [cacheConfig.ttl, cacheConfig.maxSize, saveToStorage]);
 
-  // استرجاع من التخزين المؤقت
   const get = useCallback((key: string): T | null => {
     setStats(prev => ({
       ...prev,
       totalRequests: prev.totalRequests + 1
     }));
 
-    // البحث في الذاكرة أولاً
     let entry = cache.get(key);
     
-    // إذا لم توجد، جرب التخزين المحلي
     if (!entry) {
       entry = loadFromStorage(key);
       if (entry) {
@@ -207,7 +184,6 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
       return null;
     }
 
-    // تحديث إحصائيات الوصول
     entry.accessCount++;
     entry.lastAccess = Date.now();
     
@@ -220,7 +196,6 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
     return entry.data;
   }, [cache, loadFromStorage, isExpired]);
 
-  // إزالة من التخزين المؤقت
   const remove = useCallback((key: string) => {
     setCache(prev => {
       const newCache = new Map(prev);
@@ -228,7 +203,6 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
       return newCache;
     });
 
-    // إزالة من التخزين المحلي
     try {
       switch (cacheConfig.strategy) {
         case 'localStorage':
@@ -243,11 +217,9 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
     }
   }, [cacheConfig.strategy]);
 
-  // مسح التخزين المؤقت
   const clear = useCallback(() => {
     setCache(new Map());
     
-    // مسح التخزين المحلي
     try {
       switch (cacheConfig.strategy) {
         case 'localStorage':
@@ -270,7 +242,6 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
     }
   }, [cacheConfig.strategy]);
 
-  // تنظيف البيانات منتهية الصلاحية
   const cleanup = useCallback(() => {
     setCache(prev => {
       const newCache = new Map();
@@ -286,7 +257,6 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
     });
   }, []);
 
-  // تحديث الإحصائيات
   useEffect(() => {
     setStats(prev => ({
       ...prev,
@@ -295,13 +265,11 @@ export function useAdvancedCaching<T = any>(key: string, config: Partial<CacheCo
     }));
   }, [cache]);
 
-  // تنظيف دوري
   useEffect(() => {
-    const interval = setInterval(cleanup, 60000); // كل دقيقة
+    const interval = setInterval(cleanup, 60000);
     return () => clearInterval(interval);
   }, [cleanup]);
 
-  // استخدام React Query مع التخزين المؤقت المتقدم
   const cachedQuery = useCallback((queryKey: string[], queryFn: () => Promise<T>, options = {}) => {
     return useQuery({
       queryKey,

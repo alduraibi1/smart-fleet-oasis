@@ -1,8 +1,9 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './components/theme/ThemeProvider';
 import { Toaster } from './components/ui/sonner';
-import Dashboard from './pages/Dashboard';
+import Index from './pages/Index';
 import CustomersPage from './pages/Customers';
 import VehiclesPage from './pages/Vehicles';
 import ContractsPage from './pages/Contracts';
@@ -16,8 +17,6 @@ import InventoryPage from './pages/Inventory';
 import SystemManagementPage from './pages/SystemManagement';
 import NotificationSettingsPage from './pages/NotificationSettings';
 import CustomersNew from './pages/CustomersNew';
-
-// New import for system optimization
 import SystemOptimizationPage from './pages/SystemOptimization';
 
 const queryClient = new QueryClient();
@@ -28,7 +27,7 @@ function App() {
       <ThemeProvider defaultTheme="light" storageKey="car-rental-theme">
         <Router>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Index />} />
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/customers-new" element={<CustomersNew />} />
             <Route path="/vehicles" element={<VehiclesPage />} />
@@ -42,8 +41,6 @@ function App() {
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/system" element={<SystemManagementPage />} />
             <Route path="/notification-settings" element={<NotificationSettingsPage />} />
-            
-            {/* New route for system optimization */}
             <Route path="/system-optimization" element={<SystemOptimizationPage />} />
           </Routes>
         </Router>
