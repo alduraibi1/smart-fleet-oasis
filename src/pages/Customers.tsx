@@ -46,7 +46,7 @@ export default function Customers() {
       }
     }
 
-    if (filters.status && filters.status !== 'all') {
+    if (filters.status && filters.status !== 'all' as any) {
       if (filters.status === 'active' && !customer.is_active) return false;
       if (filters.status === 'inactive' && customer.is_active) return false;
     }
@@ -208,7 +208,7 @@ export default function Customers() {
         <AddCustomerDialog
           open={showAddDialog}
           onOpenChange={setShowAddDialog}
-          editingCustomer={editingCustomer}
+          customer={editingCustomer}
           onClose={handleDialogClose}
         />
 
@@ -240,12 +240,12 @@ export default function Customers() {
         <AdvancedSearchDialog
           open={showAdvancedSearch}
           onOpenChange={setShowAdvancedSearch}
-          onApplyFilters={handleAdvancedSearch}
+          onSearch={handleAdvancedSearch}
         />
 
         <CustomerTemplates
-          isOpen={showTemplates}
-          onClose={() => setShowTemplates(false)}
+          open={showTemplates}
+          onOpenChange={() => setShowTemplates(false)}
         />
       </div>
     </AppLayout>
