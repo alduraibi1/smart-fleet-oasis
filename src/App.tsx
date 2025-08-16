@@ -1,41 +1,39 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { QueryClient } from '@tanstack/react-query';
-import { Customers } from './pages/Customers';
-import { Dashboard } from './pages/Dashboard';
-import { Owners } from './pages/Owners';
-import { Vehicles } from './pages/Vehicles';
-import { Contracts } from './pages/Contracts';
-import { Accounting } from './pages/Accounting';
-import { SystemManagement } from './pages/SystemManagement';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { ToastProvider } from '@/components/ui/use-toast';
-import { ThemeProvider } from '@/components/theme-provider';
-import { FinancialControlDashboard } from '@/components/Accounting/FinancialControl/FinancialControlDashboard';
-import { NewCustomers } from '@/pages/NewCustomers';
-import EnhancedSystemManagement from '@/pages/EnhancedSystemManagement';
+
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import Index from './pages/Index';
+import Customers from './pages/Customers';
+import Owners from './pages/Owners';
+import Vehicles from './pages/Vehicles';
+import Contracts from './pages/Contracts';
+import Accounting from './pages/Accounting';
+import SystemManagement from './pages/SystemManagement';
+import EnhancedSystemManagement from './pages/EnhancedSystemManagement';
+import { Toaster } from '@/components/ui/toaster';
+import './App.css';
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={new QueryClient()}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-react-theme">
-        <ToastProvider>
-          <Router>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <Router>
+          <div className="App">
             <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/" element={<Index />} />
               <Route path="/customers" element={<Customers />} />
-              <Route path="/new-customers" element={<NewCustomers />} />
               <Route path="/owners" element={<Owners />} />
               <Route path="/vehicles" element={<Vehicles />} />
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/accounting" element={<Accounting />} />
-              <Route path="/financial-control" element={<FinancialControlDashboard />} />
               <Route path="/system-management" element={<SystemManagement />} />
               <Route path="/enhanced-system-management" element={<EnhancedSystemManagement />} />
             </Routes>
-          </Router>
-        </ToastProvider>
+          </div>
+          <Toaster />
+        </Router>
       </ThemeProvider>
     </QueryClientProvider>
   );
