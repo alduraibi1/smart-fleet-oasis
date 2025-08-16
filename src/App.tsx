@@ -21,6 +21,7 @@ import HR from '@/pages/HR';
 import Suppliers from '@/pages/Suppliers';
 import Inventory from '@/pages/Inventory';
 import SystemManagement from '@/pages/SystemManagement';
+import NotificationSettings from '@/pages/NotificationSettings';
 import NotFound from '@/pages/NotFound';
 
 import './App.css';
@@ -55,6 +56,7 @@ function App() {
                 <Route path="/suppliers" element={<Suppliers />} />
                 <Route path="/inventory" element={<Inventory />} />
                 <Route path="/system" element={<SystemManagement />} />
+                <Route path="/notification-settings" element={<NotificationSettings />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>

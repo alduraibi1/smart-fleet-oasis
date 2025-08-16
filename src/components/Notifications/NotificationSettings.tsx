@@ -10,27 +10,27 @@ import { Bell, Mail, Smartphone, AlertTriangle, Calendar, Car, Settings } from '
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
+interface CategoryPreference {
+  enabled: boolean;
+  advance_days: number;
+}
+
+interface CategoryPreferences {
+  contract_expiry?: CategoryPreference;
+  document_expiry?: CategoryPreference;
+  maintenance?: CategoryPreference;
+  payment_due?: CategoryPreference;
+}
+
 interface NotificationPreferences {
   enabled: boolean;
   email_enabled: boolean;
   sms_enabled: boolean;
   push_enabled: boolean;
-  contract_expiry: {
-    enabled: boolean;
-    advance_days: number;
-  };
-  document_expiry: {
-    enabled: boolean;
-    advance_days: number;
-  };
-  maintenance_due: {
-    enabled: boolean;
-    advance_days: number;
-  };
-  payment_overdue: {
-    enabled: boolean;
-    advance_days: number;
-  };
+  contract_expiry: CategoryPreference;
+  document_expiry: CategoryPreference;
+  maintenance_due: CategoryPreference;
+  payment_overdue: CategoryPreference;
 }
 
 export default function NotificationSettings() {
@@ -64,15 +64,17 @@ export default function NotificationSettings() {
       }
 
       if (data) {
+        const categoryPrefs = data.category_preferences as CategoryPreferences || {};
+        
         setPreferences({
           enabled: data.enabled,
           email_enabled: data.email_enabled,
           sms_enabled: data.sms_enabled,
           push_enabled: data.push_enabled,
-          contract_expiry: data.category_preferences?.contract_expiry || { enabled: true, advance_days: 7 },
-          document_expiry: data.category_preferences?.document_expiry || { enabled: true, advance_days: 14 },
-          maintenance_due: data.category_preferences?.maintenance || { enabled: true, advance_days: 5 },
-          payment_overdue: data.category_preferences?.payment_due || { enabled: true, advance_days: 3 },
+          contract_expiry: categoryPrefs.contract_expiry || { enabled: true, advance_days: 7 },
+          document_expiry: categoryPrefs.document_expiry || { enabled: true, advance_days: 14 },
+          maintenance_due: categoryPrefs.maintenance || { enabled: true, advance_days: 5 },
+          payment_overdue: categoryPrefs.payment_due || { enabled: true, advance_days: 3 },
         });
       }
     } catch (error) {
@@ -86,7 +88,7 @@ export default function NotificationSettings() {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) throw new Error('User not authenticated');
 
-      const categoryPreferences = {
+      const categoryPreferences: CategoryPreferences = {
         contract_expiry: preferences.contract_expiry,
         document_expiry: preferences.document_expiry,
         maintenance: preferences.maintenance_due,

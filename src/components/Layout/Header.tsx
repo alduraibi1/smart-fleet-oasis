@@ -1,78 +1,46 @@
 
-import { Bell, Settings, User, LogOut } from 'lucide-react';
+import { Bell, Search, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { NotificationCenter } from '@/components/Notifications/NotificationCenter';
 
-export function Header() {
-  const { user, signOut, userProfile } = useAuth();
-  const navigate = useNavigate();
+interface HeaderProps {
+  onMenuClick: () => void;
+}
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
-  };
-
+export default function Header({ onMenuClick }: HeaderProps) {
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-14 items-center justify-between px-4">
+    <header className="bg-background border-b border-border px-6 py-4">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-semibold">نظام إدارة تأجير السيارات</h1>
+          <div className="flex items-center gap-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="البحث..."
+              className="w-64"
+            />
+          </div>
         </div>
-        
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-4">
           <NotificationCenter />
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>
-                    {userProfile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <div className="flex items-center justify-start gap-2 p-2">
-                <div className="flex flex-col space-y-1 leading-none">
-                  {userProfile?.full_name && (
-                    <p className="font-medium">{userProfile.full_name}</p>
-                  )}
-                  {user?.email && (
-                    <p className="w-[200px] truncate text-sm text-muted-foreground">
-                      {user.email}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/notification-settings')}>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>إعدادات الإشعارات</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/system-management')}>
-                <User className="mr-2 h-4 w-4" />
-                <span>إدارة النظام</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>تسجيل الخروج</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button variant="ghost" size="sm">
+            <Settings className="h-4 w-4" />
+          </Button>
+
+          <Avatar className="h-8 w-8">
+            <AvatarImage src="/placeholder.svg" />
+            <AvatarFallback>
+              <User className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
         </div>
       </div>
     </header>
   );
 }
+
+// Export named export for compatibility
+export { Header };
