@@ -1,18 +1,12 @@
+
 import * as React from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { File, FileText, GraduationCap, LayoutDashboard, ListChecks, MessageSquare, Settings, User, Users, FileContract } from "lucide-react"
+import { File, FileText, GraduationCap, LayoutDashboard, ListChecks, MessageSquare, Settings, User, Users, Car } from "lucide-react"
 import { Sidebar } from "lucide-react"
 import { Link, useLocation } from 'react-router-dom';
-
-import { MainNavItem, SidebarNavItem } from "@/types"
 import { cn } from "@/lib/utils"
-
-interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  items?: SidebarNavItem[]
-  mainNav?: MainNavItem[]
-}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation();
@@ -36,7 +30,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     {
       title: "العقود",
       url: "/contracts",
-      icon: FileContract,
+      icon: FileText,
     },
     {
       title: "العقود الأساسية",
@@ -56,7 +50,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     {
       title: "العقود المتقدمة",
       url: "/contracts-advanced",
-      icon: FileContract,
+      icon: FileText,
     },
     {
       title: "المستخدمين",
