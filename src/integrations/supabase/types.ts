@@ -135,6 +135,7 @@ export type Database = {
           ip_address: unknown | null
           resource_id: string | null
           resource_type: string | null
+          tag: string | null
           user_agent: string | null
           user_id: string | null
         }
@@ -146,6 +147,7 @@ export type Database = {
           ip_address?: unknown | null
           resource_id?: string | null
           resource_type?: string | null
+          tag?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
@@ -157,6 +159,7 @@ export type Database = {
           ip_address?: unknown | null
           resource_id?: string | null
           resource_type?: string | null
+          tag?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
@@ -3634,10 +3637,13 @@ export type Database = {
           created_at: string
           created_by: string | null
           daily_rate: number
+          default_monthly_rate: number | null
           engine_number: string | null
           features: string[] | null
           fuel_type: string
           id: string
+          inspection_expiry: string | null
+          insurance_expiry: string | null
           mileage: number
           model: string
           notes: string | null
@@ -3658,10 +3664,13 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           daily_rate?: number
+          default_monthly_rate?: number | null
           engine_number?: string | null
           features?: string[] | null
           fuel_type?: string
           id?: string
+          inspection_expiry?: string | null
+          insurance_expiry?: string | null
           mileage?: number
           model: string
           notes?: string | null
@@ -3682,10 +3691,13 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           daily_rate?: number
+          default_monthly_rate?: number | null
           engine_number?: string | null
           features?: string[] | null
           fuel_type?: string
           id?: string
+          inspection_expiry?: string | null
+          insurance_expiry?: string | null
           mileage?: number
           model?: string
           notes?: string | null
