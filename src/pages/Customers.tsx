@@ -208,7 +208,7 @@ export default function Customers() {
         <AddCustomerDialog
           open={showAddDialog}
           onOpenChange={setShowAddDialog}
-          customer={editingCustomer}
+          editingCustomer={editingCustomer}
           onClose={handleDialogClose}
         />
 
@@ -240,12 +240,12 @@ export default function Customers() {
         <AdvancedSearchDialog
           open={showAdvancedSearch}
           onOpenChange={setShowAdvancedSearch}
-          onSearch={handleAdvancedSearch}
+          onApplyFilters={handleAdvancedSearch}
         />
 
         <CustomerTemplates
-          open={showTemplates}
-          onOpenChange={setShowTemplates}
+          isOpen={showTemplates}
+          onClose={() => setShowTemplates(false)}
         />
       </div>
     </AppLayout>

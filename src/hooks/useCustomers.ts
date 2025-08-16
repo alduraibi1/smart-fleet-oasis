@@ -36,7 +36,7 @@ export const useCustomers = () => {
         city: customer.city || '',
         address: customer.address || '',
         license_expiry: customer.license_expiry,
-        licenseExpiry: customer.license_expiry || '',
+        licenseExpiry: customer.license_expiry ? new Date(customer.license_expiry) : new Date(),
         is_active: customer.is_active ?? true,
         blacklisted: customer.blacklisted || false,
         blacklist_reason: customer.blacklist_reason,
@@ -83,9 +83,10 @@ export const useCustomers = () => {
         insurance_policy_number: customer.insurance_policy_number || '',
         insurance_expiry: customer.insurance_expiry,
         notes: customer.notes || '',
-        tags: customer.customer_tags || [],
+        tags: [], // Default empty array since customer_tags doesn't exist in database
         last_rental_date: customer.last_rental_date,
         blacklist_date: customer.blacklist_date || '',
+        blacklistDate: customer.blacklist_date ? new Date(customer.blacklist_date) : undefined,
         documents: []
       }));
 
@@ -111,59 +112,57 @@ export const useCustomers = () => {
 
   const addCustomer = async (customerData: Partial<Customer>) => {
     try {
-      // تحويل التواريخ إلى نصوص
-      const processedData = {
-        ...customerData,
-        license_expiry: customerData.license_expiry 
-          ? (typeof customerData.license_expiry === 'string' 
-              ? customerData.license_expiry 
-              : new Date(customerData.license_expiry).toISOString().split('T')[0])
-          : null,
-        date_of_birth: customerData.date_of_birth
-          ? (typeof customerData.date_of_birth === 'string' 
-              ? customerData.date_of_birth 
-              : new Date(customerData.date_of_birth).toISOString().split('T')[0])
-          : null,
-        license_issue_date: customerData.license_issue_date
-          ? (typeof customerData.license_issue_date === 'string' 
-              ? customerData.license_issue_date 
-              : new Date(customerData.license_issue_date).toISOString().split('T')[0])
-          : null,
-        international_license_expiry: customerData.international_license_expiry
-          ? (typeof customerData.international_license_expiry === 'string' 
-              ? customerData.international_license_expiry 
-              : new Date(customerData.international_license_expiry).toISOString().split('T')[0])
-          : null,
-        insurance_expiry: customerData.insurance_expiry
-          ? (typeof customerData.insurance_expiry === 'string' 
-              ? customerData.insurance_expiry 
-              : new Date(customerData.insurance_expiry).toISOString().split('T')[0])
-          : null,
-        last_rental_date: customerData.last_rental_date
-          ? (typeof customerData.last_rental_date === 'string' 
-              ? customerData.last_rental_date 
-              : new Date(customerData.last_rental_date).toISOString().split('T')[0])
-          : null,
-        blacklist_date: customerData.blacklist_date
-          ? (typeof customerData.blacklist_date === 'string' 
-              ? customerData.blacklist_date 
-              : new Date(customerData.blacklist_date).toISOString().split('T')[0])
-          : null,
-      };
-
-      // إزالة الحقول المؤقتة وضمان license_number
-      const { nationalId, licenseExpiry, totalRentals, blacklistReason, licenseNumber, documents, ...cleanData } = processedData;
+      // تحويل التواريخ إلى نصوص وإزالة الحقول المؤقتة
+      const { nationalId, licenseExpiry, totalRentals, blacklistReason, licenseNumber, documents, blacklistDate, ...cleanData } = customerData;
       
-      const dataToInsert = {
+      const processedData = {
         ...cleanData,
-        license_number: cleanData.license_number || customerData.license_number || '',
+        name: cleanData.name || '', // Required field
+        phone: cleanData.phone || '', // Required field
+        national_id: cleanData.national_id || cleanData.nationalId || '', // Required field
+        license_expiry: cleanData.license_expiry 
+          ? (typeof cleanData.license_expiry === 'string' 
+              ? cleanData.license_expiry 
+              : new Date(cleanData.license_expiry).toISOString().split('T')[0])
+          : null,
+        date_of_birth: cleanData.date_of_birth
+          ? (typeof cleanData.date_of_birth === 'string' 
+              ? cleanData.date_of_birth 
+              : new Date(cleanData.date_of_birth).toISOString().split('T')[0])
+          : null,
+        license_issue_date: cleanData.license_issue_date
+          ? (typeof cleanData.license_issue_date === 'string' 
+              ? cleanData.license_issue_date 
+              : new Date(cleanData.license_issue_date).toISOString().split('T')[0])
+          : null,
+        international_license_expiry: cleanData.international_license_expiry
+          ? (typeof cleanData.international_license_expiry === 'string' 
+              ? cleanData.international_license_expiry 
+              : new Date(cleanData.international_license_expiry).toISOString().split('T')[0])
+          : null,
+        insurance_expiry: cleanData.insurance_expiry
+          ? (typeof cleanData.insurance_expiry === 'string' 
+              ? cleanData.insurance_expiry 
+              : new Date(cleanData.insurance_expiry).toISOString().split('T')[0])
+          : null,
+        last_rental_date: cleanData.last_rental_date
+          ? (typeof cleanData.last_rental_date === 'string' 
+              ? cleanData.last_rental_date 
+              : new Date(cleanData.last_rental_date).toISOString().split('T')[0])
+          : null,
+        blacklist_date: cleanData.blacklist_date
+          ? (typeof cleanData.blacklist_date === 'string' 
+              ? cleanData.blacklist_date 
+              : new Date(cleanData.blacklist_date).toISOString().split('T')[0])
+          : null,
+        license_number: cleanData.license_number || '',
         is_active: true,
         blacklisted: false
       };
 
       const { data, error } = await supabase
         .from('customers')
-        .insert(dataToInsert)
+        .insert(processedData)
         .select()
         .single();
 
@@ -179,22 +178,21 @@ export const useCustomers = () => {
 
   const updateCustomer = async (id: string, customerData: Partial<Customer>) => {
     try {
-      // تحويل التواريخ إلى نصوص
+      // تحويل التواريخ إلى نصوص وإزالة الحقول المؤقتة
+      const { nationalId, licenseExpiry, totalRentals, blacklistReason, licenseNumber, documents, blacklistDate, ...cleanData } = customerData;
+
       const processedData = {
-        ...customerData,
-        license_expiry: customerData.license_expiry 
-          ? (typeof customerData.license_expiry === 'string' 
-              ? customerData.license_expiry 
-              : new Date(customerData.license_expiry).toISOString().split('T')[0])
+        ...cleanData,
+        license_expiry: cleanData.license_expiry 
+          ? (typeof cleanData.license_expiry === 'string' 
+              ? cleanData.license_expiry 
+              : new Date(cleanData.license_expiry).toISOString().split('T')[0])
           : null,
       };
 
-      // إزالة الحقول المؤقتة
-      const { nationalId, licenseExpiry, totalRentals, blacklistReason, licenseNumber, documents, ...cleanData } = processedData;
-
       const { data, error } = await supabase
         .from('customers')
-        .update(cleanData)
+        .update(processedData)
         .eq('id', id)
         .select()
         .single();
