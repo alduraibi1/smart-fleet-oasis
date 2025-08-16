@@ -11,17 +11,101 @@ import { DeleteCustomerDialog } from '@/components/Customers/DeleteCustomerDialo
 import { exportCustomersToExcel } from '@/components/Customers/CustomerExportUtils';
 import { useCustomersNew } from '@/hooks/useCustomersNew';
 import { useCustomerSelection } from '@/hooks/useCustomerSelection';
-import { Customer, CustomerFilters } from '@/types/customer';
+import { Customer as NewCustomer, CustomerFilters as NewCustomerFilters } from '@/types/customer';
+import { Customer as LegacyCustomer } from '@/types/index';
 import { useToast } from '@/hooks/use-toast';
 
+// Convert new customer format to legacy format for compatibility with existing components
+const convertToLegacyCustomer = (customer: NewCustomer): LegacyCustomer => {
+  return {
+    id: customer.id,
+    name: customer.name,
+    phone: customer.phone,
+    email: customer.email || '',
+    nationalId: customer.national_id,
+    licenseNumber: customer.license_number || '',
+    licenseExpiry: customer.license_expiry ? new Date(customer.license_expiry) : new Date(),
+    totalRentals: customer.total_rentals,
+    rating: customer.rating,
+    isActive: customer.is_active,
+    blacklisted: customer.blacklisted,
+    createdAt: new Date(customer.created_at),
+    updatedAt: new Date(customer.updated_at),
+    city: customer.city || '',
+    nationality: customer.nationality
+  };
+};
+
+// Convert legacy customer back to new format
+const convertToNewCustomer = (customer: LegacyCustomer): NewCustomer => {
+  return {
+    id: customer.id,
+    name: customer.name,
+    phone: customer.phone,
+    email: customer.email,
+    national_id: customer.nationalId,
+    nationality: customer.nationality || 'سعودي',
+    city: customer.city,
+    address: '',
+    license_number: customer.licenseNumber,
+    license_expiry: customer.licenseExpiry ? customer.licenseExpiry.toISOString().split('T')[0] : undefined,
+    license_type: 'private',
+    license_issue_date: undefined,
+    gender: 'male',
+    marital_status: 'single',
+    date_of_birth: undefined,
+    country: 'السعودية',
+    district: '',
+    postal_code: '',
+    address_type: 'residential',
+    preferred_language: 'ar',
+    marketing_consent: false,
+    sms_notifications: true,
+    email_notifications: true,
+    customer_source: 'website',
+    job_title: '',
+    company: '',
+    work_phone: '',
+    monthly_income: 0,
+    bank_name: '',
+    bank_account_number: '',
+    credit_limit: 0,
+    payment_terms: 'immediate',
+    preferred_payment_method: 'cash',
+    emergency_contact_name: '',
+    emergency_contact_phone: '',
+    emergency_contact_relation: '',
+    has_insurance: false,
+    insurance_company: '',
+    insurance_policy_number: '',
+    insurance_expiry: undefined,
+    international_license: false,
+    international_license_expiry: undefined,
+    is_active: customer.isActive,
+    blacklisted: customer.blacklisted,
+    blacklist_reason: '',
+    blacklist_date: '',
+    rating: customer.rating,
+    total_rentals: customer.totalRentals,
+    last_rental_date: undefined,
+    nationalId: customer.nationalId,
+    licenseNumber: customer.licenseNumber,
+    licenseExpiry: customer.licenseExpiry ? customer.licenseExpiry.toISOString().split('T')[0] : undefined,
+    totalRentals: customer.totalRentals,
+    notes: '',
+    created_at: customer.createdAt.toISOString(),
+    updated_at: customer.updatedAt.toISOString()
+  };
+};
+
 export default function CustomersNew() {
-  const [filters, setFilters] = useState<CustomerFilters>({});
+  const [filters, setFilters] = useState<NewCustomerFilters>({});
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showBlacklistDialog, setShowBlacklistDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<NewCustomer | null>(null);
+  const [editingCustomer, setEditingCustomer] = useState<NewCustomer | null>(null);
 
   const { customers, loading, refetch, deleteCustomer, addToBlacklist, removeFromBlacklist } = useCustomersNew();
   const { selectedCustomers, toggleCustomer, toggleAll, clearSelection } = useCustomerSelection();
@@ -80,6 +164,9 @@ export default function CustomersNew() {
     return true;
   });
 
+  // Convert to legacy format for existing components
+  const legacyCustomers = filteredCustomers.map(convertToLegacyCustomer);
+
   // Event handlers
   const handleAddCustomer = () => {
     console.log('🆕 Opening add customer dialog');
@@ -87,27 +174,31 @@ export default function CustomersNew() {
     setShowAddDialog(true);
   };
 
-  const handleEdit = (customer: Customer) => {
+  const handleEdit = (customer: LegacyCustomer) => {
     console.log('🔄 Opening edit dialog for customer:', customer.id);
-    setEditingCustomer(customer);
+    const newCustomer = convertToNewCustomer(customer);
+    setEditingCustomer(newCustomer);
     setShowAddDialog(true);
   };
 
-  const handleView = (customer: Customer) => {
+  const handleView = (customer: LegacyCustomer) => {
     console.log('👁️ Opening view dialog for customer:', customer.id);
-    setSelectedCustomer(customer);
+    const newCustomer = convertToNewCustomer(customer);
+    setSelectedCustomer(newCustomer);
     setShowDetailsDialog(true);
   };
 
-  const handleBlacklist = (customer: Customer) => {
+  const handleBlacklist = (customer: LegacyCustomer) => {
     console.log('⚫ Opening blacklist dialog for customer:', customer.id);
-    setSelectedCustomer(customer);
+    const newCustomer = convertToNewCustomer(customer);
+    setSelectedCustomer(newCustomer);
     setShowBlacklistDialog(true);
   };
 
-  const handleDelete = (customer: Customer) => {
+  const handleDelete = (customer: LegacyCustomer) => {
     console.log('🗑️ Opening delete dialog for customer:', customer.id);
-    setSelectedCustomer(customer);
+    const newCustomer = convertToNewCustomer(customer);
+    setSelectedCustomer(newCustomer);
     setShowDeleteDialog(true);
   };
 
@@ -176,8 +267,8 @@ export default function CustomersNew() {
   };
 
   const handleExport = () => {
-    console.log('📤 Exporting customers:', filteredCustomers.length);
-    const success = exportCustomersToExcel(filteredCustomers);
+    console.log('📤 Exporting customers:', legacyCustomers.length);
+    const success = exportCustomersToExcel(legacyCustomers);
     if (success) {
       toast({
         title: "تم التصدير",
@@ -203,11 +294,27 @@ export default function CustomersNew() {
   };
 
   const handleSelectAll = (checked: boolean) => {
-    toggleAll(checked, filteredCustomers.map(c => c.id));
+    toggleAll(checked, legacyCustomers.map(c => c.id));
   };
 
-  const handleFiltersChange = (newFilters: CustomerFilters) => {
-    setFilters(newFilters);
+  const handleFiltersChange = (newFilters: any) => {
+    // Convert legacy filters to new format
+    const convertedFilters: NewCustomerFilters = {
+      search: newFilters.search,
+      rating: newFilters.rating,
+      status: newFilters.status,
+      blacklisted: newFilters.blacklisted,
+      license_expiry: newFilters.license_expiry,
+      city: newFilters.city,
+      customer_source: newFilters.customer_source,
+      nationality: newFilters.nationality,
+      gender: newFilters.gender,
+      marital_status: newFilters.marital_status,
+      dateFrom: newFilters.dateFrom,
+      dateTo: newFilters.dateTo,
+      dateRange: newFilters.dateRange
+    };
+    setFilters(convertedFilters);
   };
 
   return (
@@ -231,21 +338,21 @@ export default function CustomersNew() {
           onShowTemplates={() => {}} // Will implement later
           onBulkDelete={handleBulkDelete}
           selectedCount={selectedCustomers.length}
-          totalCount={filteredCustomers.length}
+          totalCount={legacyCustomers.length}
           loading={loading}
         />
 
         <EnhancedCustomerFilters
-          filters={filters}
+          filters={filters as any}
           onFiltersChange={handleFiltersChange}
           onExport={handleExport}
           onRefresh={refetch}
           totalCount={customers.length}
-          filteredCount={filteredCustomers.length}
+          filteredCount={legacyCustomers.length}
         />
 
         <EnhancedCustomerTable
-          customers={filteredCustomers}
+          customers={legacyCustomers}
           loading={loading}
           onEdit={handleEdit}
           onView={handleView}
@@ -264,36 +371,44 @@ export default function CustomersNew() {
           onClose={handleDialogClose}
         />
 
-        <CustomerDetailsDialog
-          open={showDetailsDialog}
-          onOpenChange={setShowDetailsDialog}
-          customer={selectedCustomer}
-          onEdit={(customer) => {
-            setEditingCustomer(customer);
-            setShowDetailsDialog(false);
-            setShowAddDialog(true);
-          }}
-          onDelete={(customer) => {
-            setSelectedCustomer(customer);
-            setShowDetailsDialog(false);
-            setShowDeleteDialog(true);
-          }}
-        />
+        {selectedCustomer && (
+          <CustomerDetailsDialog
+            open={showDetailsDialog}
+            onOpenChange={setShowDetailsDialog}
+            customer={convertToLegacyCustomer(selectedCustomer)}
+            onEdit={(customer) => {
+              const newCustomer = convertToNewCustomer(customer);
+              setEditingCustomer(newCustomer);
+              setShowDetailsDialog(false);
+              setShowAddDialog(true);
+            }}
+            onDelete={(customer) => {
+              const newCustomer = convertToNewCustomer(customer);
+              setSelectedCustomer(newCustomer);
+              setShowDetailsDialog(false);
+              setShowDeleteDialog(true);
+            }}
+          />
+        )}
 
-        <BlacklistDialog
-          open={showBlacklistDialog}
-          onOpenChange={setShowBlacklistDialog}
-          customer={selectedCustomer}
-          onBlacklist={handleBlacklistAction}
-          onRemoveFromBlacklist={handleRemoveFromBlacklist}
-        />
+        {selectedCustomer && (
+          <BlacklistDialog
+            open={showBlacklistDialog}
+            onOpenChange={setShowBlacklistDialog}
+            customer={convertToLegacyCustomer(selectedCustomer)}
+            onBlacklist={handleBlacklistAction}
+            onRemoveFromBlacklist={handleRemoveFromBlacklist}
+          />
+        )}
 
-        <DeleteCustomerDialog
-          open={showDeleteDialog}
-          onOpenChange={setShowDeleteDialog}
-          customer={selectedCustomer}
-          onDelete={handleDeleteCustomer}
-        />
+        {selectedCustomer && (
+          <DeleteCustomerDialog
+            open={showDeleteDialog}
+            onOpenChange={setShowDeleteDialog}
+            customer={convertToLegacyCustomer(selectedCustomer)}
+            onDelete={handleDeleteCustomer}
+          />
+        )}
       </div>
     </AppLayout>
   );
