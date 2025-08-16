@@ -29,7 +29,7 @@ export const useSystemAlerts = () => {
         type: notification.type as SystemAlert['type'],
         title: notification.title,
         message: notification.message,
-        severity: notification.severity as SystemAlert['severity'],
+        severity: notification.priority as SystemAlert['severity'], // Use priority instead of severity
         entity_type: notification.reference_type as SystemAlert['entity_type'],
         entity_id: notification.reference_id || '',
         is_read: notification.status === 'read',
