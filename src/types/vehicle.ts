@@ -58,7 +58,7 @@ export interface VehicleMaintenance {
 
 export interface VehicleLocation {
   id: string;
-  vehicle_id?: string;
+  vehicle_id: string;
   latitude?: number;
   longitude?: number;
   address?: string;
