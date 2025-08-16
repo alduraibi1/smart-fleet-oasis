@@ -9,8 +9,7 @@ import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/Layout/AppLayout';
-import { VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
-import { Vehicle } from '@/types/vehicle';
+import { VehicleFilters as VehicleFiltersType, Vehicle } from '@/types/vehicle';
 
 const Vehicles = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'enhanced'>('enhanced');
@@ -29,7 +28,7 @@ const Vehicles = () => {
   };
 
   // Convert vehicles from the hook to the Vehicle type used in EnhancedVehicleGrid
-  const convertedVehicles: Vehicle[] = vehicles.map(vehicle => ({
+  const convertedVehicles: Vehicle[] = vehicles.map((vehicle: any) => ({
     ...vehicle,
     plateNumber: vehicle.plate_number,
     dailyRate: vehicle.daily_rate,
@@ -39,7 +38,7 @@ const Vehicles = () => {
     seatingCapacity: vehicle.seating_capacity,
     maintenance: vehicle.maintenance ? 
       (Array.isArray(vehicle.maintenance) ? 
-        vehicle.maintenance.map(m => ({
+        vehicle.maintenance.map((m: any) => ({
           ...m,
           maintenance_type: m.maintenance_type || 'general',
           created_at: m.created_at || new Date().toISOString(),
@@ -63,11 +62,11 @@ const Vehicles = () => {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }],
-    documents: (vehicle.documents || []).map(doc => ({
+    documents: (vehicle.documents || []).map((doc: any) => ({
       ...doc,
       upload_date: doc.upload_date || new Date().toISOString(),
     })),
-    images: (vehicle.images || []).map(img => ({
+    images: (vehicle.images || []).map((img: any) => ({
       ...img,
       upload_date: img.upload_date || new Date().toISOString(),
     })),
@@ -85,15 +84,15 @@ const Vehicles = () => {
     // Convert back to the format expected by the hook - fix property names
     const convertedData = {
       ...vehicleData,
-      plate_number: vehicleData.plate_number || (vehicleData as any).plateNumber,
-      daily_rate: vehicleData.daily_rate || (vehicleData as any).dailyRate,
-      engine_number: vehicleData.engine_number || (vehicleData as any).engineNumber,
-      chassis_number: vehicleData.chassis_number || (vehicleData as any).chassisNumber,
-      fuel_type: vehicleData.fuel_type || (vehicleData as any).fuelType,
-      seating_capacity: vehicleData.seating_capacity || (vehicleData as any).seatingCapacity,
+      plate_number: vehicleData.plate_number || vehicleData.plateNumber,
+      daily_rate: vehicleData.daily_rate || vehicleData.dailyRate,
+      engine_number: vehicleData.engine_number || vehicleData.engineNumber,
+      chassis_number: vehicleData.chassis_number || vehicleData.chassisNumber,
+      fuel_type: vehicleData.fuel_type || vehicleData.fuelType,
+      seating_capacity: vehicleData.seating_capacity || vehicleData.seatingCapacity,
       // Convert maintenance back to array format if needed
       maintenance: vehicleData.maintenance ? 
-        vehicleData.maintenance.map(m => ({
+        vehicleData.maintenance.map((m: any) => ({
           ...m,
           maintenance_type: m.maintenance_type || 'general',
           created_at: m.created_at || new Date().toISOString(),
@@ -102,11 +101,11 @@ const Vehicles = () => {
         })) : 
         undefined,
       // Ensure documents and images have required properties
-      documents: vehicleData.documents?.map(doc => ({
+      documents: vehicleData.documents?.map((doc: any) => ({
         ...doc,
         upload_date: doc.upload_date || new Date().toISOString(),
       })),
-      images: vehicleData.images?.map(img => ({
+      images: vehicleData.images?.map((img: any) => ({
         ...img,
         upload_date: img.upload_date || new Date().toISOString(),
       })),

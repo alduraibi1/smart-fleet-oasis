@@ -124,3 +124,26 @@ export interface Vehicle {
   updated_at?: string;
   created_by?: string;
 }
+
+export interface VehicleFilters {
+  search?: string;
+  status?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minYear?: number;
+  maxYear?: number;
+  fuel_type?: string;
+  transmission?: string;
+  owner_id?: string;
+}
+
+export interface VehicleStats {
+  total: number;
+  available: number;
+  rented: number;
+  maintenance: number;
+  out_of_service: number;
+  total_value: number;
+  avg_daily_rate: number;
+}
