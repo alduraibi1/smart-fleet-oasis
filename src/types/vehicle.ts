@@ -1,4 +1,5 @@
 
+
 export interface VehicleOwner {
   id: string;
   name: string;
@@ -121,6 +122,7 @@ export interface Vehicle {
   // Administrative
   notes?: string;
   created_at: string;
-  updated_at?: string;
+  updated_at: string;
   created_by?: string;
 }
+

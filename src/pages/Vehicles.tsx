@@ -38,6 +38,7 @@ const Vehicles = () => {
     fuelType: vehicle.fuel_type,
     seatingCapacity: vehicle.seating_capacity,
     created_at: vehicle.created_at || new Date().toISOString(),
+    updated_at: vehicle.updated_at || new Date().toISOString(),
     maintenance: vehicle.maintenance ? 
       (Array.isArray(vehicle.maintenance) ? 
         vehicle.maintenance.map(m => ({
@@ -188,3 +189,4 @@ const Vehicles = () => {
 };
 
 export default Vehicles;
+
