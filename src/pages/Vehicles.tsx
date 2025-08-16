@@ -68,7 +68,10 @@ const Vehicles = () => {
       ...img,
       upload_date: img.upload_date || new Date().toISOString(),
     })),
-    location: vehicle.location,
+    location: vehicle.location ? {
+      ...vehicle.location,
+      id: vehicle.location.id || 'temp-location-' + vehicle.id,
+    } : undefined,
     purchase: undefined,
     currentRental: undefined,
   }));
@@ -101,6 +104,11 @@ const Vehicles = () => {
         ...img,
         upload_date: img.upload_date || new Date().toISOString(),
       })),
+      // Handle location conversion
+      location: vehicleData.location ? {
+        ...vehicleData.location,
+        id: vehicleData.location.id || 'temp-location-' + id,
+      } : undefined,
     };
     await updateVehicle(id, convertedData);
   };

@@ -57,7 +57,7 @@ export interface VehicleMaintenance {
 }
 
 export interface VehicleLocation {
-  id?: string;
+  id: string;
   vehicle_id?: string;
   latitude?: number;
   longitude?: number;
@@ -110,7 +110,7 @@ export interface Vehicle {
   owner_id?: string;
   owner?: VehicleOwner;
   
-  // Related data - Support both single object and array formats
+  // Related data - Always arrays for consistency
   documents?: VehicleDocument[];
   images?: VehicleImage[];
   maintenance?: VehicleMaintenance[];
