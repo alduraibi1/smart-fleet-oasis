@@ -2,7 +2,7 @@
 import React from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { EnhancedSystemSettings } from '@/components/SystemManagement/EnhancedSystemSettings';
+import EnhancedSystemSettings from '@/components/SystemManagement/EnhancedSystemSettings';
 import { Settings, Shield, Database, Bell } from 'lucide-react';
 
 export default function EnhancedSystemManagement() {

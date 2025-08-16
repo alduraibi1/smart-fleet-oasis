@@ -104,7 +104,7 @@ export interface Vehicle {
   seating_capacity: number;
   seatingCapacity?: number; // for backward compatibility
   features?: string[];
-  registration_expiry?: string;
+  registration_expiry?: string; // Add this property
   
   // Owner
   owner_id?: string;

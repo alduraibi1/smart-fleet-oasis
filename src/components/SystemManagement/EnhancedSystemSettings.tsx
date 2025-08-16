@@ -4,10 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
@@ -59,6 +56,9 @@ const systemSettingsSchema = z.object({
   registrationExpiryWarning: z.number().min(1, {
     message: "تحذير انتهاء التسجيل مطلوب.",
   }),
+  registrationExpiryWarningDays: z.number().min(1, {
+    message: "أيام تحذير انتهاء التسجيل مطلوبة.",
+  }),
   lowStockAlert: z.number().min(1, {
     message: "تنبيه المخزون المنخفض مطلوب.",
   }),
@@ -75,7 +75,7 @@ const systemSettingsSchema = z.object({
 });
 
 export default function EnhancedSystemSettings() {
-  const { settings, updateSettings, loading } = useSystemSettings();
+  const { settings, setSettings, updateSettings, loading } = useSystemSettings();
   const { toast } = useToast();
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -97,6 +97,7 @@ export default function EnhancedSystemSettings() {
       contractExpiryWarning: 30,
       contractExpiryWarningDays: 30,
       registrationExpiryWarning: 30,
+      registrationExpiryWarningDays: 30,
       lowStockAlert: 10,
       autoBackup: true,
       emailNotifications: true,
@@ -114,7 +115,9 @@ export default function EnhancedSystemSettings() {
   }, [settings, form]);
 
   const handleInputChange = (field: keyof SystemSettingsData, value: any) => {
-    setSettings(prev => prev ? { ...prev, [field]: value } : null);
+    if (settings && setSettings) {
+      setSettings({ ...settings, [field]: value });
+    }
   };
 
   const onSubmit = async (data: z.infer<typeof systemSettingsSchema>) => {
@@ -587,6 +590,30 @@ export default function EnhancedSystemSettings() {
                           disabled={!isEditMode}
                         />
                       </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="registrationExpiryWarningDays"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>أيام تحذير انتهاء التسجيل</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          {...field}
+                          disabled={!isEditMode}
+                          onChange={(e) => {
+                            field.onChange(parseInt(e.target.value));
+                            handleInputChange('registrationExpiryWarningDays', parseInt(e.target.value));
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />

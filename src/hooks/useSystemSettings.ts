@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,8 +16,9 @@ export interface SystemSettingsData {
   backupFrequency: string;
   maintenanceReminder: number;
   contractExpiryWarning: number;
-  contractExpiryWarningDays: number; // Add this missing property
+  contractExpiryWarningDays: number;
   registrationExpiryWarning: number;
+  registrationExpiryWarningDays: number; // Add this property
   lowStockAlert: number;
   autoBackup: boolean;
   emailNotifications: boolean;
@@ -42,6 +44,7 @@ const defaultSettings: SystemSettingsData = {
   contractExpiryWarning: 90,
   contractExpiryWarningDays: 30,
   registrationExpiryWarning: 60,
+  registrationExpiryWarningDays: 30, // Add default value
   lowStockAlert: 10,
   autoBackup: true,
   emailNotifications: true,
@@ -53,6 +56,7 @@ const defaultSettings: SystemSettingsData = {
 
 export const useSystemSettings = () => {
   const [settings, setSettings] = useState<SystemSettingsData | null>(null);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -63,6 +67,7 @@ export const useSystemSettings = () => {
       setSettings(defaultSettings);
       localStorage.setItem('systemSettings', JSON.stringify(defaultSettings));
     }
+    setLoading(false);
   }, []);
 
   const updateSettings = (newSettings: SystemSettingsData) => {
@@ -74,5 +79,5 @@ export const useSystemSettings = () => {
     });
   };
 
-  return { settings, updateSettings };
+  return { settings, setSettings, updateSettings, loading };
 };
