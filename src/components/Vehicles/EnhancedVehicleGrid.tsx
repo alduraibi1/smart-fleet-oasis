@@ -16,7 +16,7 @@ import {
   Settings,
   User,
 } from "lucide-react";
-import { Vehicle } from '@/types/vehicles';
+import { Vehicle } from '@/types/vehicle';
 import { Button } from '@/components/ui/button';
 import { EditVehicleDialog } from './EditVehicleDialog';
 import { DeleteVehicleDialog } from './DeleteVehicleDialog';
@@ -196,12 +196,14 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
                 </div>
 
                 {/* Registration Expiry Status */}
-                <div>
-                  <VehicleRegistrationExpiry 
-                    registrationExpiry={vehicle.registration_expiry}
-                    className="text-xs"
-                  />
-                </div>
+                {vehicle.registration_expiry && (
+                  <div>
+                    <VehicleRegistrationExpiry 
+                      expiryDate={vehicle.registration_expiry}
+                      className="text-xs"
+                    />
+                  </div>
+                )}
 
                 {/* Vehicle Details */}
                 <div className="grid grid-cols-2 gap-2 text-sm">
@@ -244,20 +246,24 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
       )}
 
       {/* Edit Dialog */}
-      <EditVehicleDialog
-        vehicle={selectedVehicle}
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        onVehicleUpdated={handleVehicleUpdated}
-      />
+      {selectedVehicle && (
+        <EditVehicleDialog
+          vehicle={selectedVehicle}
+          isOpen={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          onVehicleUpdated={handleVehicleUpdated}
+        />
+      )}
 
       {/* Delete Dialog */}
-      <DeleteVehicleDialog
-        vehicle={selectedVehicle}
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onVehicleDeleted={handleVehicleDeleted}
-      />
+      {selectedVehicle && (
+        <DeleteVehicleDialog
+          vehicle={selectedVehicle}
+          isOpen={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          onVehicleDeleted={handleVehicleDeleted}
+        />
+      )}
     </div>
   );
 };

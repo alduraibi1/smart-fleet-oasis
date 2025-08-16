@@ -18,7 +18,7 @@ export interface SystemSettingsData {
   contractExpiryWarning: number;
   contractExpiryWarningDays: number;
   registrationExpiryWarning: number;
-  registrationExpiryWarningDays: number; // Add this property
+  registrationExpiryWarningDays: number;
   lowStockAlert: number;
   autoBackup: boolean;
   emailNotifications: boolean;
@@ -44,7 +44,7 @@ const defaultSettings: SystemSettingsData = {
   contractExpiryWarning: 90,
   contractExpiryWarningDays: 30,
   registrationExpiryWarning: 60,
-  registrationExpiryWarningDays: 30, // Add default value
+  registrationExpiryWarningDays: 30,
   lowStockAlert: 10,
   autoBackup: true,
   emailNotifications: true,
@@ -62,7 +62,10 @@ export const useSystemSettings = () => {
   useEffect(() => {
     const storedSettings = localStorage.getItem('systemSettings');
     if (storedSettings) {
-      setSettings(JSON.parse(storedSettings));
+      const parsedSettings = JSON.parse(storedSettings);
+      // Ensure all required properties exist
+      const completeSettings = { ...defaultSettings, ...parsedSettings };
+      setSettings(completeSettings);
     } else {
       setSettings(defaultSettings);
       localStorage.setItem('systemSettings', JSON.stringify(defaultSettings));

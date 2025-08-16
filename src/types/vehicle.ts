@@ -82,29 +82,29 @@ export interface VehicleCurrentRental {
 export interface Vehicle {
   id: string;
   plate_number: string;
-  plateNumber?: string; // for backward compatibility
+  plateNumber?: string;
   brand: string;
   model: string;
   year: number;
   color: string;
   status: 'available' | 'rented' | 'maintenance' | 'out_of_service';
   daily_rate: number;
-  dailyRate?: number; // for backward compatibility
+  dailyRate?: number;
   mileage: number;
   
   // Vehicle Details
   vin?: string;
   engine_number?: string;
-  engineNumber?: string; // for backward compatibility
+  engineNumber?: string;
   chassis_number?: string;
-  chassisNumber?: string; // for backward compatibility
+  chassisNumber?: string;
   fuel_type: 'gasoline' | 'diesel' | 'hybrid' | 'electric';
-  fuelType?: 'gasoline' | 'diesel' | 'hybrid' | 'electric'; // for backward compatibility
+  fuelType?: 'gasoline' | 'diesel' | 'hybrid' | 'electric';
   transmission: 'manual' | 'automatic';
   seating_capacity: number;
-  seatingCapacity?: number; // for backward compatibility
+  seatingCapacity?: number;
   features?: string[];
-  registration_expiry?: string; // Add this property
+  registration_expiry?: string;
   
   // Owner
   owner_id?: string;
