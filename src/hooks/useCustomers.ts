@@ -31,19 +31,19 @@ export const useCustomers = () => {
         phone: customer.phone,
         email: customer.email || '',
         national_id: customer.national_id,
-        nationalId: customer.national_id || '', // للتوافق مع الكود القديم
+        nationalId: customer.national_id || '',
         nationality: customer.nationality || 'سعودي',
         city: customer.city || '',
         address: customer.address || '',
         license_expiry: customer.license_expiry,
-        licenseExpiry: customer.license_expiry || '', // للتوافق مع الكود القديم
+        licenseExpiry: customer.license_expiry || '',
         is_active: customer.is_active ?? true,
         blacklisted: customer.blacklisted || false,
         blacklist_reason: customer.blacklist_reason,
-        blacklistReason: customer.blacklist_reason, // للتوافق مع الكود القديم
+        blacklistReason: customer.blacklist_reason,
         rating: customer.rating || 5,
         total_rentals: customer.total_rentals || 0,
-        totalRentals: customer.total_rentals || 0, // للتوافق مع الكود القديم
+        totalRentals: customer.total_rentals || 0,
         created_at: customer.created_at,
         updated_at: customer.updated_at,
         
@@ -52,7 +52,7 @@ export const useCustomers = () => {
         marital_status: customer.marital_status || 'single',
         date_of_birth: customer.date_of_birth,
         license_number: customer.license_number || '',
-        licenseNumber: customer.license_number || '', // للتوافق
+        licenseNumber: customer.license_number || '',
         license_type: customer.license_type || 'private',
         license_issue_date: customer.license_issue_date,
         international_license: customer.international_license || false,
@@ -71,7 +71,7 @@ export const useCustomers = () => {
         work_phone: customer.work_phone || '',
         monthly_income: customer.monthly_income || 0,
         bank_name: customer.bank_name || '',
-        account_number: customer.account_number || '',
+        account_number: customer.bank_account_number || '',
         credit_limit: customer.credit_limit || 0,
         payment_terms: customer.payment_terms || 'immediate',
         preferred_payment_method: customer.preferred_payment_method || 'cash',
@@ -83,9 +83,9 @@ export const useCustomers = () => {
         insurance_policy_number: customer.insurance_policy_number || '',
         insurance_expiry: customer.insurance_expiry,
         notes: customer.notes || '',
-        tags: customer.tags || [],
+        tags: customer.customer_tags || [],
         last_rental_date: customer.last_rental_date,
-        blacklist_date: customer.blacklist_date ? new Date(customer.blacklist_date) : undefined,
+        blacklist_date: customer.blacklist_date || '',
         documents: []
       }));
 
@@ -117,50 +117,53 @@ export const useCustomers = () => {
         license_expiry: customerData.license_expiry 
           ? (typeof customerData.license_expiry === 'string' 
               ? customerData.license_expiry 
-              : customerData.license_expiry.toISOString().split('T')[0])
+              : new Date(customerData.license_expiry).toISOString().split('T')[0])
           : null,
         date_of_birth: customerData.date_of_birth
           ? (typeof customerData.date_of_birth === 'string' 
               ? customerData.date_of_birth 
-              : customerData.date_of_birth.toISOString().split('T')[0])
+              : new Date(customerData.date_of_birth).toISOString().split('T')[0])
           : null,
         license_issue_date: customerData.license_issue_date
           ? (typeof customerData.license_issue_date === 'string' 
               ? customerData.license_issue_date 
-              : customerData.license_issue_date.toISOString().split('T')[0])
+              : new Date(customerData.license_issue_date).toISOString().split('T')[0])
           : null,
         international_license_expiry: customerData.international_license_expiry
           ? (typeof customerData.international_license_expiry === 'string' 
               ? customerData.international_license_expiry 
-              : customerData.international_license_expiry.toISOString().split('T')[0])
+              : new Date(customerData.international_license_expiry).toISOString().split('T')[0])
           : null,
         insurance_expiry: customerData.insurance_expiry
           ? (typeof customerData.insurance_expiry === 'string' 
               ? customerData.insurance_expiry 
-              : customerData.insurance_expiry.toISOString().split('T')[0])
+              : new Date(customerData.insurance_expiry).toISOString().split('T')[0])
           : null,
         last_rental_date: customerData.last_rental_date
           ? (typeof customerData.last_rental_date === 'string' 
               ? customerData.last_rental_date 
-              : customerData.last_rental_date.toISOString().split('T')[0])
+              : new Date(customerData.last_rental_date).toISOString().split('T')[0])
           : null,
         blacklist_date: customerData.blacklist_date
           ? (typeof customerData.blacklist_date === 'string' 
               ? customerData.blacklist_date 
-              : customerData.blacklist_date.toISOString().split('T')[0])
+              : new Date(customerData.blacklist_date).toISOString().split('T')[0])
           : null,
       };
 
-      // إزالة الحقول المؤقتة
+      // إزالة الحقول المؤقتة وضمان license_number
       const { nationalId, licenseExpiry, totalRentals, blacklistReason, licenseNumber, documents, ...cleanData } = processedData;
+      
+      const dataToInsert = {
+        ...cleanData,
+        license_number: cleanData.license_number || customerData.license_number || '',
+        is_active: true,
+        blacklisted: false
+      };
 
       const { data, error } = await supabase
         .from('customers')
-        .insert({
-          ...cleanData,
-          is_active: true,
-          blacklisted: false
-        })
+        .insert(dataToInsert)
         .select()
         .single();
 
@@ -182,7 +185,7 @@ export const useCustomers = () => {
         license_expiry: customerData.license_expiry 
           ? (typeof customerData.license_expiry === 'string' 
               ? customerData.license_expiry 
-              : customerData.license_expiry.toISOString().split('T')[0])
+              : new Date(customerData.license_expiry).toISOString().split('T')[0])
           : null,
       };
 

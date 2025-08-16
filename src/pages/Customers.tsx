@@ -98,7 +98,6 @@ export default function Customers() {
 
   const handleBlacklistAction = async (customerId: string, reason: string) => {
     try {
-      // تم نقل المنطق إلى BlacklistDialog
       await refetch();
     } catch (error) {
       console.error('Error blacklisting customer:', error);
@@ -112,7 +111,6 @@ export default function Customers() {
 
   const handleRemoveFromBlacklist = async (customerId: string) => {
     try {
-      // تم نقل المنطق إلى BlacklistDialog
       await refetch();
     } catch (error) {
       console.error('Error removing from blacklist:', error);
@@ -159,6 +157,10 @@ export default function Customers() {
     setShowAdvancedSearch(false);
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    toggleAll(checked, filteredCustomers.map(c => c.id));
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -200,13 +202,13 @@ export default function Customers() {
           onBlacklist={handleBlacklist}
           selectedCustomers={selectedCustomers}
           onSelectCustomer={toggleCustomer}
-          onSelectAll={toggleAll}
+          onSelectAll={handleSelectAll}
         />
 
         <AddCustomerDialog
           open={showAddDialog}
           onOpenChange={setShowAddDialog}
-          editingCustomer={editingCustomer}
+          customer={editingCustomer}
           onClose={handleDialogClose}
         />
 
@@ -238,12 +240,12 @@ export default function Customers() {
         <AdvancedSearchDialog
           open={showAdvancedSearch}
           onOpenChange={setShowAdvancedSearch}
-          onApplyFilters={handleAdvancedSearch}
+          onSearch={handleAdvancedSearch}
         />
 
         <CustomerTemplates
-          isOpen={showTemplates}
-          onClose={() => setShowTemplates(false)}
+          open={showTemplates}
+          onOpenChange={setShowTemplates}
         />
       </div>
     </AppLayout>
