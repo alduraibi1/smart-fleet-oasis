@@ -25,13 +25,23 @@ export const DeleteCustomerDialog = ({
   if (!customer) return null;
 
   const handleDelete = async () => {
+    console.log('🗑️ Starting delete process for customer:', customer.id);
     setIsDeleting(true);
+    
     try {
       await onDelete(customer.id);
+      console.log('✅ Customer deleted successfully');
       onOpenChange(false);
+    } catch (error) {
+      console.error('💥 Error deleting customer:', error);
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleCancel = () => {
+    console.log('❌ Delete cancelled');
+    onOpenChange(false);
   };
 
   return (
@@ -109,7 +119,7 @@ export const DeleteCustomerDialog = ({
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => onOpenChange(false)}
+              onClick={handleCancel}
               disabled={isDeleting}
             >
               <X className="h-4 w-4 ml-2" />

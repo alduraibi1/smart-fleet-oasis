@@ -48,6 +48,18 @@ export const CustomerQuickActions = ({
   totalCount,
   loading
 }: CustomerQuickActionsProps) => {
+  console.log('🎯 CustomerQuickActions rendered with:', { selectedCount, totalCount, loading });
+
+  const handleAddClick = () => {
+    console.log('➕ Add customer button clicked');
+    onAddCustomer();
+  };
+
+  const handleRefreshClick = () => {
+    console.log('🔄 Refresh button clicked');
+    onRefresh();
+  };
+
   return (
     <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
       <div className="flex items-center gap-2">
@@ -62,27 +74,27 @@ export const CustomerQuickActions = ({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button onClick={onAddCustomer} className="flex items-center gap-2">
+        <Button onClick={handleAddClick} className="flex items-center gap-2" disabled={loading}>
           <Plus className="h-4 w-4" />
           عميل جديد
         </Button>
 
-        <Button variant="outline" onClick={onExport}>
+        <Button variant="outline" onClick={onExport} disabled={loading}>
           <Download className="h-4 w-4 ml-2" />
           تصدير
         </Button>
 
-        <Button variant="outline" onClick={onImport}>
+        <Button variant="outline" onClick={onImport} disabled={loading}>
           <Upload className="h-4 w-4 ml-2" />
           استيراد
         </Button>
 
-        <Button variant="outline" onClick={onShowTemplates}>
+        <Button variant="outline" onClick={onShowTemplates} disabled={loading}>
           <FileText className="h-4 w-4 ml-2" />
           القوالب
         </Button>
 
-        <Button variant="outline" onClick={onAdvancedSearch}>
+        <Button variant="outline" onClick={onAdvancedSearch} disabled={loading}>
           <Search className="h-4 w-4 ml-2" />
           بحث متقدم
         </Button>
@@ -118,7 +130,7 @@ export const CustomerQuickActions = ({
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={onRefresh}
+          onClick={handleRefreshClick}
           disabled={loading}
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />

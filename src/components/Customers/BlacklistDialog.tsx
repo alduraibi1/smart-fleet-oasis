@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -7,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Customer } from "@/types";
 import { AlertTriangle, Shield, Ban } from "lucide-react";
 import { useState } from "react";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface BlacklistDialogProps {
   customer: Customer | null;
@@ -25,10 +26,12 @@ export const BlacklistDialog = ({
   onRemoveFromBlacklist 
 }: BlacklistDialogProps) => {
   const [reason, setReason] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
 
   if (!customer) return null;
 
-  const handleBlacklist = () => {
+  const handleBlacklist = async () => {
     if (!reason.trim()) {
       toast({
         title: "خطأ",
@@ -38,24 +41,52 @@ export const BlacklistDialog = ({
       return;
     }
 
-    onBlacklist(customer.id, reason);
-    setReason("");
-    onOpenChange(false);
-    
-    toast({
-      title: "تم بنجاح",
-      description: `تم إضافة ${customer.name} للقائمة السوداء`,
-    });
+    console.log('🚫 Adding customer to blacklist:', customer.id, 'Reason:', reason);
+    setIsProcessing(true);
+
+    try {
+      await onBlacklist(customer.id, reason);
+      setReason("");
+      onOpenChange(false);
+      
+      toast({
+        title: "تم بنجاح",
+        description: `تم إضافة ${customer.name} للقائمة السوداء`,
+      });
+    } catch (error) {
+      console.error('💥 Error adding to blacklist:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء إضافة العميل للقائمة السوداء",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleRemoveFromBlacklist = () => {
-    onRemoveFromBlacklist(customer.id);
-    onOpenChange(false);
-    
-    toast({
-      title: "تم بنجاح", 
-      description: `تم إزالة ${customer.name} من القائمة السوداء`,
-    });
+  const handleRemoveFromBlacklist = async () => {
+    console.log('✅ Removing customer from blacklist:', customer.id);
+    setIsProcessing(true);
+
+    try {
+      await onRemoveFromBlacklist(customer.id);
+      onOpenChange(false);
+      
+      toast({
+        title: "تم بنجاح", 
+        description: `تم إزالة ${customer.name} من القائمة السوداء`,
+      });
+    } catch (error) {
+      console.error('💥 Error removing from blacklist:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء إزالة العميل من القائمة السوداء",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -104,11 +135,11 @@ export const BlacklistDialog = ({
                 </AlertDescription>
               </Alert>
               
-              {customer.blacklistReason && (
+              {customer.blacklist_reason && (
                 <div>
                   <Label>سبب الإدراج:</Label>
                   <div className="mt-1 p-3 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-sm">{customer.blacklistReason}</p>
+                    <p className="text-sm">{customer.blacklist_reason}</p>
                   </div>
                 </div>
               )}
@@ -118,13 +149,15 @@ export const BlacklistDialog = ({
                   onClick={handleRemoveFromBlacklist}
                   variant="outline"
                   className="flex-1"
+                  disabled={isProcessing}
                 >
                   <Shield className="h-4 w-4 ml-2" />
-                  إزالة من القائمة السوداء
+                  {isProcessing ? "جاري الإزالة..." : "إزالة من القائمة السوداء"}
                 </Button>
                 <Button 
                   variant="outline" 
                   onClick={() => onOpenChange(false)}
+                  disabled={isProcessing}
                 >
                   إلغاء
                 </Button>
@@ -147,6 +180,7 @@ export const BlacklistDialog = ({
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="مثال: عدم إرجاع المركبة في الوقت المحدد، إلحاق أضرار بالمركبة، عدم دفع المستحقات..."
                   className="min-h-[100px]"
+                  disabled={isProcessing}
                 />
               </div>
 
@@ -155,13 +189,15 @@ export const BlacklistDialog = ({
                   onClick={handleBlacklist}
                   variant="destructive"
                   className="flex-1"
+                  disabled={isProcessing || !reason.trim()}
                 >
                   <Ban className="h-4 w-4 ml-2" />
-                  إضافة للقائمة السوداء
+                  {isProcessing ? "جاري الإضافة..." : "إضافة للقائمة السوداء"}
                 </Button>
                 <Button 
                   variant="outline" 
                   onClick={() => onOpenChange(false)}
+                  disabled={isProcessing}
                 >
                   إلغاء
                 </Button>
