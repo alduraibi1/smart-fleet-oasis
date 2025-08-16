@@ -1,6 +1,5 @@
 
 import { FixedSizeList as List } from 'react-window';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { forwardRef, memo } from 'react';
 
@@ -23,20 +22,23 @@ interface VirtualizedTableProps<T> {
   getItemId: (item: T) => string;
 }
 
+interface RowData<T> {
+  items: T[];
+  columns: Column<T>[];
+  selectable?: boolean;
+  selectedItems?: string[];
+  onSelectItem?: (id: string) => void;
+  getItemId: (item: T) => string;
+}
+
 interface RowProps<T> {
   index: number;
   style: React.CSSProperties;
-  data: {
-    items: T[];
-    columns: Column<T>[];
-    selectable?: boolean;
-    selectedItems?: string[];
-    onSelectItem?: (id: string) => void;
-    getItemId: (item: T) => string;
-  };
+  data: RowData<T>;
 }
 
-const Row = memo(<T,>({ index, style, data }: RowProps<T>) => {
+// تعريف مكون Row مع أنواع البيانات الصحيحة
+const VirtualizedRow = <T,>({ index, style, data }: RowProps<T>) => {
   const { items, columns, selectable, selectedItems = [], onSelectItem, getItemId } = data;
   const item = items[index];
   const itemId = getItemId(item);
@@ -68,9 +70,7 @@ const Row = memo(<T,>({ index, style, data }: RowProps<T>) => {
       })}
     </div>
   );
-});
-
-Row.displayName = 'VirtualizedTableRow';
+};
 
 export function VirtualizedTable<T>({
   data,
@@ -90,6 +90,15 @@ export function VirtualizedTable<T>({
   const isAllSelected = selectable && selectedItems.length > 0 && selectedItems.length === data.length;
   const isIndeterminate = selectable && selectedItems.length > 0 && selectedItems.length < data.length;
 
+  const rowData: RowData<T> = {
+    items: data,
+    columns,
+    selectable,
+    selectedItems,
+    onSelectItem,
+    getItemId
+  };
+
   return (
     <div className="border rounded-lg overflow-hidden">
       {/* Header */}
@@ -99,7 +108,6 @@ export function VirtualizedTable<T>({
             <div className="w-12 px-3 py-3 flex items-center">
               <Checkbox
                 checked={isAllSelected}
-                // @ts-ignore - indeterminate is supported
                 indeterminate={isIndeterminate}
                 onCheckedChange={handleSelectAll}
               />
@@ -122,16 +130,9 @@ export function VirtualizedTable<T>({
         height={height}
         itemCount={data.length}
         itemSize={itemHeight}
-        itemData={{
-          items: data,
-          columns,
-          selectable,
-          selectedItems,
-          onSelectItem,
-          getItemId
-        }}
+        itemData={rowData}
       >
-        {Row}
+        {VirtualizedRow}
       </List>
     </div>
   );

@@ -15,13 +15,6 @@ interface CategoryPreference {
   advance_days: number;
 }
 
-interface CategoryPreferences {
-  contract_expiry?: CategoryPreference;
-  document_expiry?: CategoryPreference;
-  maintenance?: CategoryPreference;
-  payment_due?: CategoryPreference;
-}
-
 interface NotificationPreferences {
   enabled: boolean;
   email_enabled: boolean;
@@ -64,7 +57,7 @@ export default function NotificationSettings() {
       }
 
       if (data) {
-        const categoryPrefs = data.category_preferences as CategoryPreferences || {};
+        const categoryPrefs = data.category_preferences as any || {};
         
         setPreferences({
           enabled: data.enabled,
@@ -88,7 +81,8 @@ export default function NotificationSettings() {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) throw new Error('User not authenticated');
 
-      const categoryPreferences: CategoryPreferences = {
+      // تحويل التفضيلات إلى تنسيق JSON مناسب لقاعدة البيانات
+      const categoryPreferences = {
         contract_expiry: preferences.contract_expiry,
         document_expiry: preferences.document_expiry,
         maintenance: preferences.maintenance_due,
@@ -103,7 +97,7 @@ export default function NotificationSettings() {
           email_enabled: preferences.email_enabled,
           sms_enabled: preferences.sms_enabled,
           push_enabled: preferences.push_enabled,
-          category_preferences: categoryPreferences,
+          category_preferences: categoryPreferences as any,
         });
 
       if (error) throw error;
