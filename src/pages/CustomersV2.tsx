@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,7 +45,7 @@ export default function CustomersV2() {
   const [filters, setFilters] = useState<CustomerFilters>({});
   const { data: customersData, isLoading, error, refetch } = useCustomers(filters);
   const customers = Array.isArray(customersData) ? customersData : customersData?.customers || [];
-  const { selectedCustomers, handleSelectCustomer, handleSelectAll, clearSelection } = useCustomerSelection();
+  const { selectedCustomers, toggleCustomer, toggleAll, clearSelection } = useCustomerSelection();
   useRealtimeCustomers(); // التحديثات الفورية
 
   // إدارة النوافذ المنبثقة
@@ -129,6 +130,10 @@ export default function CustomersV2() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    toggleAll(checked, filteredCustomers.map(c => c.id));
   };
 
   if (error) {
@@ -233,8 +238,8 @@ export default function CustomersV2() {
                     onView={(customer) => handleOpenDialog('details', customer)}
                     onBlacklist={(customer) => handleOpenDialog('blacklist', customer)}
                     selectedCustomers={selectedCustomers}
-                    onSelectCustomer={handleSelectCustomer}
-                    onSelectAll={(checked) => handleSelectAll(checked, filteredCustomers.map(c => c.id))}
+                    onSelectCustomer={toggleCustomer}
+                    onSelectAll={handleSelectAll}
                   />
                 </CardContent>
               </Card>
@@ -259,8 +264,8 @@ export default function CustomersV2() {
                 onView={(customer) => handleOpenDialog('details', customer)}
                 onBlacklist={(customer) => handleOpenDialog('blacklist', customer)}
                 selectedCustomers={selectedCustomers}
-                onSelectCustomer={handleSelectCustomer}
-                onSelectAll={(checked) => handleSelectAll(checked, filteredCustomers.map(c => c.id))}
+                onSelectCustomer={toggleCustomer}
+                onSelectAll={handleSelectAll}
               />
             </TabsContent>
 
