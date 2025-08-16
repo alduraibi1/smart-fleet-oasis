@@ -1,4 +1,3 @@
-
 export interface VehicleOwner {
   id: string;
   name: string;
@@ -105,6 +104,9 @@ export interface Vehicle {
   seatingCapacity?: number;
   features?: string[];
   registration_expiry?: string;
+  insurance_expiry?: string;
+  inspection_expiry?: string;
+  default_monthly_rate?: number;
   
   // Owner
   owner_id?: string;
@@ -136,6 +138,8 @@ export interface VehicleFilters {
   fuel_type?: string;
   transmission?: string;
   owner_id?: string;
+  // New: filter by any expiry window across registration/insurance/inspection
+  expiryWindow?: 'expired' | 'warning' | 'valid';
 }
 
 export interface VehicleStats {

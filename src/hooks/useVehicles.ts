@@ -17,6 +17,30 @@ export const useVehicles = () => {
   });
   const { toast } = useToast();
 
+  // Helper: compute expiry status across any of the three fields
+  const getAnyExpiryStatus = (v: Vehicle, warningDays = 30) => {
+    const toDate = (s?: string) => (s ? new Date(s) : undefined);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const within = (d?: string) => {
+      if (!d) return 'valid' as const;
+      const date = new Date(d); date.setHours(0,0,0,0);
+      const diffDays = Math.floor((date.getTime() - today.getTime()) / (1000*60*60*24));
+      if (diffDays < 0) return 'expired' as const;
+      if (diffDays <= warningDays) return 'warning' as const;
+      return 'valid' as const;
+    };
+    // Evaluate each
+    const statuses = [
+      within(v.registration_expiry),
+      within(v.insurance_expiry),
+      within(v.inspection_expiry),
+    ];
+    // Return the "worst" status
+    if (statuses.includes('expired')) return 'expired' as const;
+    if (statuses.includes('warning')) return 'warning' as const;
+    return 'valid' as const;
+  };
+
   // Fetch vehicles with optional filters
   const fetchVehicles = async (filters?: VehicleFilters) => {
     setLoading(true);
@@ -66,8 +90,16 @@ export const useVehicles = () => {
         owner: vehicle.owner || undefined,
       })) as Vehicle[];
 
-      setVehicles(vehiclesData);
-      calculateStats(vehiclesData);
+      // Client-side expiry window filter to keep PostgREST simple and reliable
+      let filtered = vehiclesData;
+      if (filters?.expiryWindow) {
+        // Use 30 by default; UI uses system settings but we keep hook decoupled.
+        const warningDays = 30;
+        filtered = vehiclesData.filter(v => getAnyExpiryStatus(v, warningDays) === filters.expiryWindow);
+      }
+
+      setVehicles(filtered);
+      calculateStats(filtered);
     } catch (error) {
       console.error('Error fetching vehicles:', error);
       toast({
