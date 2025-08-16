@@ -42,15 +42,15 @@ export interface VehicleMaintenance {
   id: string;
   vehicle_id: string;
   status: 'scheduled' | 'in_progress' | 'overdue' | 'completed';
-  maintenance_type?: string;
+  maintenance_type: string;
   description?: string;
   scheduled_date?: string;
   completed_date?: string;
   cost?: number;
   notes?: string;
   parts_used?: string[];
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
   created_by?: string;
   lastMaintenanceDate?: string;
   nextMaintenanceDate?: string;

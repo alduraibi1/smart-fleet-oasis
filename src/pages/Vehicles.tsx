@@ -38,8 +38,28 @@ const Vehicles = () => {
     fuelType: vehicle.fuel_type,
     seatingCapacity: vehicle.seating_capacity,
     maintenance: vehicle.maintenance ? 
-      (Array.isArray(vehicle.maintenance) ? vehicle.maintenance : [vehicle.maintenance]) : 
-      [{ id: 'temp-' + vehicle.id, vehicle_id: vehicle.id, status: 'scheduled' as const }],
+      (Array.isArray(vehicle.maintenance) ? 
+        vehicle.maintenance.map(m => ({
+          ...m,
+          maintenance_type: m.maintenance_type || 'general',
+          created_at: m.created_at || new Date().toISOString(),
+          updated_at: m.updated_at || new Date().toISOString(),
+        })) : 
+        [{
+          ...vehicle.maintenance,
+          maintenance_type: vehicle.maintenance.maintenance_type || 'general',
+          created_at: vehicle.maintenance.created_at || new Date().toISOString(),
+          updated_at: vehicle.maintenance.updated_at || new Date().toISOString(),
+        }]
+      ) : 
+      [{ 
+        id: 'temp-' + vehicle.id, 
+        vehicle_id: vehicle.id, 
+        status: 'scheduled' as const,
+        maintenance_type: 'general',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }],
     documents: (vehicle.documents || []).map(doc => ({
       ...doc,
       upload_date: doc.upload_date || new Date().toISOString(),
@@ -65,7 +85,12 @@ const Vehicles = () => {
       seating_capacity: vehicleData.seatingCapacity || vehicleData.seating_capacity,
       // Convert maintenance back to array format if needed
       maintenance: vehicleData.maintenance ? 
-        (Array.isArray(vehicleData.maintenance) ? vehicleData.maintenance : [vehicleData.maintenance]) : 
+        vehicleData.maintenance.map(m => ({
+          ...m,
+          maintenance_type: m.maintenance_type || 'general',
+          created_at: m.created_at || new Date().toISOString(),
+          updated_at: m.updated_at || new Date().toISOString(),
+        })) : 
         undefined,
       // Ensure documents and images have required properties
       documents: vehicleData.documents?.map(doc => ({
