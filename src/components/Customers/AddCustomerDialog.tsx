@@ -73,7 +73,7 @@ export function AddCustomerDialog({
     notes: ''
   });
 
-  // Load editing customer data when dialog opens
+  // تحميل بيانات العميل عند التحرير
   useEffect(() => {
     if (editingCustomer && open) {
       setFormData({
@@ -86,17 +86,25 @@ export function AddCustomerDialog({
         address: editingCustomer.address || '',
         license_number: editingCustomer.license_number || '',
         license_expiry: editingCustomer.license_expiry ? 
-          new Date(editingCustomer.license_expiry).toISOString().split('T')[0] : '',
+          (typeof editingCustomer.license_expiry === 'string' ? 
+            editingCustomer.license_expiry.split('T')[0] : 
+            new Date(editingCustomer.license_expiry).toISOString().split('T')[0]) : '',
         gender: editingCustomer.gender || 'male',
         marital_status: editingCustomer.marital_status || 'single',
         date_of_birth: editingCustomer.date_of_birth ? 
-          new Date(editingCustomer.date_of_birth).toISOString().split('T')[0] : '',
+          (typeof editingCustomer.date_of_birth === 'string' ? 
+            editingCustomer.date_of_birth.split('T')[0] : 
+            new Date(editingCustomer.date_of_birth).toISOString().split('T')[0]) : '',
         license_type: editingCustomer.license_type || 'private',
         license_issue_date: editingCustomer.license_issue_date ? 
-          new Date(editingCustomer.license_issue_date).toISOString().split('T')[0] : '',
+          (typeof editingCustomer.license_issue_date === 'string' ? 
+            editingCustomer.license_issue_date.split('T')[0] : 
+            new Date(editingCustomer.license_issue_date).toISOString().split('T')[0]) : '',
         international_license: editingCustomer.international_license || false,
         international_license_expiry: editingCustomer.international_license_expiry ? 
-          new Date(editingCustomer.international_license_expiry).toISOString().split('T')[0] : '',
+          (typeof editingCustomer.international_license_expiry === 'string' ? 
+            editingCustomer.international_license_expiry.split('T')[0] : 
+            new Date(editingCustomer.international_license_expiry).toISOString().split('T')[0]) : '',
         country: editingCustomer.country || 'السعودية',
         district: editingCustomer.district || '',
         postal_code: editingCustomer.postal_code || '',
@@ -122,11 +130,13 @@ export function AddCustomerDialog({
         insurance_company: editingCustomer.insurance_company || '',
         insurance_policy_number: editingCustomer.insurance_policy_number || '',
         insurance_expiry: editingCustomer.insurance_expiry ? 
-          new Date(editingCustomer.insurance_expiry).toISOString().split('T')[0] : '',
+          (typeof editingCustomer.insurance_expiry === 'string' ? 
+            editingCustomer.insurance_expiry.split('T')[0] : 
+            new Date(editingCustomer.insurance_expiry).toISOString().split('T')[0]) : '',
         notes: editingCustomer.notes || ''
       });
     } else if (!editingCustomer && open) {
-      // Reset form for new customer
+      // إعادة تعيين النموذج للعميل الجديد
       setFormData({
         name: '',
         phone: '',
@@ -177,15 +187,10 @@ export function AddCustomerDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('🔍 Form submission started with data:', formData);
+    console.log('🔍 Form submission with data:', formData);
     
-    if (!formData.name || !formData.phone || !formData.national_id) {
-      console.error('❌ Validation failed - missing required fields:', {
-        name: formData.name,
-        phone: formData.phone,
-        national_id: formData.national_id
-      });
-      
+    // التحقق من البيانات الأساسية
+    if (!formData.name.trim() || !formData.phone.trim() || !formData.national_id.trim()) {
       toast({
         title: "بيانات مفقودة",
         description: "يرجى ملء الحقول الأساسية (الاسم، الهاتف، رقم الهوية)",
@@ -199,46 +204,26 @@ export function AddCustomerDialog({
     try {
       let result;
       
-      console.log('📤 Sending data to useCustomers:', formData);
-      
       if (editingCustomer) {
-        // Update existing customer
+        // تحديث عميل موجود
         result = await updateCustomer(editingCustomer.id, formData);
       } else {
-        // Add new customer - إرسال البيانات بنفس التنسيق
+        // إضافة عميل جديد
         result = await addCustomer(formData);
       }
 
-      console.log('📥 Result from useCustomers:', result);
-
-      if (result.success) {
-        toast({
-          title: editingCustomer ? "تم التحديث" : "تم الإضافة",
-          description: editingCustomer ? 
-            "تم تحديث بيانات العميل بنجاح" : 
-            "تم إضافة العميل الجديد بنجاح"
-        });
-        
+      if (result?.success) {
         handleClose();
-      } else {
-        throw new Error(result.error || 'حدث خطأ');
       }
     } catch (error) {
       console.error('💥 Error in form submission:', error);
-      toast({
-        title: "خطأ",
-        description: editingCustomer ? 
-          "حدث خطأ أثناء تحديث بيانات العميل" : 
-          "حدث خطأ أثناء إضافة العميل",
-        variant: "destructive"
-      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleClose = () => {
-    console.log('🔒 Dialog closing from AddCustomerDialog');
+    console.log('🔒 Dialog closing');
     onOpenChange(false);
     if (onClose) {
       onClose();
@@ -246,7 +231,6 @@ export function AddCustomerDialog({
   };
 
   const handleInputChange = (field: string, value: any) => {
-    console.log(`📝 Field changed: ${field} = ${value}`);
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -263,7 +247,7 @@ export function AddCustomerDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
+          {/* معلومات أساسية */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="name">الاسم الكامل *</Label>
@@ -272,6 +256,7 @@ export function AddCustomerDialog({
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 required
+                placeholder="الاسم الكامل"
               />
             </div>
 
@@ -282,6 +267,7 @@ export function AddCustomerDialog({
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 required
+                placeholder="05xxxxxxxx"
               />
             </div>
 
@@ -292,6 +278,7 @@ export function AddCustomerDialog({
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
+                placeholder="example@email.com"
               />
             </div>
 
@@ -302,6 +289,7 @@ export function AddCustomerDialog({
                 value={formData.national_id}
                 onChange={(e) => handleInputChange('national_id', e.target.value)}
                 required
+                placeholder="1xxxxxxxxx"
               />
             </div>
 
@@ -342,7 +330,7 @@ export function AddCustomerDialog({
             </div>
           </div>
 
-          {/* License Information */}
+          {/* معلومات الرخصة */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="license_number">رقم رخصة القيادة</Label>
@@ -350,6 +338,7 @@ export function AddCustomerDialog({
                 id="license_number"
                 value={formData.license_number}
                 onChange={(e) => handleInputChange('license_number', e.target.value)}
+                placeholder="رقم الرخصة"
               />
             </div>
 
@@ -389,7 +378,7 @@ export function AddCustomerDialog({
             </div>
           </div>
 
-          {/* Address Information */}
+          {/* معلومات العنوان */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="city">المدينة</Label>
@@ -397,6 +386,7 @@ export function AddCustomerDialog({
                 id="city"
                 value={formData.city}
                 onChange={(e) => handleInputChange('city', e.target.value)}
+                placeholder="اسم المدينة"
               />
             </div>
 
@@ -406,6 +396,7 @@ export function AddCustomerDialog({
                 id="district"
                 value={formData.district}
                 onChange={(e) => handleInputChange('district', e.target.value)}
+                placeholder="اسم الحي"
               />
             </div>
 
@@ -415,11 +406,12 @@ export function AddCustomerDialog({
                 id="address"
                 value={formData.address}
                 onChange={(e) => handleInputChange('address', e.target.value)}
+                placeholder="العنوان التفصيلي..."
               />
             </div>
           </div>
 
-          {/* Contact Information */}
+          {/* معلومات الاتصال للطوارئ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="emergency_contact_name">اسم جهة الاتصال للطوارئ</Label>
@@ -427,6 +419,7 @@ export function AddCustomerDialog({
                 id="emergency_contact_name"
                 value={formData.emergency_contact_name}
                 onChange={(e) => handleInputChange('emergency_contact_name', e.target.value)}
+                placeholder="اسم جهة الاتصال"
               />
             </div>
 
@@ -436,11 +429,12 @@ export function AddCustomerDialog({
                 id="emergency_contact_phone"
                 value={formData.emergency_contact_phone}
                 onChange={(e) => handleInputChange('emergency_contact_phone', e.target.value)}
+                placeholder="05xxxxxxxx"
               />
             </div>
           </div>
 
-          {/* Preferences */}
+          {/* التفضيلات */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -448,7 +442,7 @@ export function AddCustomerDialog({
                 checked={formData.sms_notifications}
                 onCheckedChange={(checked) => handleInputChange('sms_notifications', checked)}
               />
-              <Label htmlFor="sms_notifications">إشعارات SMS</Label>
+              <Label htmlFor="sms_notifications" className="mr-2">إشعارات SMS</Label>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -457,7 +451,7 @@ export function AddCustomerDialog({
                 checked={formData.email_notifications}
                 onCheckedChange={(checked) => handleInputChange('email_notifications', checked)}
               />
-              <Label htmlFor="email_notifications">إشعارات البريد الإلكتروني</Label>
+              <Label htmlFor="email_notifications" className="mr-2">إشعارات البريد الإلكتروني</Label>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -466,11 +460,11 @@ export function AddCustomerDialog({
                 checked={formData.marketing_consent}
                 onCheckedChange={(checked) => handleInputChange('marketing_consent', checked)}
               />
-              <Label htmlFor="marketing_consent">الموافقة على التسويق</Label>
+              <Label htmlFor="marketing_consent" className="mr-2">الموافقة على التسويق</Label>
             </div>
           </div>
 
-          {/* Notes */}
+          {/* الملاحظات */}
           <div>
             <Label htmlFor="notes">ملاحظات</Label>
             <Textarea

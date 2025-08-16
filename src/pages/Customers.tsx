@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { EnhancedCustomerFilters, CustomerFilters } from '@/components/Customers/EnhancedCustomerFilters';
@@ -34,6 +35,7 @@ export default function Customers() {
   const { handleBlacklistToggle, handleActivateToggle } = useCustomerActions();
   const { toast } = useToast();
 
+  // تصفية العملاء بناء على الفلاتر
   const filteredCustomers = customers.filter(customer => {
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
@@ -80,8 +82,15 @@ export default function Customers() {
     return true;
   });
 
+  // معالجات الأحداث
+  const handleAddCustomer = () => {
+    console.log('🆕 Opening add customer dialog');
+    setEditingCustomer(null);
+    setShowAddDialog(true);
+  };
+
   const handleEdit = (customer: Customer) => {
-    console.log('🔄 Edit customer clicked:', customer.id);
+    console.log('🔄 Opening edit dialog for customer:', customer.id);
     setEditingCustomer(customer);
     setShowAddDialog(true);
   };
@@ -207,21 +216,15 @@ export default function Customers() {
     }
   };
 
-  const handleAddCustomer = () => {
-    console.log('🆕 Add new customer button clicked');
-    setEditingCustomer(null);
-    setShowAddDialog(true);
-    console.log('📝 Dialog state:', { showAddDialog: true, editingCustomer: null });
-  };
-
   const handleDialogClose = () => {
-    console.log('🔒 Dialog closing');
+    console.log('🔒 Closing dialogs and resetting states');
     setSelectedCustomer(null);
     setEditingCustomer(null);
     setShowAddDialog(false);
     setShowDetailsDialog(false);
     setShowBlacklistDialog(false);
     setShowDeleteDialog(false);
+    // تحديث البيانات بعد إغلاق النافذة
     refetch();
   };
 
@@ -286,6 +289,7 @@ export default function Customers() {
           onSelectAll={handleSelectAll}
         />
 
+        {/* نوافذ الحوار */}
         <AddCustomerDialog
           open={showAddDialog}
           onOpenChange={setShowAddDialog}
