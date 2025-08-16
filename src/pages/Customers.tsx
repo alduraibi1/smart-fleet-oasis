@@ -289,7 +289,7 @@ export default function Customers() {
         <AddCustomerDialog
           open={showAddDialog}
           onOpenChange={setShowAddDialog}
-          editingCustomer={editingCustomer}
+          customer={editingCustomer}
           onClose={handleDialogClose}
         />
 
@@ -334,11 +334,13 @@ export default function Customers() {
           open={showAdvancedSearch}
           onOpenChange={setShowAdvancedSearch}
           filters={filters}
-          onFiltersChange={handleAdvancedSearch}
+          onSearch={handleAdvancedSearch}
           customers={customers}
         />
 
         <CustomerTemplates
+          open={showTemplates}
+          onOpenChange={setShowTemplates}
           onApplyTemplate={handleApplyTemplate}
         />
       </div>

@@ -7,7 +7,7 @@ import {
   Upload, 
   RefreshCw,
   Search,
-  FileTemplate,
+  FileText,
   Trash2,
   AlertTriangle
 } from "lucide-react";
@@ -78,7 +78,7 @@ export const CustomerQuickActions = ({
         </Button>
 
         <Button variant="outline" onClick={onShowTemplates}>
-          <FileTemplate className="h-4 w-4 ml-2" />
+          <FileText className="h-4 w-4 ml-2" />
           القوالب
         </Button>
 
