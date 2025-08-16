@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types';
@@ -115,11 +114,12 @@ export const useCustomers = () => {
       // تحويل التواريخ إلى نصوص وإزالة الحقول المؤقتة
       const { nationalId, licenseExpiry, totalRentals, blacklistReason, licenseNumber, documents, blacklistDate, ...cleanData } = customerData;
       
+      // إزالة national_id من cleanData لأنه موجود في المعاملات المستبعدة
       const processedData = {
         ...cleanData,
         name: cleanData.name || '', // Required field
         phone: cleanData.phone || '', // Required field
-        national_id: cleanData.national_id || cleanData.nationalId || '', // Required field
+        national_id: customerData.national_id || customerData.nationalId || '', // Required field
         license_expiry: cleanData.license_expiry 
           ? (typeof cleanData.license_expiry === 'string' 
               ? cleanData.license_expiry 
@@ -155,7 +155,7 @@ export const useCustomers = () => {
               ? cleanData.blacklist_date 
               : new Date(cleanData.blacklist_date).toISOString().split('T')[0])
           : null,
-        license_number: cleanData.license_number || '',
+        license_number: customerData.license_number || customerData.licenseNumber || '',
         is_active: true,
         blacklisted: false
       };
