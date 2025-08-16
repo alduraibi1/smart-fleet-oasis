@@ -65,9 +65,9 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
     setDeleteDialogOpen(true);
   };
 
-  const handleVehicleUpdated = async (updatedVehicle: Vehicle) => {
+  const handleVehicleUpdated = async (id: string, updatedData: Partial<Vehicle>) => {
     try {
-      await onUpdateVehicle(updatedVehicle.id, updatedVehicle);
+      await onUpdateVehicle(id, updatedData);
       setEditDialogOpen(false);
       setSelectedVehicle(null);
       toast({
@@ -84,9 +84,9 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
     }
   };
 
-  const handleVehicleDeleted = async (vehicle: Vehicle) => {
+  const handleVehicleDeleted = async (id: string) => {
     try {
-      await onDeleteVehicle(vehicle.id);
+      await onDeleteVehicle(id);
       setDeleteDialogOpen(false);
       setSelectedVehicle(null);
       toast({
@@ -250,9 +250,7 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
       {selectedVehicle && (
         <EditVehicleDialog
           vehicle={selectedVehicle}
-          isOpen={editDialogOpen}
-          onClose={() => setEditDialogOpen(false)}
-          onVehicleUpdated={handleVehicleUpdated}
+          onUpdate={handleVehicleUpdated}
         />
       )}
 
@@ -260,9 +258,7 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
       {selectedVehicle && (
         <DeleteVehicleDialog
           vehicle={selectedVehicle}
-          isOpen={deleteDialogOpen}
-          onClose={() => setDeleteDialogOpen(false)}
-          onVehicleDeleted={handleVehicleDeleted}
+          onDelete={handleVehicleDeleted}
         />
       )}
     </div>
