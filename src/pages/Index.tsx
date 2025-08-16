@@ -1,14 +1,12 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import DashboardOverview from '@/components/Dashboard/DashboardOverview';
-import AnalyticsDashboard from '@/components/Dashboard/AnalyticsDashboard';
+import { UnifiedDashboard } from '@/components/Dashboard/UnifiedDashboard';
 import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Car, LogIn } from 'lucide-react';
-import { SmartNotifications } from '@/components/Notifications/SmartNotifications';
 import { AppLayout } from '@/components/Layout/AppLayout';
 
 const Index = () => {
@@ -59,25 +57,16 @@ const Index = () => {
           <div className="fade-in">
             <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-8 rounded-2xl border border-primary/20 backdrop-blur-sm">
               <h1 className="text-4xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent">
-                مرحباً بك في نظام إدارة تأجير المركبات
+                نظام إدارة تأجير المركبات المتكامل
               </h1>
               <p className="text-lg text-muted-foreground">
-                نظرة عامة على أداء شركتك وأهم المؤشرات
+                لوحة تحكم موحدة لجميع عمليات الشركة مع تنبيهات ذكية وإحصائيات فورية
               </p>
             </div>
           </div>
           
-          {/* التنبيهات الذكية */}
           <div className="scale-in">
-            <SmartNotifications />
-          </div>
-          
-          <div className="scale-in">
-            <DashboardOverview />
-          </div>
-
-          <div className="scale-in" style={{ animationDelay: '0.2s' }}>
-            <AnalyticsDashboard />
+            <UnifiedDashboard />
           </div>
         </div>
       </AppLayout>
