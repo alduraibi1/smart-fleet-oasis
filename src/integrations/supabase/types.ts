@@ -1562,6 +1562,53 @@ export type Database = {
           },
         ]
       }
+      maintenance_predictions: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          id: string
+          predicted_date: string | null
+          predicted_mileage: number | null
+          prediction_type: string
+          recommendations: Json | null
+          status: string
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          predicted_date?: string | null
+          predicted_mileage?: number | null
+          prediction_type?: string
+          recommendations?: Json | null
+          status?: string
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          predicted_date?: string | null
+          predicted_mileage?: number | null
+          prediction_type?: string
+          recommendations?: Json | null
+          status?: string
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_predictions_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_schedules: {
         Row: {
           created_at: string
@@ -3675,6 +3722,10 @@ export type Database = {
           p_entity_type: string
           p_prediction_months?: number
         }
+        Returns: Json
+      }
+      generate_maintenance_predictions: {
+        Args: { p_vehicle_id: string }
         Returns: Json
       }
       generate_receipt_number: {
