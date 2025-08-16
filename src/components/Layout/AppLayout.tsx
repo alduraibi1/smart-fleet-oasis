@@ -1,12 +1,16 @@
 
-import { Outlet } from 'react-router-dom';
+import { ReactNode } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import Header from './Header';
 import { BreadcrumbNavigation } from '@/components/UI/Navigation/BreadcrumbNavigation';
 import { ErrorBoundary } from '@/components/UI/ErrorStates/ErrorBoundary';
 
-export default function AppLayout() {
+interface AppLayoutProps {
+  children: ReactNode;
+}
+
+export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <ErrorBoundary>
       <SidebarProvider>
@@ -17,7 +21,7 @@ export default function AppLayout() {
             <BreadcrumbNavigation />
             <main className="flex-1 p-6">
               <ErrorBoundary>
-                <Outlet />
+                {children}
               </ErrorBoundary>
             </main>
           </SidebarInset>
