@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -108,12 +109,21 @@ export const useMaintenance = () => {
         .select(`
           *,
           vehicles (plate_number, brand, model),
-          mechanics (name)
+          mechanics!vehicle_maintenance_mechanic_id_fkey (name)
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMaintenanceRecords(data || []);
+      
+      // Type-safe mapping to ensure mechanics property matches expected structure
+      const typedData: MaintenanceRecord[] = (data || []).map(record => ({
+        ...record,
+        mechanics: record.mechanics && typeof record.mechanics === 'object' && 'name' in record.mechanics 
+          ? { name: record.mechanics.name } 
+          : undefined
+      }));
+      
+      setMaintenanceRecords(typedData);
     } catch (error) {
       console.error('خطأ في جلب سجلات الصيانة:', error);
       toast({
