@@ -1,44 +1,41 @@
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from '@/components/theme/ThemeProvider';
-import { AuthProvider } from '@/hooks/useAuth';
-import Index from './pages/Index';
-import Auth from './pages/Auth';
+import React from 'react';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { ThemeProvider } from './components/theme-provider';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import AppLayout from './components/Layout/AppLayout';
+import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
-import Owners from './pages/Owners';
 import Vehicles from './pages/Vehicles';
+import ContractsSimple from './pages/ContractsSimple';
+import ContractsOptimized from './pages/ContractsOptimized';
 import Contracts from './pages/Contracts';
-import Accounting from './pages/Accounting';
-import SystemManagement from './pages/SystemManagement';
-import EnhancedSystemManagement from './pages/EnhancedSystemManagement';
-import { Toaster } from '@/components/ui/toaster';
-import './App.css';
+import ContractsEssential from './pages/ContractsEssential';
+import Settings from './pages/Settings';
+import { Sidebar } from './components/ui/sidebar';
+import { FileContract } from 'lucide-react';
+import ContractsAdvanced from './pages/ContractsAdvanced';
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-        <AuthProvider>
-          <Router>
-            <div className="App">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/customers" element={<Customers />} />
-                <Route path="/owners" element={<Owners />} />
-                <Route path="/vehicles" element={<Vehicles />} />
-                <Route path="/contracts" element={<Contracts />} />
-                <Route path="/accounting" element={<Accounting />} />
-                <Route path="/system-management" element={<SystemManagement />} />
-                <Route path="/enhanced-system-management" element={<EnhancedSystemManagement />} />
-              </Routes>
-            </div>
-            <Toaster />
-          </Router>
-        </AuthProvider>
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<AppLayout />} >
+              <Route index element={<Dashboard />} />
+              <Route path="customers" element={<Customers />} />
+              <Route path="vehicles" element={<Vehicles />} />
+              <Route path="contracts-simple" element={<ContractsSimple />} />
+              <Route path="contracts-optimized" element={<ContractsOptimized />} />
+              <Route path="contracts" element={<Contracts />} />
+              <Route path="contracts-essential" element={<ContractsEssential />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+            <Route path="/contracts-advanced" element={<ContractsAdvanced />} />
+          </Routes>
+        </BrowserRouter>
       </ThemeProvider>
     </QueryClientProvider>
   );
