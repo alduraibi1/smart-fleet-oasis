@@ -13,7 +13,7 @@ export interface VehicleOwner {
 
 export interface VehicleDocument {
   id: string;
-  vehicle_id?: string;
+  vehicle_id: string;
   name: string;
   type: 'license' | 'insurance' | 'inspection' | 'registration' | 'other';
   url?: string;
@@ -29,9 +29,9 @@ export interface VehicleDocument {
 
 export interface VehicleImage {
   id: string;
-  vehicle_id?: string;
+  vehicle_id: string;
   url: string;
-  type?: 'exterior' | 'interior' | 'damage' | 'other';
+  type: 'exterior' | 'interior' | 'damage' | 'other';
   description?: string;
   upload_date?: string;
   uploadDate?: string;

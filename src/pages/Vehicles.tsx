@@ -10,6 +10,7 @@ import { Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { VehicleFilters as VehicleFiltersType } from '@/types/vehicles';
+import { Vehicle } from '@/types/vehicle';
 
 const Vehicles = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'enhanced'>('enhanced');
@@ -25,6 +26,39 @@ const Vehicles = () => {
   const handleVehicleAdded = async (vehicleData: any) => {
     await addVehicle(vehicleData);
     fetchVehicles(filters); // Refresh the list
+  };
+
+  // Convert vehicles from the hook to the Vehicle type used in EnhancedVehicleGrid
+  const convertedVehicles: Vehicle[] = vehicles.map(vehicle => ({
+    ...vehicle,
+    plateNumber: vehicle.plate_number,
+    dailyRate: vehicle.daily_rate,
+    engineNumber: vehicle.engine_number,
+    chassisNumber: vehicle.chassis_number,
+    fuelType: vehicle.fuel_type,
+    seatingCapacity: vehicle.seating_capacity,
+    maintenance: vehicle.maintenance?.[0] || {
+      status: 'scheduled' as const,
+    },
+    documents: vehicle.documents || [],
+    images: vehicle.images || [],
+    location: vehicle.location,
+    purchase: undefined,
+    currentRental: undefined,
+  }));
+
+  const handleUpdateVehicle = async (id: string, vehicleData: Partial<Vehicle>) => {
+    // Convert back to the format expected by the hook
+    const convertedData = {
+      ...vehicleData,
+      plate_number: vehicleData.plateNumber || vehicleData.plate_number,
+      daily_rate: vehicleData.dailyRate || vehicleData.daily_rate,
+      engine_number: vehicleData.engineNumber || vehicleData.engine_number,
+      chassis_number: vehicleData.chassisNumber || vehicleData.chassis_number,
+      fuel_type: vehicleData.fuelType || vehicleData.fuel_type,
+      seating_capacity: vehicleData.seatingCapacity || vehicleData.seating_capacity,
+    };
+    await updateVehicle(id, convertedData);
   };
 
   return (
@@ -78,8 +112,8 @@ const Vehicles = () => {
         {/* Vehicles Display */}
         {viewMode === 'enhanced' ? (
           <EnhancedVehicleGrid
-            vehicles={vehicles}
-            onUpdateVehicle={updateVehicle}
+            vehicles={convertedVehicles}
+            onUpdateVehicle={handleUpdateVehicle}
             onDeleteVehicle={deleteVehicle}
           />
         ) : (

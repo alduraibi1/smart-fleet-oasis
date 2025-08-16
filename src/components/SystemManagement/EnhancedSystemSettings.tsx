@@ -1,652 +1,355 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { useSystemSettings, SystemSettingsData } from '@/hooks/useSystemSettings';
+import { Building, Globe, Bell, DollarSign, Shield, Database } from 'lucide-react';
 
-const systemSettingsSchema = z.object({
-  companyName: z.string().min(2, {
-    message: "اسم الشركة مطلوب.",
-  }),
-  companyAddress: z.string().min(2, {
-    message: "عنوان الشركة مطلوب.",
-  }),
-  companyPhone: z.string().min(2, {
-    message: "رقم هاتف الشركة مطلوب.",
-  }),
-  companyEmail: z.string().email({
-    message: "بريد إلكتروني صحيح مطلوب.",
-  }),
-  taxNumber: z.string().min(2, {
-    message: "الرقم الضريبي مطلوب.",
-  }),
-  currency: z.string().min(1, {
-    message: "العملة مطلوبة.",
-  }),
-  dateFormat: z.string().min(2, {
-    message: "تنسيق التاريخ مطلوب.",
-  }),
-  timeFormat: z.string().min(2, {
-    message: "تنسيق الوقت مطلوب.",
-  }),
-  language: z.string().min(2, {
-    message: "اللغة مطلوبة.",
-  }),
-  timezone: z.string().min(2, {
-    message: "المنطقة الزمنية مطلوبة.",
-  }),
-  backupFrequency: z.string().min(2, {
-    message: "تكرار النسخ الاحتياطي مطلوب.",
-  }),
-  maintenanceReminder: z.number().min(1, {
-    message: "تذكير الصيانة مطلوب.",
-  }),
-  contractExpiryWarning: z.number().min(1, {
-    message: "تحذير انتهاء العقد مطلوب.",
-  }),
-  contractExpiryWarningDays: z.number().min(1, {
-    message: "أيام تحذير انتهاء العقد مطلوبة.",
-  }),
-  registrationExpiryWarning: z.number().min(1, {
-    message: "تحذير انتهاء التسجيل مطلوب.",
-  }),
-  registrationExpiryWarningDays: z.number().min(1, {
-    message: "أيام تحذير انتهاء التسجيل مطلوبة.",
-  }),
-  lowStockAlert: z.number().min(1, {
-    message: "تنبيه المخزون المنخفض مطلوب.",
-  }),
-  autoBackup: z.boolean(),
-  emailNotifications: z.boolean(),
-  smsNotifications: z.boolean(),
-  defaultCreditLimit: z.number().min(0, {
-    message: "الحد الائتماني الافتراضي مطلوب.",
-  }),
-  requireDeposit: z.boolean(),
-  defaultDepositAmount: z.number().min(0, {
-    message: "مبلغ الإيداع الافتراضي مطلوب.",
-  }),
-});
+const EnhancedSystemSettings = () => {
+  const { settings, updateSettings, loading } = useSystemSettings();
+  const [formData, setFormData] = useState<Partial<SystemSettingsData>>({});
 
-export default function EnhancedSystemSettings() {
-  const { settings, setSettings, updateSettings, loading } = useSystemSettings();
-  const { toast } = useToast();
-  const [isEditMode, setIsEditMode] = useState(false);
-
-  const form = useForm<z.infer<typeof systemSettingsSchema>>({
-    resolver: zodResolver(systemSettingsSchema),
-    defaultValues: {
-      companyName: '',
-      companyAddress: '',
-      companyPhone: '',
-      companyEmail: '',
-      taxNumber: '',
-      currency: '',
-      dateFormat: '',
-      timeFormat: '',
-      language: '',
-      timezone: '',
-      backupFrequency: '',
-      maintenanceReminder: 30,
-      contractExpiryWarning: 30,
-      contractExpiryWarningDays: 30,
-      registrationExpiryWarning: 30,
-      registrationExpiryWarningDays: 30,
-      lowStockAlert: 10,
-      autoBackup: true,
-      emailNotifications: true,
-      smsNotifications: false,
-      defaultCreditLimit: 1000,
-      requireDeposit: false,
-      defaultDepositAmount: 100,
-    },
+  // Initialize form data when settings load
+  useState(() => {
+    if (settings && Object.keys(formData).length === 0) {
+      setFormData(settings);
+    }
   });
 
-  useEffect(() => {
-    if (settings) {
-      form.reset(settings);
-    }
-  }, [settings, form]);
-
-  const handleInputChange = (field: keyof SystemSettingsData, value: any) => {
-    if (settings && setSettings) {
-      setSettings({ ...settings, [field]: value });
-    }
-  };
-
-  const onSubmit = async (data: z.infer<typeof systemSettingsSchema>) => {
-    try {
-      await updateSettings(data);
-      toast({
-        title: "تم التحديث",
-        description: "تم تحديث إعدادات النظام بنجاح.",
-      });
-      setIsEditMode(false);
-    } catch (error) {
-      console.error("Failed to update settings:", error);
-      toast({
-        title: "فشل",
-        description: "فشل في تحديث إعدادات النظام.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (loading) {
-    return <div>Loading settings...</div>;
+  if (loading || !settings) {
+    return <div className="p-6">جارِ تحميل الإعدادات...</div>;
   }
 
+  const handleInputChange = (field: keyof SystemSettingsData, value: string | number | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSave = () => {
+    // Merge with current settings to ensure all required fields are present
+    const updatedSettings: SystemSettingsData = {
+      ...settings,
+      ...formData,
+    };
+    updateSettings(updatedSettings);
+  };
+
+  const currentData = { ...settings, ...formData };
+
   return (
-    <div className="container mx-auto py-10">
-      <Card>
-        <CardHeader>
-          <CardTitle>إعدادات النظام</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="companyName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>اسم الشركة</FormLabel>
-                      <FormControl>
-                        <Input placeholder="اسم الشركة" {...field} disabled={!isEditMode} onChange={(e) => {
-                          field.onChange(e);
-                          handleInputChange('companyName', e.target.value);
-                        }} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">إعدادات النظام المتقدمة</h1>
+          <p className="text-muted-foreground">إدارة شاملة لجميع إعدادات النظام</p>
+        </div>
+        <Button onClick={handleSave}>
+          حفظ الإعدادات
+        </Button>
+      </div>
 
-                <FormField
-                  control={form.control}
-                  name="companyAddress"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>عنوان الشركة</FormLabel>
-                      <FormControl>
-                        <Input placeholder="عنوان الشركة" {...field} disabled={!isEditMode} onChange={(e) => {
-                          field.onChange(e);
-                          handleInputChange('companyAddress', e.target.value);
-                        }} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+      <Tabs defaultValue="company" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="company">الشركة</TabsTrigger>
+          <TabsTrigger value="system">النظام</TabsTrigger>
+          <TabsTrigger value="notifications">التنبيهات</TabsTrigger>
+          <TabsTrigger value="financial">المالية</TabsTrigger>
+          <TabsTrigger value="security">الأمان</TabsTrigger>
+          <TabsTrigger value="backup">النسخ الاحتياطي</TabsTrigger>
+        </TabsList>
 
-                <FormField
-                  control={form.control}
-                  name="companyPhone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>رقم هاتف الشركة</FormLabel>
-                      <FormControl>
-                        <Input placeholder="رقم هاتف الشركة" {...field} disabled={!isEditMode} onChange={(e) => {
-                          field.onChange(e);
-                          handleInputChange('companyPhone', e.target.value);
-                        }} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="companyEmail"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>البريد الإلكتروني للشركة</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="البريد الإلكتروني للشركة" {...field} disabled={!isEditMode} onChange={(e) => {
-                          field.onChange(e);
-                          handleInputChange('companyEmail', e.target.value);
-                        }} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="taxNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>الرقم الضريبي</FormLabel>
-                      <FormControl>
-                        <Input placeholder="الرقم الضريبي" {...field} disabled={!isEditMode} onChange={(e) => {
-                          field.onChange(e);
-                          handleInputChange('taxNumber', e.target.value);
-                        }} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="currency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>العملة</FormLabel>
-                      <FormControl>
-                        <Input placeholder="العملة" {...field} disabled={!isEditMode} onChange={(e) => {
-                          field.onChange(e);
-                          handleInputChange('currency', e.target.value);
-                        }} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="dateFormat"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>تنسيق التاريخ</FormLabel>
-                      <FormControl>
-                        <Input placeholder="تنسيق التاريخ" {...field} disabled={!isEditMode} onChange={(e) => {
-                          field.onChange(e);
-                          handleInputChange('dateFormat', e.target.value);
-                        }} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="timeFormat"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>تنسيق الوقت</FormLabel>
-                      <FormControl>
-                        <Input placeholder="تنسيق الوقت" {...field} disabled={!isEditMode} onChange={(e) => {
-                          field.onChange(e);
-                          handleInputChange('timeFormat', e.target.value);
-                        }} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="language"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>اللغة</FormLabel>
-                      <FormControl>
-                        <Input placeholder="اللغة" {...field} disabled={!isEditMode} onChange={(e) => {
-                          field.onChange(e);
-                          handleInputChange('language', e.target.value);
-                        }} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="timezone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>المنطقة الزمنية</FormLabel>
-                      <FormControl>
-                        <Input placeholder="المنطقة الزمنية" {...field} disabled={!isEditMode} onChange={(e) => {
-                          field.onChange(e);
-                          handleInputChange('timezone', e.target.value);
-                        }} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="backupFrequency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>تكرار النسخ الاحتياطي</FormLabel>
-                      <FormControl>
-                        <Input placeholder="تكرار النسخ الاحتياطي" {...field} disabled={!isEditMode} onChange={(e) => {
-                          field.onChange(e);
-                          handleInputChange('backupFrequency', e.target.value);
-                        }} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="maintenanceReminder"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>تذكير الصيانة (بالأيام)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          disabled={!isEditMode}
-                          onChange={(e) => {
-                            field.onChange(parseInt(e.target.value));
-                            handleInputChange('maintenanceReminder', parseInt(e.target.value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="contractExpiryWarning"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>تحذير انتهاء العقود (بالأيام)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          disabled={!isEditMode}
-                          onChange={(e) => {
-                            field.onChange(parseInt(e.target.value));
-                            handleInputChange('contractExpiryWarning', parseInt(e.target.value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="contractExpiryWarningDays"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>تحذير انتهاء العقود (بالأيام)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) => {
-                            field.onChange(parseInt(e.target.value));
-                            handleInputChange('contractExpiryWarningDays', parseInt(e.target.value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="registrationExpiryWarning"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>تحذير انتهاء التسجيل (بالأيام)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          disabled={!isEditMode}
-                          onChange={(e) => {
-                            field.onChange(parseInt(e.target.value));
-                            handleInputChange('registrationExpiryWarning', parseInt(e.target.value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="lowStockAlert"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>تنبيه المخزون المنخفض</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          disabled={!isEditMode}
-                          onChange={(e) => {
-                            field.onChange(parseInt(e.target.value));
-                            handleInputChange('lowStockAlert', parseInt(e.target.value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="defaultCreditLimit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>الحد الائتماني الافتراضي</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          disabled={!isEditMode}
-                          onChange={(e) => {
-                            field.onChange(parseInt(e.target.value));
-                            handleInputChange('defaultCreditLimit', parseInt(e.target.value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="defaultDepositAmount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>مبلغ الإيداع الافتراضي</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          disabled={!isEditMode}
-                          onChange={(e) => {
-                            field.onChange(parseInt(e.target.value));
-                            handleInputChange('defaultDepositAmount', parseInt(e.target.value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormField
-                  control={form.control}
-                  name="autoBackup"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">النسخ الاحتياطي التلقائي</FormLabel>
-                        <FormDescription>
-                          سيتم النسخ الاحتياطي للبيانات تلقائيًا.
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={(checked) => {
-                            field.onChange(checked);
-                            handleInputChange('autoBackup', checked);
-                          }}
-                          disabled={!isEditMode}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="emailNotifications"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">إشعارات البريد الإلكتروني</FormLabel>
-                        <FormDescription>
-                          سيتم إرسال الإشعارات عبر البريد الإلكتروني.
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={(checked) => {
-                            field.onChange(checked);
-                            handleInputChange('emailNotifications', checked);
-                          }}
-                          disabled={!isEditMode}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="smsNotifications"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">إشعارات الرسائل النصية</FormLabel>
-                        <FormDescription>
-                          سيتم إرسال الإشعارات عبر الرسائل النصية.
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={(checked) => {
-                            field.onChange(checked);
-                            handleInputChange('smsNotifications', checked);
-                          }}
-                          disabled={!isEditMode}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="requireDeposit"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">طلب إيداع</FormLabel>
-                        <FormDescription>
-                          سيتم طلب إيداع افتراضي.
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={(checked) => {
-                            field.onChange(checked);
-                            handleInputChange('requireDeposit', checked);
-                          }}
-                          disabled={!isEditMode}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="registrationExpiryWarningDays"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>أيام تحذير انتهاء التسجيل</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          disabled={!isEditMode}
-                          onChange={(e) => {
-                            field.onChange(parseInt(e.target.value));
-                            handleInputChange('registrationExpiryWarningDays', parseInt(e.target.value));
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {!isEditMode ? (
-                <Button onClick={() => setIsEditMode(true)}>تعديل الإعدادات</Button>
-              ) : (
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => {
-                    setIsEditMode(false);
-                    if (settings) {
-                      form.reset(settings);
-                    }
-                  }}>
-                    إلغاء
-                  </Button>
-                  <Button type="submit">حفظ التغييرات</Button>
+        <TabsContent value="company">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building className="h-5 w-5" />
+                معلومات الشركة
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="companyName">اسم الشركة</Label>
+                  <Input
+                    id="companyName"
+                    value={currentData.companyName}
+                    onChange={(e) => handleInputChange('companyName', e.target.value)}
+                  />
                 </div>
-              )}
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                <div>
+                  <Label htmlFor="taxNumber">الرقم الضريبي</Label>
+                  <Input
+                    id="taxNumber"
+                    value={currentData.taxNumber}
+                    onChange={(e) => handleInputChange('taxNumber', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="companyPhone">رقم الهاتف</Label>
+                  <Input
+                    id="companyPhone"
+                    value={currentData.companyPhone}
+                    onChange={(e) => handleInputChange('companyPhone', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="companyEmail">البريد الإلكتروني</Label>
+                  <Input
+                    id="companyEmail"
+                    type="email"
+                    value={currentData.companyEmail}
+                    onChange={(e) => handleInputChange('companyEmail', e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="companyAddress">عنوان الشركة</Label>
+                <Input
+                  id="companyAddress"
+                  value={currentData.companyAddress}
+                  onChange={(e) => handleInputChange('companyAddress', e.target.value)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="system">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                إعدادات النظام
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="currency">العملة</Label>
+                  <Input
+                    id="currency"
+                    value={currentData.currency}
+                    onChange={(e) => handleInputChange('currency', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="dateFormat">تنسيق التاريخ</Label>
+                  <Input
+                    id="dateFormat"
+                    value={currentData.dateFormat}
+                    onChange={(e) => handleInputChange('dateFormat', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="timeFormat">تنسيق الوقت</Label>
+                  <Input
+                    id="timeFormat"
+                    value={currentData.timeFormat}
+                    onChange={(e) => handleInputChange('timeFormat', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="language">اللغة</Label>
+                  <Select onValueChange={(value) => handleInputChange('language', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر اللغة" defaultValue={currentData.language} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ar">العربية</SelectItem>
+                      <SelectItem value="en">الإنجليزية</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="timezone">المنطقة الزمنية</Label>
+                  <Input
+                    id="timezone"
+                    value={currentData.timezone}
+                    onChange={(e) => handleInputChange('timezone', e.target.value)}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                إعدادات التنبيهات
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="emailNotifications">تنبيهات البريد الإلكتروني</Label>
+                  <Switch
+                    id="emailNotifications"
+                    checked={currentData.emailNotifications}
+                    onCheckedChange={(checked) => handleInputChange('emailNotifications', checked)}
+                  />
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="smsNotifications">تنبيهات الرسائل النصية</Label>
+                  <Switch
+                    id="smsNotifications"
+                    checked={currentData.smsNotifications}
+                    onCheckedChange={(checked) => handleInputChange('smsNotifications', checked)}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="financial">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5" />
+                الإعدادات المالية
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="defaultCreditLimit">الحد الائتماني الافتراضي</Label>
+                  <Input
+                    id="defaultCreditLimit"
+                    type="number"
+                    value={String(currentData.defaultCreditLimit)}
+                    onChange={(e) => handleInputChange('defaultCreditLimit', Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="requireDeposit">طلب دفعة مقدمة</Label>
+                  <Select onValueChange={(value) => handleInputChange('requireDeposit', value === 'true')}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر" defaultValue={String(currentData.requireDeposit)} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">نعم</SelectItem>
+                      <SelectItem value="false">لا</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="defaultDepositAmount">مبلغ الدفعة المقدمة الافتراضي</Label>
+                  <Input
+                    id="defaultDepositAmount"
+                    type="number"
+                    value={String(currentData.defaultDepositAmount)}
+                    onChange={(e) => handleInputChange('defaultDepositAmount', Number(e.target.value))}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                إعدادات الأمان
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="maintenanceReminder">تذكير بالصيانة (أيام)</Label>
+                  <Input
+                    id="maintenanceReminder"
+                    type="number"
+                    value={String(currentData.maintenanceReminder)}
+                    onChange={(e) => handleInputChange('maintenanceReminder', Number(e.target.value))}
+                  />
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="contractExpiryWarning">التحذير من انتهاء العقد (أيام)</Label>
+                  <Input
+                    id="contractExpiryWarning"
+                    type="number"
+                    value={String(currentData.contractExpiryWarning)}
+                    onChange={(e) => handleInputChange('contractExpiryWarning', Number(e.target.value))}
+                  />
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="registrationExpiryWarning">التحذير من انتهاء التسجيل (أيام)</Label>
+                  <Input
+                    id="registrationExpiryWarning"
+                    type="number"
+                    value={String(currentData.registrationExpiryWarning)}
+                    onChange={(e) => handleInputChange('registrationExpiryWarning', Number(e.target.value))}
+                  />
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="lowStockAlert">تنبيه انخفاض المخزون</Label>
+                  <Input
+                    id="lowStockAlert"
+                    type="number"
+                    value={String(currentData.lowStockAlert)}
+                    onChange={(e) => handleInputChange('lowStockAlert', Number(e.target.value))}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="backup">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                إعدادات النسخ الاحتياطي
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="autoBackup">النسخ الاحتياطي التلقائي</Label>
+                  <Switch
+                    id="autoBackup"
+                    checked={currentData.autoBackup}
+                    onCheckedChange={(checked) => handleInputChange('autoBackup', checked)}
+                  />
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="backupFrequency">تكرار النسخ الاحتياطي</Label>
+                  <Select onValueChange={(value) => handleInputChange('backupFrequency', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر التكرار" defaultValue={currentData.backupFrequency} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">يوميًا</SelectItem>
+                      <SelectItem value="weekly">أسبوعيًا</SelectItem>
+                      <SelectItem value="monthly">شهريًا</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
-}
-
-type FormDescription = ({ children }: { children: React.ReactNode; }) => JSX.Element;
-const FormDescription: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return (
-    <p className="text-sm text-muted-foreground">
-      {children}
-    </p>
-  );
 };
+
+export default EnhancedSystemSettings;
