@@ -251,6 +251,48 @@ export type Database = {
           },
         ]
       }
+      contract_accruals: {
+        Row: {
+          accrued_amount: number
+          calculated_by: string | null
+          calculation_date: string
+          contract_id: string
+          created_at: string
+          daily_rate: number
+          days_elapsed: number
+          id: string
+          outstanding_amount: number
+          receipts_amount: number
+          updated_at: string
+        }
+        Insert: {
+          accrued_amount?: number
+          calculated_by?: string | null
+          calculation_date: string
+          contract_id: string
+          created_at?: string
+          daily_rate?: number
+          days_elapsed?: number
+          id?: string
+          outstanding_amount?: number
+          receipts_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          accrued_amount?: number
+          calculated_by?: string | null
+          calculation_date?: string
+          contract_id?: string
+          created_at?: string
+          daily_rate?: number
+          days_elapsed?: number
+          id?: string
+          outstanding_amount?: number
+          receipts_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cost_center_mappings: {
         Row: {
           cost_center_id: string
@@ -707,6 +749,45 @@ export type Database = {
           updated_at?: string | null
           work_address?: string | null
           work_phone?: string | null
+        }
+        Relationships: []
+      }
+      deposit_transactions: {
+        Row: {
+          amount: number
+          contract_id: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          id: string
+          notes: string | null
+          reason: string | null
+          transaction_type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          transaction_type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          transaction_type?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2620,11 +2701,13 @@ export type Database = {
       }
       rental_contracts: {
         Row: {
+          accrued_amount: number
           actual_return_date: string | null
           additional_charges: number | null
           contract_number: string
           created_at: string | null
           created_by: string | null
+          credit_limit_override: number | null
           customer_id: string
           customer_signature: string | null
           daily_rate: number
@@ -2639,6 +2722,7 @@ export type Database = {
           mileage_end: number | null
           mileage_start: number | null
           notes: string | null
+          outstanding_amount: number
           paid_amount: number | null
           payment_method: string | null
           payment_status: string | null
@@ -2654,11 +2738,13 @@ export type Database = {
           vehicle_id: string
         }
         Insert: {
+          accrued_amount?: number
           actual_return_date?: string | null
           additional_charges?: number | null
           contract_number: string
           created_at?: string | null
           created_by?: string | null
+          credit_limit_override?: number | null
           customer_id: string
           customer_signature?: string | null
           daily_rate: number
@@ -2673,6 +2759,7 @@ export type Database = {
           mileage_end?: number | null
           mileage_start?: number | null
           notes?: string | null
+          outstanding_amount?: number
           paid_amount?: number | null
           payment_method?: string | null
           payment_status?: string | null
@@ -2688,11 +2775,13 @@ export type Database = {
           vehicle_id: string
         }
         Update: {
+          accrued_amount?: number
           actual_return_date?: string | null
           additional_charges?: number | null
           contract_number?: string
           created_at?: string | null
           created_by?: string | null
+          credit_limit_override?: number | null
           customer_id?: string
           customer_signature?: string | null
           daily_rate?: number
@@ -2707,6 +2796,7 @@ export type Database = {
           mileage_end?: number | null
           mileage_start?: number | null
           notes?: string | null
+          outstanding_amount?: number
           paid_amount?: number | null
           payment_method?: string | null
           payment_status?: string | null
@@ -3137,6 +3227,39 @@ export type Database = {
         }
         Relationships: []
       }
+      system_settings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_notification_preferences: {
         Row: {
           advance_days: number | null
@@ -3520,6 +3643,7 @@ export type Database = {
           notes: string | null
           owner_id: string | null
           plate_number: string
+          registration_expiry: string | null
           seating_capacity: number
           status: string
           transmission: string
@@ -3543,6 +3667,7 @@ export type Database = {
           notes?: string | null
           owner_id?: string | null
           plate_number: string
+          registration_expiry?: string | null
           seating_capacity?: number
           status?: string
           transmission?: string
@@ -3566,6 +3691,7 @@ export type Database = {
           notes?: string | null
           owner_id?: string | null
           plate_number?: string
+          registration_expiry?: string | null
           seating_capacity?: number
           status?: string
           transmission?: string
