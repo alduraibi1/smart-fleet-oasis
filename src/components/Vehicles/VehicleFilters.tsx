@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import { Search, Filter, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -9,193 +10,167 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
+import { Badge } from '@/components/ui/badge';
+import { VehicleFilters as VehicleFiltersType } from '@/types/vehicles';
 
 interface VehicleFiltersProps {
   filters: VehicleFiltersType;
   onFiltersChange: (filters: VehicleFiltersType) => void;
   brands: string[];
+  loading?: boolean;
 }
 
-const VehicleFilters = ({ filters, onFiltersChange, brands }: VehicleFiltersProps) => {
-  const [search, setSearch] = useState(filters.search || '');
-  const [status, setStatus] = useState(filters.status || '');
-  const [brand, setBrand] = useState(filters.brand || '');
-  const [minPrice, setMinPrice] = useState(filters.minPrice || '');
-  const [maxPrice, setMaxPrice] = useState(filters.maxPrice || '');
-  const [minYear, setMinYear] = useState(filters.minYear || '');
-  const [maxYear, setMaxYear] = useState(filters.maxYear || '');
-  const [fuel_type, setFuelType] = useState(filters.fuel_type || '');
-  const [transmission, setTransmission] = useState(filters.transmission || '');
+export default function VehicleFilters({ 
+  filters, 
+  onFiltersChange, 
+  brands, 
+  loading = false 
+}: VehicleFiltersProps) {
+  const [localFilters, setLocalFilters] = useState<VehicleFiltersType>(filters);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const applyFilters = () => {
-    const newFilters: VehicleFiltersType = {
-      search: search,
-      status: status,
-      brand: brand,
-      minPrice: minPrice ? parseFloat(minPrice) : undefined,
-      maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
-      minYear: minYear ? parseFloat(minYear) : undefined,
-      maxYear: maxYear ? parseFloat(maxYear) : undefined,
-      fuel_type: fuel_type,
-      transmission: transmission,
-    };
+  useEffect(() => {
+    setLocalFilters(filters);
+  }, [filters]);
+
+  const updateFilter = (key: keyof VehicleFiltersType, value: string | number | undefined) => {
+    const newFilters = { ...localFilters, [key]: value === '' ? undefined : value };
+    setLocalFilters(newFilters);
     onFiltersChange(newFilters);
   };
 
   const clearFilters = () => {
-    setSearch('');
-    setStatus('');
-    setBrand('');
-    setMinPrice('');
-    setMaxPrice('');
-    setMinYear('');
-    setMaxYear('');
-    setFuelType('');
-    setTransmission('');
-    onFiltersChange({});
+    const emptyFilters: VehicleFiltersType = {
+      search: '',
+      status: '',
+      brand: '',
+      minPrice: undefined,
+      maxPrice: undefined,
+      minYear: undefined,
+      maxYear: undefined,
+    };
+    setLocalFilters(emptyFilters);
+    onFiltersChange(emptyFilters);
   };
+
+  const activeFiltersCount = Object.values(localFilters).filter(v => v !== '' && v !== undefined).length;
+  const statuses = [
+    { value: 'available', label: 'متاحة' },
+    { value: 'rented', label: 'مؤجرة' },
+    { value: 'maintenance', label: 'صيانة' },
+    { value: 'out_of_service', label: 'خارج الخدمة' }
+  ];
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>خيارات البحث والتصفية</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="search">بحث</Label>
+      <CardContent className="p-4">
+        <div className="space-y-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              type="text"
-              id="search"
-              placeholder="ابحث عن طريق رقم اللوحة، الماركة أو الموديل..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              placeholder="البحث في المركبات (رقم اللوحة، الماركة، الموديل)..."
+              className="pr-10"
+              value={localFilters.search || ''}
+              onChange={(e) => updateFilter('search', e.target.value)}
+              disabled={loading}
             />
           </div>
 
-          <div>
-            <Label htmlFor="status">الحالة</Label>
-            <Select value={status} onValueChange={(value) => setStatus(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="اختر الحالة" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">الكل</SelectItem>
-                <SelectItem value="available">متاحة</SelectItem>
-                <SelectItem value="rented">مؤجرة</SelectItem>
-                <SelectItem value="maintenance">صيانة</SelectItem>
-                <SelectItem value="out_of_service">خارج الخدمة</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Quick Filters */}
+          <div className="flex gap-2 items-center flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              فلاتر متقدمة
+              {activeFiltersCount > 0 && (
+                <Badge variant="secondary" className="ml-1">
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </Button>
+
+            {activeFiltersCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="gap-1"
+              >
+                <X className="h-4 w-4" />
+                مسح الفلاتر
+              </Button>
+            )}
           </div>
 
-          <div>
-            <Label htmlFor="brand">الماركة</Label>
-            <Select value={brand} onValueChange={(value) => setBrand(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="اختر الماركة" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">الكل</SelectItem>
-                {brands.map((brand) => (
-                  <SelectItem key={brand} value={brand}>{brand}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+          {/* Advanced Filters */}
+          {showAdvanced && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 pt-4 border-t">
+              <Select value={localFilters.status || ''} onValueChange={(value) => updateFilter('status', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="حالة المركبة" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statuses.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <Label htmlFor="minPrice">السعر الأدنى</Label>
-            <Input
-              type="number"
-              id="minPrice"
-              placeholder="السعر الأدنى"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-            />
-          </div>
+              <Select value={localFilters.brand || ''} onValueChange={(value) => updateFilter('brand', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="الماركة" />
+                </SelectTrigger>
+                <SelectContent>
+                  {brands.map((brand) => (
+                    <SelectItem key={brand} value={brand}>
+                      {brand}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-          <div>
-            <Label htmlFor="maxPrice">السعر الأعلى</Label>
-            <Input
-              type="number"
-              id="maxPrice"
-              placeholder="السعر الأعلى"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-            />
-          </div>
+              <Input
+                placeholder="أقل سعر (ريال)"
+                value={localFilters.minPrice?.toString() || ''}
+                onChange={(e) => updateFilter('minPrice', parseFloat(e.target.value) || undefined)}
+                type="number"
+                disabled={loading}
+              />
 
-           <div>
-            <Label htmlFor="minYear">سنة الصنع الأدنى</Label>
-            <Input
-              type="number"
-              id="minYear"
-              placeholder="سنة الصنع الأدنى"
-              value={minYear}
-              onChange={(e) => setMinYear(e.target.value)}
-            />
-          </div>
+              <Input
+                placeholder="أعلى سعر (ريال)"
+                value={localFilters.maxPrice?.toString() || ''}
+                onChange={(e) => updateFilter('maxPrice', parseFloat(e.target.value) || undefined)}
+                type="number"
+                disabled={loading}
+              />
 
-          <div>
-            <Label htmlFor="maxYear">سنة الصنع الأعلى</Label>
-            <Input
-              type="number"
-              id="maxYear"
-              placeholder="سنة الصنع الأعلى"
-              value={maxYear}
-              onChange={(e) => setMaxYear(e.target.value)}
-            />
-          </div>
-        </div>
+              <Input
+                placeholder="من سنة"
+                value={localFilters.minYear?.toString() || ''}
+                onChange={(e) => updateFilter('minYear', parseInt(e.target.value) || undefined)}
+                type="number"
+                disabled={loading}
+              />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="fuel_type">نوع الوقود</Label>
-            <Select value={fuel_type} onValueChange={(value) => setFuelType(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="نوع الوقود" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">الكل</SelectItem>
-                <SelectItem value="gasoline">بنزين</SelectItem>
-                <SelectItem value="diesel">ديزل</SelectItem>
-                <SelectItem value="hybrid">هايبرد</SelectItem>
-                <SelectItem value="electric">كهربائي</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="transmission">ناقل الحركة</Label>
-            <Select value={transmission} onValueChange={(value) => setTransmission(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="ناقل الحركة" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">الكل</SelectItem>
-                <SelectItem value="manual">يدوي</SelectItem>
-                <SelectItem value="automatic">أوتوماتيك</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="ghost" onClick={clearFilters}>
-            إعادة تعيين
-          </Button>
-          <Button type="button" onClick={applyFilters}>
-            تطبيق الفلاتر
-          </Button>
+              <Input
+                placeholder="إلى سنة"
+                value={localFilters.maxYear?.toString() || ''}
+                onChange={(e) => updateFilter('maxYear', parseInt(e.target.value) || undefined)}
+                type="number"
+                disabled={loading}
+              />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
   );
-};
-
-export default VehicleFilters;
+}

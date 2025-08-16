@@ -1,4 +1,4 @@
-import { Vehicle } from '@/types/vehicle';
+import { Vehicle } from '@/types/vehicles';
 import { Car, Edit, Eye, User, FileText, AlertCircle, Calendar, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

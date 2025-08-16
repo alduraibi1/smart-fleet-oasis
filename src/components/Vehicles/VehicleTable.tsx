@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Vehicle } from '@/types/vehicle';
+import { Vehicle } from '@/types/vehicles';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {

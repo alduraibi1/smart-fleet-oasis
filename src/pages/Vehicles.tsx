@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useVehicles } from '@/hooks/useVehicles';
 import VehicleStats from '@/components/Vehicles/VehicleStats';
@@ -8,7 +9,7 @@ import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/Layout/AppLayout';
-import { VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
+import { VehicleFilters as VehicleFiltersType } from '@/types/vehicles';
 import { Vehicle } from '@/types/vehicle';
 
 const Vehicles = () => {
@@ -36,8 +37,6 @@ const Vehicles = () => {
     chassisNumber: vehicle.chassis_number,
     fuelType: vehicle.fuel_type,
     seatingCapacity: vehicle.seating_capacity,
-    created_at: vehicle.created_at || new Date().toISOString(),
-    updated_at: vehicle.updated_at || new Date().toISOString(),
     maintenance: vehicle.maintenance ? 
       (Array.isArray(vehicle.maintenance) ? 
         vehicle.maintenance.map(m => ({
@@ -48,7 +47,7 @@ const Vehicles = () => {
           vehicle_id: m.vehicle_id || vehicle.id,
         })) : 
         [{
-          id: 'temp-' + vehicle.id,
+          id: typeof vehicle.maintenance === 'object' && vehicle.maintenance.id ? vehicle.maintenance.id : 'temp-' + vehicle.id,
           vehicle_id: vehicle.id,
           status: 'scheduled' as const,
           maintenance_type: 'general',
@@ -86,12 +85,12 @@ const Vehicles = () => {
     // Convert back to the format expected by the hook
     const convertedData = {
       ...vehicleData,
-      plate_number: vehicleData.plate_number || vehicleData.plateNumber,
-      daily_rate: vehicleData.daily_rate || vehicleData.dailyRate,
-      engine_number: vehicleData.engine_number || vehicleData.engineNumber,
-      chassis_number: vehicleData.chassis_number || vehicleData.chassisNumber,
-      fuel_type: vehicleData.fuel_type || vehicleData.fuelType,
-      seating_capacity: vehicleData.seating_capacity || vehicleData.seatingCapacity,
+      plate_number: vehicleData.plateNumber || vehicleData.plate_number,
+      daily_rate: vehicleData.dailyRate || vehicleData.daily_rate,
+      engine_number: vehicleData.engineNumber || vehicleData.engine_number,
+      chassis_number: vehicleData.chassisNumber || vehicleData.chassis_number,
+      fuel_type: vehicleData.fuelType || vehicleData.fuel_type,
+      seating_capacity: vehicleData.seatingCapacity || vehicleData.seating_capacity,
       // Convert maintenance back to array format if needed
       maintenance: vehicleData.maintenance ? 
         vehicleData.maintenance.map(m => ({

@@ -32,37 +32,76 @@ interface EnhancedVehicleGridProps {
 
 interface VehicleActionsProps {
   vehicle: Vehicle;
-  onUpdateVehicle: (id: string, vehicleData: Partial<Vehicle>) => Promise<void>;
-  onDeleteVehicle: (id: string) => Promise<void>;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
-const VehicleActions = ({ vehicle, onUpdateVehicle, onDeleteVehicle }: VehicleActionsProps) => {
+const VehicleActions = ({ vehicle, onEdit, onDelete }: VehicleActionsProps) => {
   return (
     <div className="flex items-center space-x-2">
-      <EditVehicleDialog
-        vehicle={vehicle}
-        onUpdate={onUpdateVehicle}
-        trigger={
-          <Button variant="ghost" size="icon">
-            <Edit className="h-4 w-4" />
-          </Button>
-        }
-      />
-      <DeleteVehicleDialog
-        vehicle={vehicle}
-        onDelete={onDeleteVehicle}
-        trigger={
-          <Button variant="ghost" size="icon">
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        }
-      />
+      <Button variant="ghost" size="icon" onClick={onEdit}>
+        <Edit className="h-4 w-4" />
+      </Button>
+      <Button variant="ghost" size="icon" onClick={onDelete}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
     </div>
   );
 };
 
 const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: EnhancedVehicleGridProps) => {
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const { toast } = useToast();
+
+  const handleEdit = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
+    setEditDialogOpen(true);
+  };
+
+  const handleDelete = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleVehicleUpdated = async (updatedVehicle: Vehicle) => {
+    try {
+      await onUpdateVehicle(updatedVehicle.id, updatedVehicle);
+      setEditDialogOpen(false);
+      setSelectedVehicle(null);
+      toast({
+        title: "تم بنجاح",
+        description: "تم تحديث بيانات المركبة بنجاح",
+      });
+    } catch (error) {
+      console.error("Failed to update vehicle:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في تحديث بيانات المركبة",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleVehicleDeleted = async (vehicle: Vehicle) => {
+    try {
+      await onDeleteVehicle(vehicle.id);
+      setDeleteDialogOpen(false);
+      setSelectedVehicle(null);
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف المركبة بنجاح",
+      });
+    } catch (error) {
+      console.error("Failed to delete vehicle:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف المركبة",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getStatusVariant = (status: Vehicle['status']) => {
     switch (status) {
@@ -140,8 +179,8 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
                   </div>
                   <VehicleActions 
                     vehicle={vehicle} 
-                    onUpdateVehicle={onUpdateVehicle}
-                    onDeleteVehicle={onDeleteVehicle}
+                    onEdit={() => handleEdit(vehicle)}
+                    onDelete={() => handleDelete(vehicle)}
                   />
                 </div>
               </CardHeader>
@@ -205,6 +244,26 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Edit Dialog */}
+      {selectedVehicle && (
+        <EditVehicleDialog
+          vehicle={selectedVehicle}
+          isOpen={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          onVehicleUpdated={handleVehicleUpdated}
+        />
+      )}
+
+      {/* Delete Dialog */}
+      {selectedVehicle && (
+        <DeleteVehicleDialog
+          vehicle={selectedVehicle}
+          isOpen={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          onVehicleDeleted={handleVehicleDeleted}
+        />
       )}
     </div>
   );

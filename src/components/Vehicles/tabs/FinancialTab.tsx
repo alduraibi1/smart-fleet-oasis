@@ -1,4 +1,3 @@
-
 import { DollarSign, TrendingUp, Calendar, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';

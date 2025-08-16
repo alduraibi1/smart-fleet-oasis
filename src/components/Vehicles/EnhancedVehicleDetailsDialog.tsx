@@ -91,7 +91,7 @@ export default function EnhancedVehicleDetailsDialog({ vehicle, trigger }: Enhan
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Car className="h-5 w-5" />
-            تفاصيل المركبة الشاملة - {vehicle.plate_number}
+            تفاصيل المركبة الشاملة - {vehicle.plateNumber}
           </DialogTitle>
         </DialogHeader>
 

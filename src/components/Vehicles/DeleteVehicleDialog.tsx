@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { Vehicle } from '@/types/vehicle';
+import { Vehicle } from '@/types/vehicles';
 import {
   AlertDialog,
   AlertDialogAction,
