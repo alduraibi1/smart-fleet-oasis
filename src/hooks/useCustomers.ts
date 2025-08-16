@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types';
@@ -70,7 +71,8 @@ export const useCustomers = () => {
         work_phone: customer.work_phone || '',
         monthly_income: customer.monthly_income || 0,
         bank_name: customer.bank_name || '',
-        account_number: customer.bank_account_number || '',
+        // تم التغيير هنا: استخدام bank_account_number بدل account_number
+        bank_account_number: customer.bank_account_number || '',
         credit_limit: customer.credit_limit || 0,
         payment_terms: customer.payment_terms || 'immediate',
         preferred_payment_method: customer.preferred_payment_method || 'cash',
