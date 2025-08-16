@@ -127,6 +127,7 @@ export function VirtualizedTable<T>({
       {/* Virtual Body */}
       <List
         height={height}
+        width="100%"
         itemCount={data.length}
         itemSize={itemHeight}
         itemData={rowData}

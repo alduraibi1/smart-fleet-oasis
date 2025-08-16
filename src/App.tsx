@@ -1,69 +1,53 @@
-
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from '@/components/theme/ThemeProvider';
-import { AuthProvider } from '@/hooks/useAuth';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as SonnerToaster } from '@/components/ui/sonner';
+import { ThemeProvider } from './components/theme/ThemeProvider';
+import { Toaster } from './components/ui/sonner';
+import Dashboard from './pages/Dashboard';
+import CustomersPage from './pages/Customers';
+import VehiclesPage from './pages/Vehicles';
+import ContractsPage from './pages/Contracts';
+import MaintenancePage from './pages/Maintenance';
+import AccountingPage from './pages/Accounting';
+import ReportsPage from './pages/Reports';
+import OwnersPage from './pages/Owners';
+import HRPage from './pages/HR';
+import SuppliersPage from './pages/Suppliers';
+import InventoryPage from './pages/Inventory';
+import SystemManagementPage from './pages/SystemManagement';
+import NotificationSettingsPage from './pages/NotificationSettings';
+import CustomersNew from './pages/CustomersNew';
 
-// Import pages
-import Index from '@/pages/Index';
-import Vehicles from '@/pages/Vehicles';
-import Customers from '@/pages/Customers';
-import CustomersNew from '@/pages/CustomersNew';
-import Contracts from '@/pages/Contracts';
-import Maintenance from '@/pages/Maintenance';
-import Accounting from '@/pages/Accounting';
-import Reports from '@/pages/Reports';
-import Owners from '@/pages/Owners';
-import HR from '@/pages/HR';
-import Suppliers from '@/pages/Suppliers';
-import Inventory from '@/pages/Inventory';
-import SystemManagement from '@/pages/SystemManagement';
-import NotificationSettings from '@/pages/NotificationSettings';
-import NotFound from '@/pages/NotFound';
+// New import for system optimization
+import SystemOptimizationPage from './pages/SystemOptimization';
 
-import './App.css';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <AuthProvider>
-          <Router>
-            <div className="min-h-screen bg-background">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/vehicles" element={<Vehicles />} />
-                <Route path="/customers" element={<Customers />} />
-                <Route path="/customers-new" element={<CustomersNew />} />
-                <Route path="/contracts" element={<Contracts />} />
-                <Route path="/maintenance" element={<Maintenance />} />
-                <Route path="/accounting" element={<Accounting />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/owners" element={<Owners />} />
-                <Route path="/hr" element={<HR />} />
-                <Route path="/suppliers" element={<Suppliers />} />
-                <Route path="/inventory" element={<Inventory />} />
-                <Route path="/system" element={<SystemManagement />} />
-                <Route path="/notification-settings" element={<NotificationSettings />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </div>
-            <Toaster />
-            <SonnerToaster />
-          </Router>
-        </AuthProvider>
+      <ThemeProvider defaultTheme="light" storageKey="car-rental-theme">
+        <Router>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/customers-new" element={<CustomersNew />} />
+            <Route path="/vehicles" element={<VehiclesPage />} />
+            <Route path="/contracts" element={<ContractsPage />} />
+            <Route path="/maintenance" element={<MaintenancePage />} />
+            <Route path="/accounting" element={<AccountingPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/owners" element={<OwnersPage />} />
+            <Route path="/hr" element={<HRPage />} />
+            <Route path="/suppliers" element={<SuppliersPage />} />
+            <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/system" element={<SystemManagementPage />} />
+            <Route path="/notification-settings" element={<NotificationSettingsPage />} />
+            
+            {/* New route for system optimization */}
+            <Route path="/system-optimization" element={<SystemOptimizationPage />} />
+          </Routes>
+        </Router>
+        <Toaster />
       </ThemeProvider>
     </QueryClientProvider>
   );
