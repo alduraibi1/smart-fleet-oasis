@@ -1,22 +1,20 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useMaintenance } from "@/hooks/useMaintenance";
 import { 
   ClipboardList, 
   Package, 
   Droplets, 
   Calculator, 
-  Camera, 
-  Clock,
+  Camera,
   Save,
   X,
-  Plus,
-  Minus,
   AlertTriangle
 } from "lucide-react";
 
@@ -33,7 +31,7 @@ interface EnhancedAddMaintenanceDialogProps {
 }
 
 export interface MaintenanceFormData {
-  // Basic Info
+  // Basic Info - Updated to match database fields
   vehicleId: string;
   mechanicId: string;
   type: string;
@@ -41,6 +39,10 @@ export interface MaintenanceFormData {
   date: Date | undefined;
   priority: 'low' | 'medium' | 'high' | 'urgent';
   estimatedHours: number;
+  
+  // New fields from database
+  odometerIn?: number;
+  odometerOut?: number;
   
   // Parts Used
   partsUsed: Array<{
@@ -91,6 +93,7 @@ export interface MaintenanceFormData {
 
 export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAddMaintenanceDialogProps) {
   const { toast } = useToast();
+  const { addMaintenanceRecord } = useMaintenance();
   const [activeTab, setActiveTab] = useState("basic");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -102,6 +105,8 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
     date: undefined,
     priority: "medium",
     estimatedHours: 0,
+    odometerIn: undefined,
+    odometerOut: undefined,
     partsUsed: [],
     oilsUsed: [],
     laborHours: 0,
@@ -173,8 +178,34 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
       // Calculate final costs
       calculateCosts();
       
-      // Here you would save to backend
-      console.log("Maintenance Record Data:", formData);
+      // Prepare maintenance data for backend
+      const maintenanceData = {
+        vehicle_id: formData.vehicleId,
+        mechanic_id: formData.mechanicId,
+        assigned_mechanic_id: formData.mechanicId, // Map to new field
+        maintenance_type: formData.type,
+        description: formData.description,
+        reported_issue: formData.description, // Map to new field
+        scheduled_date: formData.date?.toISOString(),
+        status: 'scheduled',
+        priority: formData.priority,
+        odometer_in: formData.odometerIn, // New field
+        odometer_out: formData.odometerOut, // New field
+        labor_hours: formData.laborHours,
+        labor_cost: formData.laborCost,
+        parts_cost: formData.partsCost,
+        total_cost: formData.totalCost,
+        notes: formData.notes,
+        warranty_until: formData.warranty ? 
+          new Date(Date.now() + formData.warrantyPeriod * 24 * 60 * 60 * 1000).toISOString() : 
+          undefined,
+        images: [...formData.beforeImages, ...formData.afterImages],
+        // Store parts and oils data as JSON
+        parts_used: formData.partsUsed.length > 0 ? formData.partsUsed : undefined,
+        oils_used: formData.oilsUsed.length > 0 ? formData.oilsUsed : undefined,
+      };
+      
+      await addMaintenanceRecord(maintenanceData);
       
       toast({
         title: "تم إضافة سجل الصيانة",
@@ -190,6 +221,8 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
         date: undefined,
         priority: "medium",
         estimatedHours: 0,
+        odometerIn: undefined,
+        odometerOut: undefined,
         partsUsed: [],
         oilsUsed: [],
         laborHours: 0,
@@ -215,6 +248,7 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
       onOpenChange(false);
       
     } catch (error) {
+      console.error('Error saving maintenance record:', error);
       toast({
         title: "خطأ في الحفظ",
         description: "حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى",
@@ -235,17 +269,6 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
     }
   };
 
-  const getTabIcon = (tab: string) => {
-    switch (tab) {
-      case 'basic': return ClipboardList;
-      case 'parts': return Package;
-      case 'oils': return Droplets;
-      case 'costs': return Calculator;
-      case 'images': return Camera;
-      default: return ClipboardList;
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col p-0">
@@ -257,7 +280,7 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
                 <p className="text-muted-foreground text-sm">إدارة شاملة لسجلات الصيانة والمخزون</p>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant={getPriorityColor(formData.priority)} className="text-xs">
+                <Badge variant={getPriorityColor(formData.priority) as any} className="text-xs">
                   {formData.priority === 'urgent' && 'عاجل'}
                   {formData.priority === 'high' && 'عالي'}
                   {formData.priority === 'medium' && 'متوسط'}

@@ -1,10 +1,28 @@
+
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, Trash2, Wrench, Calendar } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MaintenanceRecord } from "@/types";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { useMaintenance } from "@/hooks/useMaintenance";
+import { 
+  Calendar, 
+  User, 
+  Wrench, 
+  MoreHorizontal, 
+  Eye, 
+  Edit, 
+  Trash2,
+  Car,
+  Gauge,
+  Clock,
+  DollarSign
+} from "lucide-react";
 
 interface MaintenanceTableProps {
   searchTerm: string;
@@ -14,218 +32,251 @@ interface MaintenanceTableProps {
   dateFilter: string;
 }
 
-export function MaintenanceTable({
-  searchTerm,
-  statusFilter,
-  typeFilter,
-  mechanicFilter,
-  dateFilter
-}: MaintenanceTableProps) {
-  // Mock data - in real app, this would come from API
-  const mockMaintenanceRecords: (MaintenanceRecord & { 
-    vehiclePlateNumber: string;
-    mechanicName: string;
-  })[] = [
-    {
-      id: "1",
-      vehicleId: "v1",
-      vehiclePlateNumber: "أ ب ج 1234",
-      mechanicId: "m1",
-      mechanicName: "أحمد محمد",
-      date: new Date("2024-01-15"),
-      type: "scheduled" as const,
-      description: "صيانة دورية - تغيير زيت وفلاتر",
-      partsUsed: [],
-      oilsUsed: [],
-      laborCost: 300,
-      partsCost: 120,
-      oilsCost: 80,
-      totalCost: 500,
-      laborHours: 6,
-      warranty: true,
-      warrantyExpiry: new Date("2024-07-15"),
-      notes: "تم تغيير زيت المحرك وفلتر الهواء والوقود",
-      status: "completed" as const,
-      beforeImages: [],
-      afterImages: [],
-      vehicleConditionBefore: "حالة جيدة عموماً",
-      vehicleConditionAfter: "ممتازة بعد الصيانة",
-      workStartTime: new Date("2024-01-15T08:00:00"),
-      workEndTime: new Date("2024-01-15T14:00:00"),
-      qualityRating: 5
-    },
-    {
-      id: "2",
-      vehicleId: "v2",
-      vehiclePlateNumber: "د هـ و 5678",
-      mechanicId: "m2",
-      mechanicName: "خالد عبدالله",
-      date: new Date("2024-01-20"),
-      type: "breakdown" as const,
-      description: "إصلاح عطل في نظام التبريد",
-      partsUsed: [],
-      oilsUsed: [],
-      laborCost: 200,
-      partsCost: 450,
-      oilsCost: 30,
-      totalCost: 680,
-      laborHours: 4,
-      warranty: false,
-      notes: "تم استبدال رديتر التبريد وخرطوم المياه",
-      status: "in_progress" as const,
-      beforeImages: [],
-      afterImages: [],
-      vehicleConditionBefore: "مشكلة في نظام التبريد",
-      vehicleConditionAfter: "قيد الإصلاح",
-      workStartTime: new Date("2024-01-20T09:00:00"),
-      workEndTime: undefined,
-      qualityRating: undefined
-    },
-    {
-      id: "3",
-      vehicleId: "v3",
-      vehiclePlateNumber: "ز ح ط 9012",
-      mechanicId: "m3",
-      mechanicName: "محمد علي",
-      date: new Date("2024-01-25"),
-      type: "inspection" as const,
-      description: "فحص دوري قبل التسجيل",
-      partsUsed: [],
-      oilsUsed: [],
-      laborCost: 100,
-      partsCost: 0,
-      oilsCost: 0,
-      totalCost: 150,
-      laborHours: 3,
-      warranty: false,
-      notes: "فحص شامل للمركبة - لا توجد مشاكل",
-      status: "pending" as const,
-      beforeImages: [],
-      afterImages: [],
-      vehicleConditionBefore: "يحتاج فحص شامل",
-      vehicleConditionAfter: "لم يكتمل الفحص بعد",
-      workStartTime: undefined,
-      workEndTime: undefined,
-      qualityRating: undefined
-    }
-  ];
+export const MaintenanceTable = ({ 
+  searchTerm, 
+  statusFilter, 
+  typeFilter, 
+  mechanicFilter, 
+  dateFilter 
+}: MaintenanceTableProps) => {
+  const { maintenanceRecords, deleteMaintenanceRecord } = useMaintenance();
 
-  const getStatusBadge = (status: string) => {
-    const statusMap = {
-      pending: { label: "معلقة", variant: "secondary" as const },
-      in_progress: { label: "قيد التنفيذ", variant: "default" as const },
-      completed: { label: "مكتملة", variant: "default" as const },
-      cancelled: { label: "ملغية", variant: "destructive" as const }
-    };
-    
-    const statusInfo = statusMap[status as keyof typeof statusMap] || statusMap.pending;
-    return (
-      <Badge 
-        variant={statusInfo.variant}
-        className={
-          status === "completed" ? "bg-green-100 text-green-800 hover:bg-green-100" :
-          status === "in_progress" ? "bg-blue-100 text-blue-800 hover:bg-blue-100" :
-          status === "pending" ? "bg-orange-100 text-orange-800 hover:bg-orange-100" :
-          ""
-        }
-      >
-        {statusInfo.label}
-      </Badge>
-    );
-  };
-
-  const getTypeBadge = (type: string) => {
-    const typeMap = {
-      scheduled: { label: "دورية", color: "bg-blue-100 text-blue-800" },
-      breakdown: { label: "طارئة", color: "bg-red-100 text-red-800" },
-      inspection: { label: "فحص", color: "bg-purple-100 text-purple-800" }
-    };
-    
-    const typeInfo = typeMap[type as keyof typeof typeMap] || typeMap.scheduled;
-    return (
-      <Badge variant="outline" className={typeInfo.color}>
-        {typeInfo.label}
-      </Badge>
-    );
-  };
-
-  // Filter the data based on filters
-  const filteredRecords = mockMaintenanceRecords.filter(record => {
+  // Filter records based on search criteria
+  const filteredRecords = maintenanceRecords.filter((record) => {
     const matchesSearch = searchTerm === "" || 
-      record.vehiclePlateNumber.includes(searchTerm) ||
-      record.id.includes(searchTerm) ||
-      record.description.includes(searchTerm);
-    
+      record.vehicles?.plate_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      record.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      record.reported_issue?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      record.maintenance_type.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesStatus = statusFilter === "all" || record.status === statusFilter;
-    const matchesType = typeFilter === "all" || record.type === typeFilter;
-    const matchesMechanic = mechanicFilter === "all" || record.mechanicId === mechanicFilter;
+    const matchesType = typeFilter === "all" || record.maintenance_type === typeFilter;
+    const matchesMechanic = mechanicFilter === "all" || record.mechanic_id === mechanicFilter;
     
-    return matchesSearch && matchesStatus && matchesType && matchesMechanic;
+    let matchesDate = true;
+    if (dateFilter !== "all") {
+      const recordDate = new Date(record.scheduled_date || record.created_at);
+      const today = new Date();
+      
+      switch (dateFilter) {
+        case "today":
+          matchesDate = recordDate.toDateString() === today.toDateString();
+          break;
+        case "week":
+          const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+          matchesDate = recordDate >= weekAgo;
+          break;
+        case "month":
+          const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+          matchesDate = recordDate >= monthAgo;
+          break;
+      }
+    }
+
+    return matchesSearch && matchesStatus && matchesType && matchesMechanic && matchesDate;
   });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'default';
+      case 'in_progress':
+        return 'secondary';
+      case 'scheduled':
+        return 'outline';
+      case 'cancelled':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'مكتمل';
+      case 'in_progress':
+        return 'جاري';
+      case 'scheduled':
+        return 'مجدول';
+      case 'cancelled':
+        return 'ملغي';
+      default:
+        return status;
+    }
+  };
+
+  const getPriorityColor = (priority?: string) => {
+    switch (priority) {
+      case 'urgent':
+        return 'destructive';
+      case 'high':
+        return 'destructive';
+      case 'medium':
+        return 'default';
+      case 'low':
+        return 'secondary';
+      default:
+        return 'secondary';
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('هل أنت متأكد من حذف هذا السجل؟')) {
+      await deleteMaintenanceRecord(id);
+    }
+  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2">
           <Wrench className="h-5 w-5" />
           سجلات الصيانة ({filteredRecords.length})
         </CardTitle>
+        <CardDescription>
+          عرض وإدارة جميع سجلات الصيانة
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-right">رقم السجل</TableHead>
-                <TableHead className="text-right">رقم اللوحة</TableHead>
-                <TableHead className="text-right">نوع الصيانة</TableHead>
-                <TableHead className="text-right">الوصف</TableHead>
-                <TableHead className="text-right">الميكانيكي</TableHead>
-                <TableHead className="text-right">التاريخ</TableHead>
-                <TableHead className="text-right">التكلفة</TableHead>
-                <TableHead className="text-right">الحالة</TableHead>
-                <TableHead className="text-right">الإجراءات</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredRecords.map((record) => (
-                <TableRow key={record.id}>
-                  <TableCell className="font-medium">#{record.id}</TableCell>
-                  <TableCell>{record.vehiclePlateNumber}</TableCell>
-                  <TableCell>{getTypeBadge(record.type)}</TableCell>
-                  <TableCell className="max-w-xs truncate" title={record.description}>
-                    {record.description}
-                  </TableCell>
-                  <TableCell>{record.mechanicName}</TableCell>
-                  <TableCell>{record.date.toLocaleDateString('ar-SA')}</TableCell>
-                  <TableCell>{record.totalCost} ر.س</TableCell>
-                  <TableCell>{getStatusBadge(record.status)}</TableCell>
-                  <TableCell>
+        <div className="space-y-4">
+          {filteredRecords.length === 0 ? (
+            <div className="text-center py-8">
+              <Wrench className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">لا توجد سجلات صيانة تطابق معايير البحث</p>
+            </div>
+          ) : (
+            filteredRecords.map((record) => (
+              <div key={record.id} className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <Car className="h-4 w-4 text-muted-foreground" />
+                      <h3 className="font-medium">
+                        {record.vehicles?.plate_number} - {record.vehicles?.brand} {record.vehicles?.model}
+                      </h3>
+                      <Badge variant={getStatusColor(record.status) as any}>
+                        {getStatusLabel(record.status)}
+                      </Badge>
+                      {record.priority && (
+                        <Badge variant={getPriorityColor(record.priority) as any} className="text-xs">
+                          {record.priority === 'urgent' ? 'عاجل' :
+                           record.priority === 'high' ? 'عالي' :
+                           record.priority === 'medium' ? 'متوسط' : 'منخفض'}
+                        </Badge>
+                      )}
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredRecords.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                    لا توجد سجلات صيانة مطابقة للبحث
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                    <p className="text-sm text-muted-foreground">
+                      نوع الصيانة: {record.maintenance_type}
+                    </p>
+                    {record.reported_issue && (
+                      <p className="text-sm text-muted-foreground">
+                        المشكلة المبلغ عنها: {record.reported_issue}
+                      </p>
+                    )}
+                    {record.description && record.description !== record.reported_issue && (
+                      <p className="text-sm text-muted-foreground">
+                        الوصف: {record.description}
+                      </p>
+                    )}
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <Eye className="h-4 w-4 mr-2" />
+                        عرض التفاصيل
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Edit className="h-4 w-4 mr-2" />
+                        تعديل
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={() => handleDelete(record.id)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        حذف
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      {record.scheduled_date ? 
+                        new Date(record.scheduled_date).toLocaleDateString('ar-SA') : 
+                        new Date(record.created_at).toLocaleDateString('ar-SA')
+                      }
+                    </span>
+                  </div>
+                  
+                  {record.mechanics?.name && (
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span>{record.mechanics.name}</span>
+                    </div>
+                  )}
+
+                  {record.odometer_in && (
+                    <div className="flex items-center gap-2">
+                      <Gauge className="h-4 w-4 text-muted-foreground" />
+                      <span>العداد: {record.odometer_in.toLocaleString()}</span>
+                      {record.odometer_out && (
+                        <span className="text-muted-foreground">
+                          → {record.odometer_out.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {(record.total_cost || record.cost) && (
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span>{(record.total_cost || record.cost || 0).toLocaleString()} ريال</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Labor and timing info */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm border-t pt-3">
+                  {record.labor_hours && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span>ساعات العمل: {record.labor_hours}</span>
+                    </div>
+                  )}
+                  
+                  {record.completed_date && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-green-600" />
+                      <span>اكتمل في: {new Date(record.completed_date).toLocaleDateString('ar-SA')}</span>
+                    </div>
+                  )}
+
+                  {record.warranty_until && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-600">ضمان حتى: {new Date(record.warranty_until).toLocaleDateString('ar-SA')}</span>
+                    </div>
+                  )}
+                </div>
+
+                {record.notes && (
+                  <div className="text-sm text-muted-foreground border-t pt-3">
+                    <strong>ملاحظات:</strong> {record.notes}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
       </CardContent>
     </Card>
   );
-}
+};
