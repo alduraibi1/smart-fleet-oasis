@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Download, FileText } from 'lucide-react';
+import { Upload, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -34,6 +34,7 @@ export const CustomerImportDialog: React.FC<CustomerImportDialogProps> = ({
         'الجنسية': 'سعودي',
         'المدينة': 'الرياض',
         'العنوان': 'شارع الملك فهد',
+        'رقم الرخصة': 'DL123456789',
         'تاريخ انتهاء الرخصة': '2025-12-31'
       }
     ];
@@ -78,9 +79,22 @@ export const CustomerImportDialog: React.FC<CustomerImportDialogProps> = ({
                 nationality: (row as any)['الجنسية'] || (row as any)['nationality'] || 'سعودي',
                 city: (row as any)['المدينة'] || (row as any)['city'] || null,
                 address: (row as any)['العنوان'] || (row as any)['address'] || null,
+                license_number: (row as any)['رقم الرخصة'] || (row as any)['license_number'] || null,
                 license_expiry: (row as any)['تاريخ انتهاء الرخصة'] || (row as any)['license_expiry'] || null,
                 is_active: true,
-                blacklisted: false
+                blacklisted: false,
+                gender: 'male',
+                marital_status: 'single',
+                license_type: 'private',
+                international_license: false,
+                country: 'السعودية',
+                address_type: 'residential',
+                preferred_language: 'ar',
+                marketing_consent: false,
+                sms_notifications: true,
+                email_notifications: true,
+                customer_source: 'import',
+                rating: 5
               };
 
               if (!customerData.name || !customerData.phone || !customerData.national_id) {

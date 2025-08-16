@@ -1,21 +1,12 @@
 
-import React from 'react';
-import { Customer } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Customer } from '@/types';
 
-interface CustomerActionsHandlerProps {
-  customer: Customer;
-  onUpdate: () => void;
-}
-
-export const CustomerActionsHandler: React.FC<CustomerActionsHandlerProps> = ({
-  customer,
-  onUpdate
-}) => {
+export const useCustomerActions = () => {
   const { toast } = useToast();
 
-  const handleBlacklistToggle = async () => {
+  const handleBlacklistToggle = async (customer: Customer, onUpdate: () => void) => {
     try {
       const { error } = await supabase
         .from('customers')
@@ -45,7 +36,7 @@ export const CustomerActionsHandler: React.FC<CustomerActionsHandlerProps> = ({
     }
   };
 
-  const handleActivateToggle = async () => {
+  const handleActivateToggle = async (customer: Customer, onUpdate: () => void) => {
     try {
       const { error } = await supabase
         .from('customers')

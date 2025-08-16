@@ -1,9 +1,10 @@
+
 import { useState, useCallback } from 'react';
 
 export const useCustomerSelection = () => {
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
 
-  const handleSelectCustomer = useCallback((customerId: string) => {
+  const toggleCustomer = useCallback((customerId: string) => {
     setSelectedCustomers(prev => {
       if (prev.includes(customerId)) {
         return prev.filter(id => id !== customerId);
@@ -13,7 +14,7 @@ export const useCustomerSelection = () => {
     });
   }, []);
 
-  const handleSelectAll = useCallback((checked: boolean, customerIds: string[]) => {
+  const toggleAll = useCallback((checked: boolean, customerIds: string[]) => {
     if (checked) {
       setSelectedCustomers(customerIds);
     } else {
@@ -27,8 +28,8 @@ export const useCustomerSelection = () => {
 
   return {
     selectedCustomers,
-    handleSelectCustomer,
-    handleSelectAll,
+    toggleCustomer,
+    toggleAll,
     clearSelection
   };
 };

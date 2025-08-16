@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { EnhancedCustomerFilters, CustomerFilters } from '@/components/Customers/EnhancedCustomerFilters';
 import { EnhancedCustomerTable } from '@/components/Customers/EnhancedCustomerTable';
@@ -10,12 +10,12 @@ import { BlacklistDialog } from '@/components/Customers/BlacklistDialog';
 import { CustomerImportDialog } from '@/components/Customers/CustomerImportDialog';
 import { AdvancedSearchDialog } from '@/components/Customers/AdvancedSearchDialog';
 import { CustomerTemplates } from '@/components/Customers/CustomerTemplates';
-import { exportCustomersToExcel, exportCustomersPDF } from '@/components/Customers/CustomerExportUtils';
+import { exportCustomersToExcel } from '@/components/Customers/CustomerExportUtils';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useCustomerSelection } from '@/hooks/useCustomerSelection';
+import { useCustomerActions } from '@/hooks/useCustomerActions';
 import { Customer } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 export default function Customers() {
   const [filters, setFilters] = useState<CustomerFilters>({});
@@ -26,9 +26,11 @@ export default function Customers() {
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
   const { customers, loading, refetch } = useCustomers();
   const { selectedCustomers, toggleCustomer, toggleAll, clearSelection } = useCustomerSelection();
+  const { handleBlacklistToggle, handleActivateToggle } = useCustomerActions();
   const { toast } = useToast();
 
   // فلترة العملاء
@@ -80,7 +82,7 @@ export default function Customers() {
   });
 
   const handleEdit = (customer: Customer) => {
-    setSelectedCustomer(customer);
+    setEditingCustomer(customer);
     setShowAddDialog(true);
   };
 
@@ -96,15 +98,7 @@ export default function Customers() {
 
   const handleBlacklistAction = async (customerId: string, reason: string) => {
     try {
-      const { error } = await supabase
-        .from('customers')
-        .update({ 
-          blacklisted: true,
-          blacklist_reason: reason 
-        })
-        .eq('id', customerId);
-
-      if (error) throw error;
+      // تم نقل المنطق إلى BlacklistDialog
       await refetch();
     } catch (error) {
       console.error('Error blacklisting customer:', error);
@@ -118,15 +112,7 @@ export default function Customers() {
 
   const handleRemoveFromBlacklist = async (customerId: string) => {
     try {
-      const { error } = await supabase
-        .from('customers')
-        .update({ 
-          blacklisted: false,
-          blacklist_reason: null 
-        })
-        .eq('id', customerId);
-
-      if (error) throw error;
+      // تم نقل المنطق إلى BlacklistDialog
       await refetch();
     } catch (error) {
       console.error('Error removing from blacklist:', error);
@@ -155,16 +141,22 @@ export default function Customers() {
   };
 
   const handleAddCustomer = () => {
-    setSelectedCustomer(null);
+    setEditingCustomer(null);
     setShowAddDialog(true);
   };
 
   const handleDialogClose = () => {
     setSelectedCustomer(null);
+    setEditingCustomer(null);
     setShowAddDialog(false);
     setShowDetailsDialog(false);
     setShowBlacklistDialog(false);
     refetch();
+  };
+
+  const handleAdvancedSearch = (searchFilters: CustomerFilters) => {
+    setFilters(searchFilters);
+    setShowAdvancedSearch(false);
   };
 
   return (
@@ -214,7 +206,7 @@ export default function Customers() {
         <AddCustomerDialog
           open={showAddDialog}
           onOpenChange={setShowAddDialog}
-          customer={selectedCustomer}
+          editingCustomer={editingCustomer}
           onClose={handleDialogClose}
         />
 
@@ -222,6 +214,11 @@ export default function Customers() {
           open={showDetailsDialog}
           onOpenChange={setShowDetailsDialog}
           customer={selectedCustomer}
+          onEdit={(customer) => {
+            setEditingCustomer(customer);
+            setShowDetailsDialog(false);
+            setShowAddDialog(true);
+          }}
         />
 
         <BlacklistDialog
@@ -241,12 +238,12 @@ export default function Customers() {
         <AdvancedSearchDialog
           open={showAdvancedSearch}
           onOpenChange={setShowAdvancedSearch}
-          onSearch={setFilters}
+          onApplyFilters={handleAdvancedSearch}
         />
 
         <CustomerTemplates
-          open={showTemplates}
-          onOpenChange={setShowTemplates}
+          isOpen={showTemplates}
+          onClose={() => setShowTemplates(false)}
         />
       </div>
     </AppLayout>
