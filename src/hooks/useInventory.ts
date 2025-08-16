@@ -30,6 +30,8 @@ export interface InventoryItem {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  // New: Part number support
+  part_number?: string;
   inventory_categories?: {
     name: string;
   };
@@ -162,7 +164,7 @@ export const useInventory = () => {
     }
   };
 
-  // إضافة عنصر مخزون جديد
+  // إضافة عنصر مخزون جديد - updated to include part_number
   const addItem = async (itemData: Partial<InventoryItem>) => {
     try {
       const insertData = {
@@ -181,7 +183,9 @@ export const useInventory = () => {
         reorder_point: itemData.reorder_point,
         location: itemData.location,
         expiry_date: itemData.expiry_date,
-        is_active: itemData.is_active !== false
+        is_active: itemData.is_active !== false,
+        // New
+        part_number: itemData.part_number
       };
 
       const { data, error } = await supabase
@@ -359,15 +363,16 @@ export const useInventory = () => {
     };
   };
 
-  // البحث في المخزون
+  // البحث في المخزون - include part_number
   const searchItems = (searchTerm: string) => {
     if (!searchTerm.trim()) return items;
-    
+
     const term = searchTerm.toLowerCase();
     return items.filter(item =>
       item.name.toLowerCase().includes(term) ||
       item.sku?.toLowerCase().includes(term) ||
       item.barcode?.toLowerCase().includes(term) ||
+      item.part_number?.toLowerCase().includes(term) ||
       item.description?.toLowerCase().includes(term)
     );
   };

@@ -25,6 +25,10 @@ export interface MaintenanceRecord {
   created_at: string;
   updated_at: string;
   created_by?: string;
+  reported_issue?: string;
+  odometer_in?: number;
+  odometer_out?: number;
+  assigned_mechanic_id?: string;
   vehicles?: {
     plate_number: string;
     brand: string;
@@ -182,8 +186,12 @@ export const useMaintenance = () => {
         vehicle_id: maintenanceData.vehicle_id!,
         maintenance_type: maintenanceData.maintenance_type!,
         mechanic_id: maintenanceData.mechanic_id,
+        assigned_mechanic_id: maintenanceData.assigned_mechanic_id ?? maintenanceData.mechanic_id,
         template_id: maintenanceData.template_id,
         description: maintenanceData.description,
+        reported_issue: maintenanceData.reported_issue,
+        odometer_in: maintenanceData.odometer_in,
+        odometer_out: maintenanceData.odometer_out,
         scheduled_date: maintenanceData.scheduled_date,
         completed_date: maintenanceData.completed_date,
         status: maintenanceData.status || 'scheduled',

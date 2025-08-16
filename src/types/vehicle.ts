@@ -53,6 +53,11 @@ export interface VehicleMaintenance {
   created_by?: string;
   lastMaintenanceDate?: string;
   nextMaintenanceDate?: string;
+  // New fields aligned with DB
+  reported_issue?: string;
+  odometer_in?: number;
+  odometer_out?: number;
+  assigned_mechanic_id?: string;
 }
 
 export interface VehicleLocation {
