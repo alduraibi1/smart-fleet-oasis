@@ -19,7 +19,7 @@ export interface VehicleDocument {
   url?: string;
   file_url?: string;
   file_name?: string;
-  upload_date?: string;
+  upload_date: string;
   uploadDate?: string;
   expiry_date?: string;
   expiryDate?: string;
@@ -33,7 +33,7 @@ export interface VehicleImage {
   url: string;
   type: 'exterior' | 'interior' | 'damage' | 'other';
   description?: string;
-  upload_date?: string;
+  upload_date: string;
   uploadDate?: string;
   uploaded_by?: string;
 }

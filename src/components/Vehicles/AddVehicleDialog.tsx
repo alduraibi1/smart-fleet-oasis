@@ -73,9 +73,12 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
     files.forEach(file => {
       const newDoc: VehicleDocument = {
         id: Date.now().toString() + Math.random(),
+        vehicle_id: 'temp-id', // This will be updated when the vehicle is created
         name: file.name,
         type: 'other',
+        upload_date: new Date().toISOString(),
         uploadDate: new Date().toISOString(),
+        expiry_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         status: 'valid'
       };
@@ -90,7 +93,10 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
       reader.onload = (e) => {
         const newImage: VehicleImage = {
           id: Date.now().toString() + Math.random(),
+          vehicle_id: 'temp-id', // This will be updated when the vehicle is created
           url: e.target?.result as string,
+          type: 'exterior',
+          upload_date: new Date().toISOString(),
           uploadDate: new Date().toISOString(),
         };
         setImages(prev => [...prev, newImage]);
