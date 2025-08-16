@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useVehicles } from '@/hooks/useVehicles';
 import VehicleStats from '@/components/Vehicles/VehicleStats';
@@ -9,7 +8,7 @@ import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/Layout/AppLayout';
-import { VehicleFilters as VehicleFiltersType, Vehicle } from '@/types/vehicle';
+import { VehicleFilters as VehicleFiltersType, Vehicle } from '@/types/vehicles';
 
 const Vehicles = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'enhanced'>('enhanced');
@@ -27,7 +26,7 @@ const Vehicles = () => {
     fetchVehicles(filters); // Refresh the list
   };
 
-  // Convert vehicles from the hook to the Vehicle type used in EnhancedVehicleGrid
+  // Convert vehicles from the hook to ensure consistency - now both types are the same
   const convertedVehicles: Vehicle[] = vehicles.map((vehicle: any) => ({
     ...vehicle,
     plateNumber: vehicle.plate_number,

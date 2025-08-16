@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import {
   Card,
@@ -16,7 +17,7 @@ import {
   Settings,
   User,
 } from "lucide-react";
-import { Vehicle } from '@/types/vehicle';
+import { Vehicle } from '@/types/vehicles';
 import { Button } from '@/components/ui/button';
 import { EditVehicleDialog } from './EditVehicleDialog';
 import { DeleteVehicleDialog } from './DeleteVehicleDialog';
