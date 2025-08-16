@@ -1,3 +1,4 @@
+
 import { Car, DollarSign, Clock, FileText, Image as ImageIcon, Users, Fuel, Gauge } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

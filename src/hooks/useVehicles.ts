@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Vehicle, VehicleFilters, VehicleStats } from '@/types/vehicles';
+import { Vehicle, VehicleFilters, VehicleStats } from '@/types/vehicle';
 import { useToast } from '@/hooks/use-toast';
 
 export const useVehicles = () => {
@@ -101,7 +102,7 @@ export const useVehicles = () => {
     try {
       const { data, error } = await supabase
         .from('vehicles')
-        .insert([vehicleData])
+        .insert(vehicleData)
         .select()
         .single();
 
