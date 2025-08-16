@@ -1,9 +1,13 @@
-import { Wrench, Calendar, AlertTriangle } from 'lucide-react';
+
+import { Wrench, Calendar, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Vehicle } from '@/types/vehicle';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { useVehicleMaintenanceInsights } from '@/hooks/useVehicleMaintenanceInsights';
 
 interface MaintenanceTabProps {
   vehicle: Vehicle;
@@ -11,6 +15,37 @@ interface MaintenanceTabProps {
 }
 
 export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: MaintenanceTabProps) {
+  const { toast } = useToast();
+  const vehicleId = (vehicle as any).id as string | undefined; // ensure we have the id
+  const { lastMaintenance, prediction, lastLoading, predictionLoading, generatePredictions } =
+    useVehicleMaintenanceInsights(vehicleId);
+
+  const handleGeneratePrediction = async () => {
+    if (!vehicleId) return;
+    toast({ title: 'جارِ توليد التنبؤ', description: 'يتم تحديث تنبؤ الصيانة القادمة...' });
+    generatePredictions.mutate(undefined, {
+      onSuccess: () => {
+        toast({
+          title: 'تم التحديث',
+          description: 'تم توليد/تحديث تنبؤ الصيانة القادمة بنجاح',
+        });
+      },
+      meta: {
+        onError: () => {
+          // handled by meta in hook; we still show a toast here
+        },
+      },
+      onError: (err: any) => {
+        console.error(err);
+        toast({
+          title: 'خطأ',
+          description: 'تعذر توليد التنبؤ، حاول لاحقًا',
+          variant: 'destructive',
+        });
+      },
+    });
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -31,7 +66,7 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
             <div>
               <Label className="text-sm font-medium text-muted-foreground">تكلفة آخر صيانة</Label>
               <p className="font-medium">
-                غير محدد
+                {lastLoading ? 'جارِ التحميل...' : (lastMaintenance?.total_cost ?? 'غير محدد')}
               </p>
             </div>
           </div>
@@ -48,17 +83,35 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
             </div>
           )}
 
-          {vehicle.maintenance.nextMaintenanceDate && (
-            <div>
+          {/* التنبؤ بالصيانة القادمة (من قاعدة البيانات إن وجد) */}
+          <div>
+            <div className="flex items-center justify-between">
               <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 موعد الصيانة القادمة
               </Label>
-              <p className="font-medium">
-                {new Date(vehicle.maintenance.nextMaintenanceDate).toLocaleDateString('ar')}
-              </p>
+              {vehicleId && (
+                <Button variant="outline" size="sm" onClick={handleGeneratePrediction} disabled={generatePredictions.isPending}>
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  {generatePredictions.isPending ? 'جارِ التحديث...' : 'تحديث التنبؤ'}
+                </Button>
+              )}
             </div>
-          )}
+            <p className="font-medium mt-1">
+              {predictionLoading
+                ? 'جارِ التحميل...'
+                : prediction?.predicted_date
+                  ? new Date(prediction.predicted_date).toLocaleDateString('ar')
+                  : (vehicle.maintenance.nextMaintenanceDate
+                      ? new Date(vehicle.maintenance.nextMaintenanceDate).toLocaleDateString('ar')
+                      : 'غير محدد')}
+            </p>
+            {prediction?.confidence_score != null && (
+              <div className="mt-1 text-xs text-muted-foreground">
+                دقة متوقعة: {(Number(prediction.confidence_score) * 100).toFixed(0)}%
+              </div>
+            )}
+          </div>
 
           {vehicle.maintenance.notes && (
             <>
