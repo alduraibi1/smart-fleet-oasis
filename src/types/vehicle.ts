@@ -1,32 +1,126 @@
 
-export interface Vehicle {
+export interface VehicleOwner {
   id: string;
-  plate_number: string;
-  brand: string;
-  model: string;
-  year: number;
-  color: string;
-  daily_rate: number;
-  status: 'available' | 'rented' | 'maintenance' | 'out_of_service';
-  engine_number?: string;
-  chassis_number?: string;
-  seating_capacity?: number;
-  registration_expiry?: string;
-  owner_id?: string;
-  created_at?: string;
-  updated_at?: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  national_id?: string;
+  address?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface VehicleDocument {
   id: string;
+  vehicle_id?: string;
   name: string;
-  type: string;
-  url: string;
+  type: 'license' | 'insurance' | 'inspection' | 'registration' | 'other';
+  url?: string;
+  file_url?: string;
+  file_name?: string;
+  upload_date?: string;
+  uploadDate?: string;
   expiry_date?: string;
+  expiryDate?: string;
+  status: 'valid' | 'expired' | 'near_expiry';
+  uploaded_by?: string;
 }
 
 export interface VehicleImage {
   id: string;
+  vehicle_id?: string;
   url: string;
+  type?: 'exterior' | 'interior' | 'damage' | 'other';
   description?: string;
+  upload_date?: string;
+  uploadDate?: string;
+  uploaded_by?: string;
+}
+
+export interface VehicleMaintenance {
+  id?: string;
+  vehicle_id?: string;
+  status: 'scheduled' | 'in_progress' | 'overdue' | 'completed';
+  maintenance_type?: string;
+  description?: string;
+  scheduled_date?: string;
+  completed_date?: string;
+  cost?: number;
+  notes?: string;
+  parts_used?: string[];
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string;
+  lastMaintenanceDate?: string;
+  nextMaintenanceDate?: string;
+}
+
+export interface VehicleLocation {
+  id?: string;
+  vehicle_id?: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  last_updated?: string;
+  lastUpdated?: string;
+  is_tracked?: boolean;
+}
+
+export interface VehiclePurchase {
+  purchasePrice?: number;
+  purchaseDate?: string;
+  financingCompany?: string;
+}
+
+export interface VehicleCurrentRental {
+  customerName: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface Vehicle {
+  id: string;
+  plate_number: string;
+  plateNumber?: string; // for backward compatibility
+  brand: string;
+  model: string;
+  year: number;
+  color: string;
+  status: 'available' | 'rented' | 'maintenance' | 'out_of_service';
+  daily_rate: number;
+  dailyRate?: number; // for backward compatibility
+  mileage: number;
+  
+  // Vehicle Details
+  vin?: string;
+  engine_number?: string;
+  engineNumber?: string; // for backward compatibility
+  chassis_number?: string;
+  chassisNumber?: string; // for backward compatibility
+  fuel_type: 'gasoline' | 'diesel' | 'hybrid' | 'electric';
+  fuelType?: 'gasoline' | 'diesel' | 'hybrid' | 'electric'; // for backward compatibility
+  transmission: 'manual' | 'automatic';
+  seating_capacity: number;
+  seatingCapacity?: number; // for backward compatibility
+  features?: string[];
+  registration_expiry?: string;
+  
+  // Owner
+  owner_id?: string;
+  owner?: VehicleOwner;
+  
+  // Related data
+  documents?: VehicleDocument[];
+  images?: VehicleImage[];
+  maintenance?: VehicleMaintenance;
+  location?: VehicleLocation;
+  purchase?: VehiclePurchase;
+  currentRental?: VehicleCurrentRental;
+  
+  // Administrative
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string;
 }

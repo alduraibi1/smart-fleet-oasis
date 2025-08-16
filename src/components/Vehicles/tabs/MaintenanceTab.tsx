@@ -1,4 +1,3 @@
-
 import { Wrench, Calendar, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +15,7 @@ interface MaintenanceTabProps {
 
 export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: MaintenanceTabProps) {
   const { toast } = useToast();
-  const vehicleId = (vehicle as any).id as string | undefined; // ensure we have the id
+  const vehicleId = (vehicle as any).id as string | undefined;
   const { lastMaintenance, prediction, lastLoading, predictionLoading, generatePredictions } =
     useVehicleMaintenanceInsights(vehicleId);
 
@@ -54,8 +53,8 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="text-sm font-medium text-muted-foreground">حالة الصيانة</Label>
-              <Badge variant={getMaintenanceStatus(vehicle.maintenance.status).variant} className="mt-1">
-                {getMaintenanceStatus(vehicle.maintenance.status).label}
+              <Badge variant={getMaintenanceStatus(vehicle.maintenance?.status || 'scheduled').variant} className="mt-1">
+                {getMaintenanceStatus(vehicle.maintenance?.status || 'scheduled').label}
               </Badge>
             </div>
             <div>
@@ -66,7 +65,7 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
             </div>
           </div>
 
-          {vehicle.maintenance.lastMaintenanceDate && (
+          {vehicle.maintenance?.lastMaintenanceDate && (
             <div>
               <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
@@ -78,7 +77,6 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
             </div>
           )}
 
-          {/* التنبؤ بالصيانة القادمة (من قاعدة البيانات إن وجد) */}
           <div>
             <div className="flex items-center justify-between">
               <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
@@ -97,7 +95,7 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
                 ? 'جارِ التحميل...'
                 : prediction?.predicted_date
                   ? new Date(prediction.predicted_date).toLocaleDateString('ar')
-                  : (vehicle.maintenance.nextMaintenanceDate
+                  : (vehicle.maintenance?.nextMaintenanceDate
                       ? new Date(vehicle.maintenance.nextMaintenanceDate).toLocaleDateString('ar')
                       : 'غير محدد')}
             </p>
@@ -108,7 +106,7 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
             )}
           </div>
 
-          {vehicle.maintenance.notes && (
+          {vehicle.maintenance?.notes && (
             <>
               <Separator />
               <div>
@@ -117,26 +115,10 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
               </div>
             </>
           )}
-
-          {false && (
-            <>
-              <Separator />
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">القطع المستخدمة مؤخراً</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {['زيت المحرك', 'فلتر الهواء'].map((part, index) => (
-                    <Badge key={index} variant="outline">
-                      {part}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
         </CardContent>
       </Card>
 
-      {vehicle.maintenance.status === 'overdue' && (
+      {vehicle.maintenance?.status === 'overdue' && (
         <Card className="border-destructive">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-destructive">

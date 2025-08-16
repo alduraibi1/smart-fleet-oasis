@@ -31,7 +31,7 @@ export default function OverviewTab({ vehicle, statusBadge, getFuelTypeLabel }: 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-muted-foreground">رقم اللوحة</Label>
-                <p className="font-bold text-lg text-primary">{vehicle.plateNumber}</p>
+                <p className="font-bold text-lg text-primary">{vehicle.plate_number}</p>
               </div>
               <div>
                 <Label className="text-muted-foreground">المركبة</Label>
@@ -59,13 +59,13 @@ export default function OverviewTab({ vehicle, statusBadge, getFuelTypeLabel }: 
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
-                <p className="text-3xl font-bold text-primary">₪{vehicle.dailyRate}</p>
+                <p className="text-3xl font-bold text-primary">₪{vehicle.daily_rate}</p>
                 <p className="text-sm text-muted-foreground">السعر اليومي</p>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1">
                   <Gauge className="h-4 w-4" />
-                  <p className="text-2xl font-bold">{vehicle.mileage.toLocaleString()}</p>
+                  <p className="text-2xl font-bold">{vehicle.mileage?.toLocaleString() || 0}</p>
                 </div>
                 <p className="text-sm text-muted-foreground">كيلومتر</p>
               </div>
@@ -107,28 +107,28 @@ export default function OverviewTab({ vehicle, statusBadge, getFuelTypeLabel }: 
         <Card className="text-center">
           <CardContent className="p-4">
             <FileText className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <p className="text-2xl font-bold">{vehicle.documents.length}</p>
+            <p className="text-2xl font-bold">{vehicle.documents?.length || 0}</p>
             <p className="text-sm text-muted-foreground">مستند</p>
           </CardContent>
         </Card>
         <Card className="text-center">
           <CardContent className="p-4">
             <ImageIcon className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <p className="text-2xl font-bold">{vehicle.images.length}</p>
+            <p className="text-2xl font-bold">{vehicle.images?.length || 0}</p>
             <p className="text-sm text-muted-foreground">صورة</p>
           </CardContent>
         </Card>
         <Card className="text-center">
           <CardContent className="p-4">
             <Users className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <p className="text-2xl font-bold">{vehicle.seatingCapacity}</p>
+            <p className="text-2xl font-bold">{vehicle.seating_capacity}</p>
             <p className="text-sm text-muted-foreground">مقعد</p>
           </CardContent>
         </Card>
         <Card className="text-center">
           <CardContent className="p-4">
             <Fuel className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <p className="text-lg font-bold">{getFuelTypeLabel(vehicle.fuelType)}</p>
+            <p className="text-lg font-bold">{getFuelTypeLabel(vehicle.fuel_type)}</p>
             <p className="text-sm text-muted-foreground">نوع الوقود</p>
           </CardContent>
         </Card>

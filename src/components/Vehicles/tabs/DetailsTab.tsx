@@ -25,16 +25,16 @@ export default function DetailsTab({ vehicle, getTransmissionLabel, getMaintenan
             <div className="grid grid-cols-1 gap-3">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">رقم VIN:</span>
-                <span className="font-medium">{vehicle.vin}</span>
+                <span className="font-medium">{vehicle.vin || 'غير محدد'}</span>
               </div>
               <Separator />
               <div className="flex justify-between">
                 <span className="text-muted-foreground">رقم المحرك:</span>
-                <span className="font-medium">{vehicle.engineNumber}</span>
+                <span className="font-medium">{vehicle.engine_number || 'غير محدد'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">رقم الشاسيه:</span>
-                <span className="font-medium">{vehicle.chassisNumber}</span>
+                <span className="font-medium">{vehicle.chassis_number || 'غير محدد'}</span>
               </div>
               <Separator />
               <div className="flex justify-between">
@@ -43,7 +43,7 @@ export default function DetailsTab({ vehicle, getTransmissionLabel, getMaintenan
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">عدد المقاعد:</span>
-                <span className="font-medium">{vehicle.seatingCapacity}</span>
+                <span className="font-medium">{vehicle.seating_capacity}</span>
               </div>
             </div>
           </CardContent>
@@ -59,11 +59,11 @@ export default function DetailsTab({ vehicle, getTransmissionLabel, getMaintenan
           <CardContent className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">الحالة:</span>
-              <Badge variant={getMaintenanceStatus(vehicle.maintenance.status).variant}>
-                {getMaintenanceStatus(vehicle.maintenance.status).label}
+              <Badge variant={getMaintenanceStatus(vehicle.maintenance?.status || 'scheduled').variant}>
+                {getMaintenanceStatus(vehicle.maintenance?.status || 'scheduled').label}
               </Badge>
             </div>
-            {vehicle.maintenance.lastMaintenanceDate && (
+            {vehicle.maintenance?.lastMaintenanceDate && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">آخر صيانة:</span>
                 <span className="font-medium">
@@ -71,7 +71,7 @@ export default function DetailsTab({ vehicle, getTransmissionLabel, getMaintenan
                 </span>
               </div>
             )}
-            {vehicle.maintenance.nextMaintenanceDate && (
+            {vehicle.maintenance?.nextMaintenanceDate && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">الصيانة القادمة:</span>
                 <span className="font-medium">
@@ -79,7 +79,7 @@ export default function DetailsTab({ vehicle, getTransmissionLabel, getMaintenan
                 </span>
               </div>
             )}
-            {vehicle.maintenance.notes && (
+            {vehicle.maintenance?.notes && (
               <>
                 <Separator />
                 <div>

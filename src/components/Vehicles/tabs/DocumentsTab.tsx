@@ -30,10 +30,10 @@ export default function DocumentsTab({ vehicle, getDocumentStatus, getDocumentTy
                         </Badge>
                         <div className="space-y-1">
                           <p className="text-sm text-muted-foreground">
-                            رفع في: {new Date(doc.uploadDate).toLocaleDateString('ar')}
+                            رفع في: {new Date(doc.uploadDate || doc.upload_date || '').toLocaleDateString('ar')}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            ينتهي في: {new Date(doc.expiryDate).toLocaleDateString('ar')}
+                            ينتهي في: {new Date(doc.expiryDate || doc.expiry_date || '').toLocaleDateString('ar')}
                           </p>
                         </div>
                       </div>

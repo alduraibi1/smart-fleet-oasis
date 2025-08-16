@@ -18,31 +18,39 @@ export default function OwnerTab({ vehicle }: OwnerTabProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">الاسم الكامل</Label>
-              <p className="font-medium">{vehicle.owner.name}</p>
+          {vehicle.owner ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">الاسم الكامل</Label>
+                <p className="font-medium">{vehicle.owner.name}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">رقم الهوية</Label>
+                <p className="font-medium">{vehicle.owner.national_id || 'غير محدد'}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">رقم الهاتف</Label>
+                <p className="font-medium">{vehicle.owner.phone || 'غير محدد'}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">البريد الإلكتروني</Label>
+                <p className="font-medium">{vehicle.owner.email || 'غير محدد'}</p>
+              </div>
             </div>
+          ) : (
+            <p className="text-muted-foreground text-center py-4">
+              لا توجد معلومات مالك متاحة
+            </p>
+          )}
+          {vehicle.owner?.address && (
             <div>
-              <Label className="text-sm font-medium text-muted-foreground">رقم الهوية</Label>
-              <p className="font-medium">{vehicle.owner.nationalId}</p>
+              <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                العنوان
+              </Label>
+              <p className="font-medium">{vehicle.owner.address}</p>
             </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">رقم الهاتف</Label>
-              <p className="font-medium">{vehicle.owner.phone}</p>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">البريد الإلكتروني</Label>
-              <p className="font-medium">{vehicle.owner.email}</p>
-            </div>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              العنوان
-            </Label>
-            <p className="font-medium">{vehicle.owner.address}</p>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

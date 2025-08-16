@@ -34,7 +34,7 @@ export default function ImagesTab({ vehicle }: ImagesTabProps) {
               <CardContent className="p-3">
                 <p className="text-sm font-medium">{image.description || 'بدون وصف'}</p>
                 <p className="text-xs text-muted-foreground">
-                  رفع في: {new Date(image.uploadDate).toLocaleDateString('ar')}
+                  رفع في: {new Date(image.uploadDate || image.upload_date || '').toLocaleDateString('ar')}
                 </p>
               </CardContent>
             </Card>

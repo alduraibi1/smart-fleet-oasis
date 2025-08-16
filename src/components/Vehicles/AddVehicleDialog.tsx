@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -76,7 +75,6 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
         id: Date.now().toString() + Math.random(),
         name: file.name,
         type: 'other',
-        file: file,
         uploadDate: new Date().toISOString(),
         expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         status: 'valid'
@@ -93,7 +91,6 @@ export default function AddVehicleDialog({ onVehicleAdded }: AddVehicleDialogPro
         const newImage: VehicleImage = {
           id: Date.now().toString() + Math.random(),
           url: e.target?.result as string,
-          type: 'exterior',
           uploadDate: new Date().toISOString(),
         };
         setImages(prev => [...prev, newImage]);

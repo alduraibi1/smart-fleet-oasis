@@ -24,11 +24,11 @@ export default function LocationTab({ vehicle }: LocationTabProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">خط الطول</Label>
-                  <p className="font-medium">{vehicle.location.latitude}</p>
+                  <p className="font-medium">{vehicle.location.latitude || 'غير محدد'}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">خط العرض</Label>
-                  <p className="font-medium">{vehicle.location.longitude}</p>
+                  <p className="font-medium">{vehicle.location.longitude || 'غير محدد'}</p>
                 </div>
               </div>
 
@@ -44,7 +44,7 @@ export default function LocationTab({ vehicle }: LocationTabProps) {
                     آخر تحديث
                   </Label>
                   <p className="font-medium">
-                    {new Date(vehicle.location.lastUpdated).toLocaleString('ar')}
+                    {new Date(vehicle.location.lastUpdated || vehicle.location.last_updated || '').toLocaleString('ar')}
                   </p>
                 </div>
                 <Badge variant="default">
@@ -77,20 +77,6 @@ export default function LocationTab({ vehicle }: LocationTabProps) {
                 </Badge>
               </div>
             </div>
-
-            {false && (
-              <Card className="border-destructive">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 text-destructive">
-                    <AlertTriangle className="h-5 w-5" />
-                    <span className="font-medium">تحذير: المركبة خارج النطاق المسموح</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    المركبة موجودة خارج النطاق الجغرافي المحدد
-                  </p>
-                </CardContent>
-              </Card>
-            )}
           </CardContent>
         </Card>
       )}

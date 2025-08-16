@@ -22,7 +22,7 @@ export default function FinancialTab({ vehicle }: FinancialTabProps) {
           <CardContent className="space-y-4">
             <div>
               <Label className="text-sm font-medium text-muted-foreground">سعر الشراء</Label>
-              <p className="text-2xl font-bold text-primary">₪{vehicle.purchase.purchasePrice?.toLocaleString() || 'غير محدد'}</p>
+              <p className="text-2xl font-bold text-primary">₪{vehicle.purchase?.purchasePrice?.toLocaleString() || 'غير محدد'}</p>
             </div>
             
             <div>
@@ -31,11 +31,11 @@ export default function FinancialTab({ vehicle }: FinancialTabProps) {
                 تاريخ الشراء
               </Label>
               <p className="font-medium">
-                {vehicle.purchase.purchaseDate ? new Date(vehicle.purchase.purchaseDate).toLocaleDateString('ar') : 'غير محدد'}
+                {vehicle.purchase?.purchaseDate ? new Date(vehicle.purchase.purchaseDate).toLocaleDateString('ar') : 'غير محدد'}
               </p>
             </div>
 
-            {vehicle.purchase.financingCompany && (
+            {vehicle.purchase?.financingCompany && (
               <div>
                 <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
                   <CreditCard className="h-4 w-4" />
@@ -55,7 +55,7 @@ export default function FinancialTab({ vehicle }: FinancialTabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {vehicle.purchase.purchasePrice ? (
+            {vehicle.purchase?.purchasePrice ? (
               <>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">القيمة الحالية</Label>
@@ -99,15 +99,15 @@ export default function FinancialTab({ vehicle }: FinancialTabProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
               <p className="text-sm text-muted-foreground">الإيراد اليومي</p>
-              <p className="text-2xl font-bold text-primary">₪{vehicle.dailyRate}</p>
+              <p className="text-2xl font-bold text-primary">₪{vehicle.daily_rate}</p>
             </div>
             <div className="text-center">
               <p className="text-sm text-muted-foreground">الإيراد الشهري المتوقع</p>
-              <p className="text-2xl font-bold text-green-600">₪{(vehicle.dailyRate * 30).toLocaleString()}</p>
+              <p className="text-2xl font-bold text-green-600">₪{(vehicle.daily_rate * 30).toLocaleString()}</p>
             </div>
             <div className="text-center">
               <p className="text-sm text-muted-foreground">الإيراد السنوي المتوقع</p>
-              <p className="text-2xl font-bold text-blue-600">₪{(vehicle.dailyRate * 365).toLocaleString()}</p>
+              <p className="text-2xl font-bold text-blue-600">₪{(vehicle.daily_rate * 365).toLocaleString()}</p>
             </div>
           </div>
         </CardContent>
