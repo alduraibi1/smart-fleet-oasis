@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { EnhancedCustomerFilters } from '@/components/Customers/EnhancedCustomerFilters';
@@ -26,10 +27,10 @@ const convertToLegacyCustomer = (customer: NewCustomer): LegacyCustomer => {
     licenseExpiry: customer.license_expiry ? new Date(customer.license_expiry) : new Date(),
     totalRentals: customer.total_rentals,
     rating: customer.rating,
-    isActive: customer.is_active,
+    is_active: customer.is_active,
     blacklisted: customer.blacklisted,
-    createdAt: new Date(customer.created_at),
-    updatedAt: new Date(customer.updated_at),
+    created_at: new Date(customer.created_at),
+    updated_at: new Date(customer.updated_at),
     city: customer.city || '',
     nationality: customer.nationality
   };
@@ -80,7 +81,7 @@ const convertToNewCustomer = (customer: LegacyCustomer): NewCustomer => {
     insurance_expiry: undefined,
     international_license: false,
     international_license_expiry: undefined,
-    is_active: customer.isActive,
+    is_active: customer.is_active,
     blacklisted: customer.blacklisted,
     blacklist_reason: '',
     blacklist_date: '',
@@ -92,8 +93,8 @@ const convertToNewCustomer = (customer: LegacyCustomer): NewCustomer => {
     licenseExpiry: customer.licenseExpiry ? customer.licenseExpiry.toISOString().split('T')[0] : undefined,
     totalRentals: customer.totalRentals,
     notes: '',
-    created_at: customer.createdAt.toISOString(),
-    updated_at: customer.updatedAt.toISOString()
+    created_at: customer.created_at.toISOString(),
+    updated_at: customer.updated_at.toISOString()
   };
 };
 
