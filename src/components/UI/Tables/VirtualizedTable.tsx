@@ -1,7 +1,7 @@
 
 import { FixedSizeList as List } from 'react-window';
 import { Checkbox } from '@/components/ui/checkbox';
-import { forwardRef, memo } from 'react';
+import { memo } from 'react';
 
 interface Column<T> {
   key: keyof T;
@@ -22,23 +22,22 @@ interface VirtualizedTableProps<T> {
   getItemId: (item: T) => string;
 }
 
-interface RowData<T> {
-  items: T[];
-  columns: Column<T>[];
+interface RowData {
+  items: any[];
+  columns: Column<any>[];
   selectable?: boolean;
   selectedItems?: string[];
   onSelectItem?: (id: string) => void;
-  getItemId: (item: T) => string;
+  getItemId: (item: any) => string;
 }
 
-interface RowProps<T> {
+interface RowProps {
   index: number;
   style: React.CSSProperties;
-  data: RowData<T>;
+  data: RowData;
 }
 
-// تعريف مكون Row مع أنواع البيانات الصحيحة
-const VirtualizedRow = <T,>({ index, style, data }: RowProps<T>) => {
+const VirtualizedRow = memo(({ index, style, data }: RowProps) => {
   const { items, columns, selectable, selectedItems = [], onSelectItem, getItemId } = data;
   const item = items[index];
   const itemId = getItemId(item);
@@ -70,7 +69,9 @@ const VirtualizedRow = <T,>({ index, style, data }: RowProps<T>) => {
       })}
     </div>
   );
-};
+});
+
+VirtualizedRow.displayName = 'VirtualizedRow';
 
 export function VirtualizedTable<T>({
   data,
@@ -88,15 +89,14 @@ export function VirtualizedTable<T>({
   };
 
   const isAllSelected = selectable && selectedItems.length > 0 && selectedItems.length === data.length;
-  const isIndeterminate = selectable && selectedItems.length > 0 && selectedItems.length < data.length;
 
-  const rowData: RowData<T> = {
+  const rowData: RowData = {
     items: data,
-    columns,
+    columns: columns as Column<any>[],
     selectable,
     selectedItems,
     onSelectItem,
-    getItemId
+    getItemId: getItemId as (item: any) => string
   };
 
   return (
@@ -108,7 +108,6 @@ export function VirtualizedTable<T>({
             <div className="w-12 px-3 py-3 flex items-center">
               <Checkbox
                 checked={isAllSelected}
-                indeterminate={isIndeterminate}
                 onCheckedChange={handleSelectAll}
               />
             </div>
