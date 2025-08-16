@@ -37,16 +37,16 @@ const Vehicles = () => {
     chassisNumber: vehicle.chassis_number,
     fuelType: vehicle.fuel_type,
     seatingCapacity: vehicle.seating_capacity,
-    maintenance: vehicle.maintenance?.[0] || {
-      status: 'scheduled' as const,
-    },
+    maintenance: Array.isArray(vehicle.maintenance) 
+      ? vehicle.maintenance[0] || { status: 'scheduled' as const }
+      : vehicle.maintenance || { status: 'scheduled' as const },
     documents: (vehicle.documents || []).map(doc => ({
       ...doc,
-      upload_date: doc.upload_date || doc.uploadDate || new Date().toISOString(),
+      upload_date: doc.upload_date || new Date().toISOString(),
     })),
     images: (vehicle.images || []).map(img => ({
       ...img,
-      upload_date: img.upload_date || img.uploadDate || new Date().toISOString(),
+      upload_date: img.upload_date || new Date().toISOString(),
     })),
     location: vehicle.location,
     purchase: undefined,
@@ -63,14 +63,16 @@ const Vehicles = () => {
       chassis_number: vehicleData.chassisNumber || vehicleData.chassis_number,
       fuel_type: vehicleData.fuelType || vehicleData.fuel_type,
       seating_capacity: vehicleData.seatingCapacity || vehicleData.seating_capacity,
+      // Convert maintenance back to array format if needed
+      maintenance: vehicleData.maintenance ? [vehicleData.maintenance] : undefined,
       // Ensure documents and images have required properties
       documents: vehicleData.documents?.map(doc => ({
         ...doc,
-        upload_date: doc.upload_date || doc.uploadDate || new Date().toISOString(),
+        upload_date: doc.upload_date || new Date().toISOString(),
       })),
       images: vehicleData.images?.map(img => ({
         ...img,
-        upload_date: img.upload_date || img.uploadDate || new Date().toISOString(),
+        upload_date: img.upload_date || new Date().toISOString(),
       })),
     };
     await updateVehicle(id, convertedData);
