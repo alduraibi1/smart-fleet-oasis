@@ -1,76 +1,75 @@
 
-import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Customer } from '@/types/customer';
-import { CreditCard, AlertTriangle, CheckCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 
 interface CustomerCreditStatusProps {
-  customer: Customer;
-  usedCredit?: number;
+  creditLimit: number;
+  currentCredit: number;
+  className?: string;
 }
 
-export function CustomerCreditStatus({ customer, usedCredit = 0 }: CustomerCreditStatusProps) {
-  const creditLimit = customer.credit_limit || 0;
-  const availableCredit = Math.max(0, creditLimit - usedCredit);
-  const usagePercentage = creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
-
-  const getCreditStatus = () => {
-    if (usagePercentage >= 90) return { status: 'critical', color: 'destructive', icon: AlertTriangle };
-    if (usagePercentage >= 70) return { status: 'warning', color: 'secondary', icon: AlertTriangle };
-    return { status: 'good', color: 'default', icon: CheckCircle };
+export function CustomerCreditStatus({ 
+  creditLimit, 
+  currentCredit, 
+  className 
+}: CustomerCreditStatusProps) {
+  const usagePercentage = creditLimit > 0 ? (currentCredit / creditLimit) * 100 : 0;
+  
+  const getStatusInfo = () => {
+    if (usagePercentage >= 100) {
+      return {
+        variant: "destructive" as const,
+        icon: XCircle,
+        text: "تجاوز الحد",
+        color: "text-destructive"
+      };
+    } else if (usagePercentage >= 80) {
+      return {
+        variant: "secondary" as const,
+        icon: AlertTriangle,
+        text: "قارب النفاد",
+        color: "text-orange-600"
+      };
+    } else {
+      return {
+        variant: "default" as const,
+        icon: CheckCircle,
+        text: "ضمن الحد",
+        color: "text-green-600"
+      };
+    }
   };
 
-  const { status, color, icon: Icon } = getCreditStatus();
+  const status = getStatusInfo();
+  const StatusIcon = status.icon;
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <CreditCard className="h-4 w-4" />
-          الحالة الائتمانية
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className={className}>
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">الحد الائتماني</span>
-          <span className="font-medium">{creditLimit.toLocaleString()} ريال</span>
+          <span className="text-sm font-medium">الحد الائتماني</span>
+          <Badge variant={status.variant} className="flex items-center gap-1">
+            <StatusIcon className="h-3 w-3" />
+            {status.text}
+          </Badge>
         </div>
         
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">المبلغ المستخدم</span>
-          <span className="font-medium">{usedCredit.toLocaleString()} ريال</span>
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">المتاح</span>
-          <span className="font-medium text-green-600">{availableCredit.toLocaleString()} ريال</span>
-        </div>
-
         <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span>نسبة الاستخدام</span>
-            <Badge variant={color} className="flex items-center gap-1">
-              <Icon className="h-3 w-3" />
-              {usagePercentage.toFixed(1)}%
-            </Badge>
+          <Progress value={Math.min(usagePercentage, 100)} className="h-2" />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>المستخدم: {currentCredit.toLocaleString()} ر.س</span>
+            <span>الحد الأقصى: {creditLimit.toLocaleString()} ر.س</span>
           </div>
-          <Progress value={usagePercentage} className="h-2" />
         </div>
-
-        {status === 'critical' && (
-          <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
-            تحذير: تم استنفاد الحد الائتماني تقريباً
-          </div>
-        )}
         
-        {status === 'warning' && (
-          <div className="text-xs text-yellow-600 bg-yellow-50 p-2 rounded">
-            تنبيه: اقتراب من حد الائتمان المسموح
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        <div className="text-xs">
+          <span className="text-muted-foreground">المتبقي: </span>
+          <span className={`font-medium ${status.color}`}>
+            {Math.max(creditLimit - currentCredit, 0).toLocaleString()} ر.س
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }

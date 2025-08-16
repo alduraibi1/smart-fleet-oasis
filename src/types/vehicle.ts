@@ -1,3 +1,4 @@
+
 export interface Vehicle {
   id: string;
   plate_number: string;
@@ -5,33 +6,27 @@ export interface Vehicle {
   model: string;
   year: number;
   color: string;
-  status: 'available' | 'rented' | 'maintenance' | 'out_of_service';
   daily_rate: number;
-  mileage: number;
-  vin?: string;
+  status: 'available' | 'rented' | 'maintenance' | 'out_of_service';
   engine_number?: string;
   chassis_number?: string;
-  fuel_type: 'gasoline' | 'diesel' | 'hybrid' | 'electric';
-  transmission: 'manual' | 'automatic';
-  seating_capacity: number;
-  features?: string[];
+  seating_capacity?: number;
+  registration_expiry?: string;
   owner_id?: string;
-  owner?: VehicleOwner;
-  registration_expiry?: string; // إضافة هذا الحقل
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-  created_by?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
-export interface VehicleOwner {
+export interface VehicleDocument {
   id: string;
   name: string;
-  phone?: string;
-  email?: string;
-  national_id?: string;
-  address?: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  type: string;
+  url: string;
+  expiry_date?: string;
+}
+
+export interface VehicleImage {
+  id: string;
+  url: string;
+  description?: string;
 }
