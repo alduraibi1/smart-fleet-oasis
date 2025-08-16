@@ -1,17 +1,27 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
+
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
   Plus, 
   Download, 
   Upload, 
-  Filter, 
   RefreshCw,
-  Users,
-  UserPlus,
-  FileText,
-  Search
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+  Search,
+  FileTemplate,
+  Trash2,
+  AlertTriangle
+} from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface CustomerQuickActionsProps {
   onAddCustomer: () => void;
@@ -20,100 +30,100 @@ interface CustomerQuickActionsProps {
   onRefresh: () => void;
   onAdvancedSearch: () => void;
   onShowTemplates: () => void;
+  onBulkDelete?: () => void;
   selectedCount: number;
   totalCount: number;
-  loading?: boolean;
+  loading: boolean;
 }
 
-export const CustomerQuickActions: React.FC<CustomerQuickActionsProps> = ({
+export const CustomerQuickActions = ({
   onAddCustomer,
   onExport,
   onImport,
   onRefresh,
   onAdvancedSearch,
   onShowTemplates,
+  onBulkDelete,
   selectedCount,
   totalCount,
-  loading = false
-}) => {
+  loading
+}: CustomerQuickActionsProps) => {
   return (
-    <div className="flex flex-col sm:flex-row gap-3 p-4 bg-card rounded-lg border">
-      {/* الإجراءات الأساسية */}
-      <div className="flex gap-2 flex-wrap">
-        <Button 
-          onClick={onAddCustomer} 
-          className="gap-2"
-          size="sm"
-        >
-          <Plus className="h-4 w-4" />
-          إضافة عميل
-        </Button>
-        
-        <Button 
-          onClick={onRefresh} 
-          variant="outline" 
-          size="sm"
-          disabled={loading}
-          className="gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          تحديث
-        </Button>
-        
-        <Button 
-          onClick={onAdvancedSearch} 
-          variant="outline" 
-          size="sm"
-          className="gap-2"
-        >
-          <Search className="h-4 w-4" />
-          بحث متقدم
-        </Button>
+    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Badge variant="secondary" className="px-3 py-1">
+          المجموع: {totalCount}
+        </Badge>
+        {selectedCount > 0 && (
+          <Badge variant="default" className="px-3 py-1">
+            محدد: {selectedCount}
+          </Badge>
+        )}
       </div>
 
-      {/* إجراءات الملفات */}
-      <div className="flex gap-2 flex-wrap">
-        <Button 
-          onClick={onExport} 
-          variant="outline" 
-          size="sm"
-          className="gap-2"
-          disabled={totalCount === 0}
-        >
-          <Download className="h-4 w-4" />
-          تصدير ({totalCount})
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={onAddCustomer} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          عميل جديد
         </Button>
-        
-        <Button 
-          onClick={onImport} 
-          variant="outline" 
-          size="sm"
-          className="gap-2"
-        >
-          <Upload className="h-4 w-4" />
+
+        <Button variant="outline" onClick={onExport}>
+          <Download className="h-4 w-4 ml-2" />
+          تصدير
+        </Button>
+
+        <Button variant="outline" onClick={onImport}>
+          <Upload className="h-4 w-4 ml-2" />
           استيراد
         </Button>
-        
-        <Button 
-          onClick={onShowTemplates} 
-          variant="outline" 
-          size="sm"
-          className="gap-2"
-        >
-          <FileText className="h-4 w-4" />
+
+        <Button variant="outline" onClick={onShowTemplates}>
+          <FileTemplate className="h-4 w-4 ml-2" />
           القوالب
         </Button>
-      </div>
 
-      {/* معلومات الاختيار */}
-      {selectedCount > 0 && (
-        <div className="flex items-center gap-2 ml-auto">
-          <Badge variant="secondary" className="gap-1">
-            <Users className="h-3 w-3" />
-            {selectedCount} محدد
-          </Badge>
-        </div>
-      )}
+        <Button variant="outline" onClick={onAdvancedSearch}>
+          <Search className="h-4 w-4 ml-2" />
+          بحث متقدم
+        </Button>
+
+        {selectedCount > 0 && onBulkDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm">
+                <Trash2 className="h-4 w-4 ml-2" />
+                حذف المحدد ({selectedCount})
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                  تأكيد الحذف الجماعي
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  هل أنت متأكد من حذف {selectedCount} عميل؟ هذا الإجراء لا يمكن التراجع عنه وسيتم حذف جميع البيانات المرتبطة نهائياً.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                <AlertDialogAction onClick={onBulkDelete} className="bg-destructive hover:bg-destructive/90">
+                  تأكيد الحذف
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={onRefresh}
+          disabled={loading}
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+        </Button>
+      </div>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 import { memo } from "react";
 import { Table, TableBody } from "@/components/ui/table";
 import { Customer } from "@/types";
@@ -12,6 +13,7 @@ interface EnhancedCustomerTableProps {
   onEdit: (customer: Customer) => void;
   onView: (customer: Customer) => void;
   onBlacklist: (customer: Customer) => void;
+  onDelete?: (customer: Customer) => void;
   selectedCustomers: string[];
   onSelectCustomer: (customerId: string) => void;
   onSelectAll: (checked: boolean) => void;
@@ -23,6 +25,7 @@ export const EnhancedCustomerTable = memo(({
   onEdit,
   onView,
   onBlacklist,
+  onDelete,
   selectedCustomers,
   onSelectCustomer,
   onSelectAll
@@ -62,6 +65,7 @@ export const EnhancedCustomerTable = memo(({
               onEdit={onEdit}
               onView={onView}
               onBlacklist={onBlacklist}
+              onDelete={onDelete}
             />
           ))}
         </TableBody>

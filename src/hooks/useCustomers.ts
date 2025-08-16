@@ -224,6 +224,48 @@ export const useCustomers = () => {
     }
   };
 
+  const addToBlacklist = async (id: string, reason: string) => {
+    try {
+      const { error } = await supabase
+        .from('customers')
+        .update({ 
+          blacklisted: true,
+          blacklist_reason: reason,
+          blacklist_date: new Date().toISOString().split('T')[0]
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await refetch();
+      return { success: true };
+    } catch (error) {
+      console.error('Error adding customer to blacklist:', error);
+      return { success: false, error };
+    }
+  };
+
+  const removeFromBlacklist = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('customers')
+        .update({ 
+          blacklisted: false,
+          blacklist_reason: null,
+          blacklist_date: null
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await refetch();
+      return { success: true };
+    } catch (error) {
+      console.error('Error removing customer from blacklist:', error);
+      return { success: false, error };
+    }
+  };
+
   useEffect(() => {
     fetchCustomers();
   }, []);
@@ -235,6 +277,8 @@ export const useCustomers = () => {
     refetch,
     addCustomer,
     updateCustomer,
-    deleteCustomer
+    deleteCustomer,
+    addToBlacklist,
+    removeFromBlacklist
   };
 };

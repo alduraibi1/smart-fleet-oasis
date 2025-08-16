@@ -10,6 +10,7 @@ import { BlacklistDialog } from '@/components/Customers/BlacklistDialog';
 import { CustomerImportDialog } from '@/components/Customers/CustomerImportDialog';
 import { AdvancedSearchDialog } from '@/components/Customers/AdvancedSearchDialog';
 import { CustomerTemplates } from '@/components/Customers/CustomerTemplates';
+import { DeleteCustomerDialog } from '@/components/Customers/DeleteCustomerDialog';
 import { exportCustomersToExcel } from '@/components/Customers/CustomerExportUtils';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useCustomerSelection } from '@/hooks/useCustomerSelection';
@@ -22,13 +23,14 @@ export default function Customers() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showBlacklistDialog, setShowBlacklistDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
-  const { customers, loading, refetch } = useCustomers();
+  const { customers, loading, refetch, deleteCustomer, addToBlacklist, removeFromBlacklist } = useCustomers();
   const { selectedCustomers, toggleCustomer, toggleAll, clearSelection } = useCustomerSelection();
   const { handleBlacklistToggle, handleActivateToggle } = useCustomerActions();
   const { toast } = useToast();
@@ -96,9 +98,23 @@ export default function Customers() {
     setShowBlacklistDialog(true);
   };
 
+  const handleDelete = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setShowDeleteDialog(true);
+  };
+
   const handleBlacklistAction = async (customerId: string, reason: string) => {
     try {
-      await refetch();
+      const result = await addToBlacklist(customerId, reason);
+      if (result.success) {
+        toast({
+          title: "تم بنجاح",
+          description: "تم إضافة العميل للقائمة السوداء"
+        });
+        await refetch();
+      } else {
+        throw new Error(result.error || 'حدث خطأ');
+      }
     } catch (error) {
       console.error('Error blacklisting customer:', error);
       toast({
@@ -111,12 +127,67 @@ export default function Customers() {
 
   const handleRemoveFromBlacklist = async (customerId: string) => {
     try {
-      await refetch();
+      const result = await removeFromBlacklist(customerId);
+      if (result.success) {
+        toast({
+          title: "تم بنجاح",
+          description: "تم إزالة العميل من القائمة السوداء"
+        });
+        await refetch();
+      } else {
+        throw new Error(result.error || 'حدث خطأ');
+      }
     } catch (error) {
       console.error('Error removing from blacklist:', error);
       toast({
         title: "خطأ",
         description: "حدث خطأ أثناء إزالة العميل من القائمة السوداء",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteCustomer = async (customerId: string) => {
+    try {
+      const result = await deleteCustomer(customerId);
+      if (result.success) {
+        toast({
+          title: "تم الحذف",
+          description: "تم حذف العميل بنجاح"
+        });
+        clearSelection();
+        await refetch();
+      } else {
+        throw new Error(result.error || 'حدث خطأ');
+      }
+    } catch (error) {
+      console.error('Error deleting customer:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف العميل",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedCustomers.length === 0) return;
+    
+    try {
+      for (const customerId of selectedCustomers) {
+        await deleteCustomer(customerId);
+      }
+      toast({
+        title: "تم الحذف",
+        description: `تم حذف ${selectedCustomers.length} عميل بنجاح`
+      });
+      clearSelection();
+      await refetch();
+    } catch (error) {
+      console.error('Error bulk deleting customers:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف العملاء",
         variant: "destructive"
       });
     }
@@ -149,6 +220,7 @@ export default function Customers() {
     setShowAddDialog(false);
     setShowDetailsDialog(false);
     setShowBlacklistDialog(false);
+    setShowDeleteDialog(false);
     refetch();
   };
 
@@ -159,6 +231,13 @@ export default function Customers() {
 
   const handleSelectAll = (checked: boolean) => {
     toggleAll(checked, filteredCustomers.map(c => c.id));
+  };
+
+  const handleApplyTemplate = (template: any) => {
+    // Apply template data to new customer form
+    setEditingCustomer(template.fields as Customer);
+    setShowAddDialog(true);
+    setShowTemplates(false);
   };
 
   return (
@@ -180,6 +259,7 @@ export default function Customers() {
           onRefresh={refetch}
           onAdvancedSearch={() => setShowAdvancedSearch(true)}
           onShowTemplates={() => setShowTemplates(true)}
+          onBulkDelete={handleBulkDelete}
           selectedCount={selectedCustomers.length}
           totalCount={filteredCustomers.length}
           loading={loading}
@@ -200,6 +280,7 @@ export default function Customers() {
           onEdit={handleEdit}
           onView={handleView}
           onBlacklist={handleBlacklist}
+          onDelete={handleDelete}
           selectedCustomers={selectedCustomers}
           onSelectCustomer={toggleCustomer}
           onSelectAll={handleSelectAll}
@@ -221,6 +302,11 @@ export default function Customers() {
             setShowDetailsDialog(false);
             setShowAddDialog(true);
           }}
+          onDelete={(customer) => {
+            setSelectedCustomer(customer);
+            setShowDetailsDialog(false);
+            setShowDeleteDialog(true);
+          }}
         />
 
         <BlacklistDialog
@@ -229,6 +315,13 @@ export default function Customers() {
           customer={selectedCustomer}
           onBlacklist={handleBlacklistAction}
           onRemoveFromBlacklist={handleRemoveFromBlacklist}
+        />
+
+        <DeleteCustomerDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          customer={selectedCustomer}
+          onDelete={handleDeleteCustomer}
         />
 
         <CustomerImportDialog
@@ -240,12 +333,13 @@ export default function Customers() {
         <AdvancedSearchDialog
           open={showAdvancedSearch}
           onOpenChange={setShowAdvancedSearch}
-          onApplyFilters={handleAdvancedSearch}
+          filters={filters}
+          onFiltersChange={handleAdvancedSearch}
+          customers={customers}
         />
 
         <CustomerTemplates
-          isOpen={showTemplates}
-          onClose={() => setShowTemplates(false)}
+          onApplyTemplate={handleApplyTemplate}
         />
       </div>
     </AppLayout>
