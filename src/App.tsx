@@ -1,54 +1,42 @@
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from './components/theme/ThemeProvider';
-import { AuthProvider } from './hooks/useAuth';
-import { Toaster } from './components/ui/sonner';
-import Index from './pages/Index';
-import CustomersPage from './pages/Customers';
-import VehiclesPage from './pages/Vehicles';
-import ContractsPage from './pages/Contracts';
-import MaintenancePage from './pages/Maintenance';
-import AccountingPage from './pages/Accounting';
-import ReportsPage from './pages/Reports';
-import OwnersPage from './pages/Owners';
-import HRPage from './pages/HR';
-import SuppliersPage from './pages/Suppliers';
-import InventoryPage from './pages/Inventory';
-import SystemManagementPage from './pages/SystemManagement';
-import NotificationSettingsPage from './pages/NotificationSettings';
-import CustomersNew from './pages/CustomersNew';
-import SystemOptimizationPage from './pages/SystemOptimization';
-
-const queryClient = new QueryClient();
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { QueryClient } from '@tanstack/react-query';
+import { Customers } from './pages/Customers';
+import { Dashboard } from './pages/Dashboard';
+import { Owners } from './pages/Owners';
+import { Vehicles } from './pages/Vehicles';
+import { Contracts } from './pages/Contracts';
+import { Accounting } from './pages/Accounting';
+import { SystemManagement } from './pages/SystemManagement';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ToastProvider } from '@/components/ui/use-toast';
+import { ThemeProvider } from '@/components/theme-provider';
+import { FinancialControlDashboard } from '@/components/Accounting/FinancialControl/FinancialControlDashboard';
+import { NewCustomers } from '@/pages/NewCustomers';
+import EnhancedSystemManagement from '@/pages/EnhancedSystemManagement';
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ThemeProvider defaultTheme="light" storageKey="car-rental-theme">
+    <QueryClientProvider client={new QueryClient()}>
+      <ThemeProvider defaultTheme="light" storageKey="vite-react-theme">
+        <ToastProvider>
           <Router>
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/customers" element={<CustomersPage />} />
-              <Route path="/customers-new" element={<CustomersNew />} />
-              <Route path="/vehicles" element={<VehiclesPage />} />
-              <Route path="/contracts" element={<ContractsPage />} />
-              <Route path="/maintenance" element={<MaintenancePage />} />
-              <Route path="/accounting" element={<AccountingPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
-              <Route path="/owners" element={<OwnersPage />} />
-              <Route path="/hr" element={<HRPage />} />
-              <Route path="/suppliers" element={<SuppliersPage />} />
-              <Route path="/inventory" element={<InventoryPage />} />
-              <Route path="/system" element={<SystemManagementPage />} />
-              <Route path="/notification-settings" element={<NotificationSettingsPage />} />
-              <Route path="/system-optimization" element={<SystemOptimizationPage />} />
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/new-customers" element={<NewCustomers />} />
+              <Route path="/owners" element={<Owners />} />
+              <Route path="/vehicles" element={<Vehicles />} />
+              <Route path="/contracts" element={<Contracts />} />
+              <Route path="/accounting" element={<Accounting />} />
+              <Route path="/financial-control" element={<FinancialControlDashboard />} />
+              <Route path="/system-management" element={<SystemManagement />} />
+              <Route path="/enhanced-system-management" element={<EnhancedSystemManagement />} />
             </Routes>
           </Router>
-          <Toaster />
-        </ThemeProvider>
-      </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
