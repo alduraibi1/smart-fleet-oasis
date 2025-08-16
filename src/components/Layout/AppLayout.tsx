@@ -1,5 +1,6 @@
 
 import { ReactNode } from 'react';
+import { Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import Header from './Header';
@@ -7,7 +8,7 @@ import { BreadcrumbNavigation } from '@/components/UI/Navigation/BreadcrumbNavig
 import { ErrorBoundary } from '@/components/UI/ErrorStates/ErrorBoundary';
 
 interface AppLayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
@@ -21,7 +22,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <BreadcrumbNavigation />
             <main className="flex-1 p-6">
               <ErrorBoundary>
-                {children}
+                {children || <Outlet />}
               </ErrorBoundary>
             </main>
           </SidebarInset>
