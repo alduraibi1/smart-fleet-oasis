@@ -30,11 +30,6 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
           description: 'تم توليد/تحديث تنبؤ الصيانة القادمة بنجاح',
         });
       },
-      meta: {
-        onError: () => {
-          // handled by meta in hook; we still show a toast here
-        },
-      },
       onError: (err: any) => {
         console.error(err);
         toast({

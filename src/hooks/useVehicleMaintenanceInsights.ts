@@ -71,10 +71,8 @@ export const useVehicleMaintenanceInsights = (vehicleId?: string) => {
       }
       return data;
     },
-    meta: {
-      onError: (error: unknown) => {
-        console.log('Prediction generation failed', error);
-      },
+    onError: (error: unknown) => {
+      console.log('Prediction generation failed', error);
     },
     onSettled: async () => {
       // Refresh prediction & last maintenance after generation
