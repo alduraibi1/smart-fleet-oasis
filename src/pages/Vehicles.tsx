@@ -37,9 +37,9 @@ const Vehicles = () => {
     chassisNumber: vehicle.chassis_number,
     fuelType: vehicle.fuel_type,
     seatingCapacity: vehicle.seating_capacity,
-    maintenance: Array.isArray(vehicle.maintenance) 
-      ? vehicle.maintenance[0] || { id: 'temp-' + vehicle.id, status: 'scheduled' as const }
-      : vehicle.maintenance || { id: 'temp-' + vehicle.id, status: 'scheduled' as const },
+    maintenance: vehicle.maintenance ? 
+      (Array.isArray(vehicle.maintenance) ? vehicle.maintenance : [vehicle.maintenance]) : 
+      [{ id: 'temp-' + vehicle.id, vehicle_id: vehicle.id, status: 'scheduled' as const }],
     documents: (vehicle.documents || []).map(doc => ({
       ...doc,
       upload_date: doc.upload_date || new Date().toISOString(),

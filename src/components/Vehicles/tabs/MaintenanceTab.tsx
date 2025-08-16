@@ -1,3 +1,4 @@
+
 import { Wrench, Calendar, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +19,14 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
   const vehicleId = (vehicle as any).id as string | undefined;
   const { lastMaintenance, prediction, lastLoading, predictionLoading, generatePredictions } =
     useVehicleMaintenanceInsights(vehicleId);
+
+  // Helper function to get maintenance object from union type
+  const getMaintenance = () => {
+    if (!vehicle.maintenance) return null;
+    return Array.isArray(vehicle.maintenance) ? vehicle.maintenance[0] : vehicle.maintenance;
+  };
+
+  const maintenance = getMaintenance();
 
   const handleGeneratePrediction = async () => {
     if (!vehicleId) return;
@@ -53,8 +62,8 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="text-sm font-medium text-muted-foreground">حالة الصيانة</Label>
-              <Badge variant={getMaintenanceStatus(vehicle.maintenance?.status || 'scheduled').variant} className="mt-1">
-                {getMaintenanceStatus(vehicle.maintenance?.status || 'scheduled').label}
+              <Badge variant={getMaintenanceStatus(maintenance?.status || 'scheduled').variant} className="mt-1">
+                {getMaintenanceStatus(maintenance?.status || 'scheduled').label}
               </Badge>
             </div>
             <div>
@@ -65,14 +74,14 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
             </div>
           </div>
 
-          {vehicle.maintenance?.lastMaintenanceDate && (
+          {maintenance?.lastMaintenanceDate && (
             <div>
               <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 تاريخ آخر صيانة
               </Label>
               <p className="font-medium">
-                {new Date(vehicle.maintenance.lastMaintenanceDate).toLocaleDateString('ar')}
+                {new Date(maintenance.lastMaintenanceDate).toLocaleDateString('ar')}
               </p>
             </div>
           )}
@@ -95,8 +104,8 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
                 ? 'جارِ التحميل...'
                 : prediction?.predicted_date
                   ? new Date(prediction.predicted_date).toLocaleDateString('ar')
-                  : (vehicle.maintenance?.nextMaintenanceDate
-                      ? new Date(vehicle.maintenance.nextMaintenanceDate).toLocaleDateString('ar')
+                  : (maintenance?.nextMaintenanceDate
+                      ? new Date(maintenance.nextMaintenanceDate).toLocaleDateString('ar')
                       : 'غير محدد')}
             </p>
             {prediction?.confidence_score != null && (
@@ -106,19 +115,19 @@ export default function MaintenanceTab({ vehicle, getMaintenanceStatus }: Mainte
             )}
           </div>
 
-          {vehicle.maintenance?.notes && (
+          {maintenance?.notes && (
             <>
               <Separator />
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">ملاحظات الصيانة</Label>
-                <p className="text-sm mt-1 p-3 bg-muted rounded-md">{vehicle.maintenance.notes}</p>
+                <p className="text-sm mt-1 p-3 bg-muted rounded-md">{maintenance.notes}</p>
               </div>
             </>
           )}
         </CardContent>
       </Card>
 
-      {vehicle.maintenance?.status === 'overdue' && (
+      {maintenance?.status === 'overdue' && (
         <Card className="border-destructive">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-destructive">

@@ -1,3 +1,4 @@
+
 import { Car, Wrench } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +12,14 @@ interface DetailsTabProps {
 }
 
 export default function DetailsTab({ vehicle, getTransmissionLabel, getMaintenanceStatus }: DetailsTabProps) {
+  // Helper function to get maintenance object from union type
+  const getMaintenance = () => {
+    if (!vehicle.maintenance) return null;
+    return Array.isArray(vehicle.maintenance) ? vehicle.maintenance[0] : vehicle.maintenance;
+  };
+
+  const maintenance = getMaintenance();
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -59,32 +68,32 @@ export default function DetailsTab({ vehicle, getTransmissionLabel, getMaintenan
           <CardContent className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">الحالة:</span>
-              <Badge variant={getMaintenanceStatus(vehicle.maintenance?.status || 'scheduled').variant}>
-                {getMaintenanceStatus(vehicle.maintenance?.status || 'scheduled').label}
+              <Badge variant={getMaintenanceStatus(maintenance?.status || 'scheduled').variant}>
+                {getMaintenanceStatus(maintenance?.status || 'scheduled').label}
               </Badge>
             </div>
-            {vehicle.maintenance?.lastMaintenanceDate && (
+            {maintenance?.lastMaintenanceDate && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">آخر صيانة:</span>
                 <span className="font-medium">
-                  {new Date(vehicle.maintenance.lastMaintenanceDate).toLocaleDateString('ar')}
+                  {new Date(maintenance.lastMaintenanceDate).toLocaleDateString('ar')}
                 </span>
               </div>
             )}
-            {vehicle.maintenance?.nextMaintenanceDate && (
+            {maintenance?.nextMaintenanceDate && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">الصيانة القادمة:</span>
                 <span className="font-medium">
-                  {new Date(vehicle.maintenance.nextMaintenanceDate).toLocaleDateString('ar')}
+                  {new Date(maintenance.nextMaintenanceDate).toLocaleDateString('ar')}
                 </span>
               </div>
             )}
-            {vehicle.maintenance?.notes && (
+            {maintenance?.notes && (
               <>
                 <Separator />
                 <div>
                   <span className="text-muted-foreground text-sm">ملاحظات:</span>
-                  <p className="text-sm mt-1">{vehicle.maintenance.notes}</p>
+                  <p className="text-sm mt-1">{maintenance.notes}</p>
                 </div>
               </>
             )}

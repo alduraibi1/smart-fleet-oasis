@@ -40,7 +40,7 @@ export interface VehicleImage {
 
 export interface VehicleMaintenance {
   id: string;
-  vehicle_id?: string;
+  vehicle_id: string;
   status: 'scheduled' | 'in_progress' | 'overdue' | 'completed';
   maintenance_type?: string;
   description?: string;
@@ -113,7 +113,7 @@ export interface Vehicle {
   // Related data - Support both single object and array formats
   documents?: VehicleDocument[];
   images?: VehicleImage[];
-  maintenance?: VehicleMaintenance | VehicleMaintenance[];
+  maintenance?: VehicleMaintenance[];
   location?: VehicleLocation;
   purchase?: VehiclePurchase;
   currentRental?: VehicleCurrentRental;
