@@ -47,11 +47,12 @@ const Vehicles = () => {
           vehicle_id: m.vehicle_id || vehicle.id,
         })) : 
         [{
-          ...vehicle.maintenance,
-          maintenance_type: vehicle.maintenance.maintenance_type || 'general',
-          created_at: vehicle.maintenance.created_at || new Date().toISOString(),
-          updated_at: vehicle.maintenance.updated_at || new Date().toISOString(),
-          vehicle_id: vehicle.maintenance.vehicle_id || vehicle.id,
+          id: typeof vehicle.maintenance === 'object' && vehicle.maintenance.id ? vehicle.maintenance.id : 'temp-' + vehicle.id,
+          vehicle_id: vehicle.id,
+          status: 'scheduled' as const,
+          maintenance_type: 'general',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         }]
       ) : 
       [{ 
@@ -74,6 +75,7 @@ const Vehicles = () => {
       ...vehicle.location,
       id: vehicle.location.id || 'temp-location-' + vehicle.id,
       vehicle_id: vehicle.location.vehicle_id || vehicle.id,
+      is_tracked: vehicle.location.is_tracked ?? false,
     } : undefined,
     purchase: undefined,
     currentRental: undefined,
@@ -113,6 +115,7 @@ const Vehicles = () => {
         ...vehicleData.location,
         id: vehicleData.location.id || 'temp-location-' + id,
         vehicle_id: vehicleData.location.vehicle_id || id,
+        is_tracked: vehicleData.location.is_tracked ?? false,
       } : undefined,
     };
     await updateVehicle(id, convertedData);

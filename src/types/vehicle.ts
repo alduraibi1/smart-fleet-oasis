@@ -64,7 +64,7 @@ export interface VehicleLocation {
   address?: string;
   last_updated?: string;
   lastUpdated?: string;
-  is_tracked?: boolean;
+  is_tracked: boolean;
 }
 
 export interface VehiclePurchase {
