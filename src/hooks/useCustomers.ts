@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types';
@@ -71,7 +70,6 @@ export const useCustomers = () => {
         work_phone: customer.work_phone || '',
         monthly_income: customer.monthly_income || 0,
         bank_name: customer.bank_name || '',
-        // تم التغيير هنا: استخدام bank_account_number بدل account_number
         bank_account_number: customer.bank_account_number || '',
         credit_limit: customer.credit_limit || 0,
         payment_terms: customer.payment_terms || 'immediate',
@@ -112,11 +110,26 @@ export const useCustomers = () => {
   };
 
   const addCustomer = async (customerData: Partial<Customer>) => {
+    console.log('🚀 Starting addCustomer function with data:', customerData);
+    
     try {
       // تحويل التواريخ إلى نصوص وإزالة الحقول المؤقتة
       const { nationalId, licenseExpiry, totalRentals, blacklistReason, licenseNumber, documents, blacklistDate, ...cleanData } = customerData;
       
-      // إزالة national_id من cleanData لأنه موجود في المعاملات المستبعدة
+      console.log('📋 After removing temporary fields:', cleanData);
+      
+      // التأكد من وجود البيانات الأساسية
+      if (!cleanData.name || !cleanData.phone || !cleanData.national_id) {
+        console.error('❌ Missing required fields:', {
+          name: cleanData.name,
+          phone: cleanData.phone,
+          national_id: cleanData.national_id
+        });
+        
+        throw new Error('الحقول الأساسية مطلوبة: الاسم، الهاتف، رقم الهوية');
+      }
+      
+      // إعداد البيانات للإدراج
       const processedData = {
         ...cleanData,
         name: cleanData.name || '', // Required field
@@ -162,19 +175,33 @@ export const useCustomers = () => {
         blacklisted: false
       };
 
+      console.log('📝 Final processed data for database:', processedData);
+
       const { data, error } = await supabase
         .from('customers')
         .insert(processedData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error:', error);
+        throw error;
+      }
 
+      console.log('✅ Customer added successfully:', data);
       await refetch();
       return { success: true, data };
     } catch (error) {
-      console.error('Error adding customer:', error);
-      return { success: false, error };
+      console.error('💥 Error in addCustomer function:', error);
+      const errorMessage = error instanceof Error ? error.message : 'حدث خطأ غير متوقع';
+      
+      toast({
+        title: "خطأ في إضافة العميل",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      
+      return { success: false, error: errorMessage };
     }
   };
 

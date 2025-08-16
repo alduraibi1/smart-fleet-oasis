@@ -34,7 +34,6 @@ export default function Customers() {
   const { handleBlacklistToggle, handleActivateToggle } = useCustomerActions();
   const { toast } = useToast();
 
-  // فلترة العملاء
   const filteredCustomers = customers.filter(customer => {
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
@@ -68,7 +67,6 @@ export default function Customers() {
       return false;
     }
 
-    // فلترة التواريخ
     if (filters.dateFrom && customer.created_at) {
       const customerDate = new Date(customer.created_at);
       if (customerDate < filters.dateFrom) return false;
@@ -83,6 +81,7 @@ export default function Customers() {
   });
 
   const handleEdit = (customer: Customer) => {
+    console.log('🔄 Edit customer clicked:', customer.id);
     setEditingCustomer(customer);
     setShowAddDialog(true);
   };
@@ -209,11 +208,14 @@ export default function Customers() {
   };
 
   const handleAddCustomer = () => {
+    console.log('🆕 Add new customer button clicked');
     setEditingCustomer(null);
     setShowAddDialog(true);
+    console.log('📝 Dialog state:', { showAddDialog: true, editingCustomer: null });
   };
 
   const handleDialogClose = () => {
+    console.log('🔒 Dialog closing');
     setSelectedCustomer(null);
     setEditingCustomer(null);
     setShowAddDialog(false);
@@ -233,7 +235,6 @@ export default function Customers() {
   };
 
   const handleApplyTemplate = (template: any) => {
-    // Apply template data to new customer form
     setEditingCustomer(template.fields as Customer);
     setShowAddDialog(true);
     setShowTemplates(false);
