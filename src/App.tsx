@@ -1,63 +1,66 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { AuthProvider } from "@/hooks/useAuth";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Vehicles from "./pages/Vehicles";
-import Contracts from "./pages/Contracts";
-import Customers from "./pages/Customers";
-import CustomersV2 from "./pages/CustomersV2";
-import Accounting from "./pages/Accounting";
-import Maintenance from "./pages/Maintenance";
-import Inventory from "./pages/Inventory";
-import HR from "./pages/HR";
-import Reports from "./pages/Reports";
-import SystemManagement from "./pages/SystemManagement";
-import NotificationSettings from "./pages/NotificationSettings";
-import Owners from "./pages/Owners";
-import Suppliers from "./pages/Suppliers";
-import NotFound from "./pages/NotFound";
-import ButtonTestPage from "./pages/ButtonTest";
+// Import pages
+import Index from '@/pages/Index';
+import Vehicles from '@/pages/Vehicles';
+import Customers from '@/pages/Customers';
+import CustomersNew from '@/pages/CustomersNew';
+import Contracts from '@/pages/Contracts';
+import Maintenance from '@/pages/Maintenance';
+import Accounting from '@/pages/Accounting';
+import Reports from '@/pages/Reports';
+import Owners from '@/pages/Owners';
+import HR from '@/pages/HR';
+import Suppliers from '@/pages/Suppliers';
+import Inventory from '@/pages/Inventory';
+import SystemManagement from '@/pages/SystemManagement';
+import NotFound from '@/pages/NotFound';
 
-const queryClient = new QueryClient();
+import './App.css';
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="system" storageKey="rental-ui-theme">
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
+});
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+        <Router>
+          <div className="min-h-screen bg-background">
             <Routes>
-              <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<Index />} />
               <Route path="/vehicles" element={<Vehicles />} />
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/customers-new" element={<CustomersNew />} />
               <Route path="/contracts" element={<Contracts />} />
-              <Route path="/customers" element={<CustomersV2 />} />
-              <Route path="/customers-old" element={<Customers />} />
               <Route path="/maintenance" element={<Maintenance />} />
-              <Route path="/inventory" element={<Inventory />} />
               <Route path="/accounting" element={<Accounting />} />
-              <Route path="/hr" element={<HR />} />
               <Route path="/reports" element={<Reports />} />
-              <Route path="/system-management" element={<SystemManagement />} />
-              <Route path="/notification-settings" element={<NotificationSettings />} />
               <Route path="/owners" element={<Owners />} />
+              <Route path="/hr" element={<HR />} />
               <Route path="/suppliers" element={<Suppliers />} />
-              <Route path="/button-test" element={<ButtonTestPage />} />
+              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/system" element={<SystemManagement />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+          </div>
+          <Toaster />
+          <SonnerToaster />
+        </Router>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
