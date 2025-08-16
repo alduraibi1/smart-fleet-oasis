@@ -1,14 +1,10 @@
 
 import * as React from "react"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { File, FileText, GraduationCap, LayoutDashboard, ListChecks, MessageSquare, Settings, User, Users, Car } from "lucide-react"
-import { Sidebar } from "lucide-react"
+import { LayoutDashboard, Users, Car, FileText, Settings } from "lucide-react"
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils"
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ ...props }: React.ComponentProps<"div">) {
   const location = useLocation();
 
   const menuItems = [
@@ -31,31 +27,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "العقود",
       url: "/contracts",
       icon: FileText,
-    },
-    {
-      title: "العقود الأساسية",
-      url: "/contracts-essential",
-      icon: FileText,
-    },
-    {
-      title: "العقود البسيطة",
-      url: "/contracts-simple",
-      icon: File,
-    },
-    {
-      title: "العقود المحسنة",
-      url: "/contracts-optimized",
-      icon: ListChecks,
-    },
-    {
-      title: "العقود المتقدمة",
-      url: "/contracts-advanced",
-      icon: FileText,
-    },
-    {
-      title: "المستخدمين",
-      url: "/users",
-      icon: User,
     },
     {
       title: "الإعدادات",

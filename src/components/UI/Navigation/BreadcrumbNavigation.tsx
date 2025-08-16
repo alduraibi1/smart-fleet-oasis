@@ -19,18 +19,9 @@ interface BreadcrumbItem {
 const pathLabels: Record<string, string> = {
   '': 'الرئيسية',
   'customers': 'العملاء',
-  'customers-new': 'العملاء المطور',
   'vehicles': 'المركبات',
   'contracts': 'العقود',
-  'maintenance': 'الصيانة',
-  'accounting': 'المحاسبة',
-  'reports': 'التقارير',
-  'owners': 'المالكين',
-  'hr': 'الموارد البشرية',
-  'suppliers': 'الموردين',
-  'inventory': 'المخزون',
-  'system': 'إدارة النظام',
-  'notification-settings': 'إعدادات الإشعارات'
+  'settings': 'الإعدادات'
 };
 
 export function BreadcrumbNavigation() {
@@ -73,9 +64,7 @@ export function BreadcrumbNavigation() {
                       {item.label}
                     </Link>
                   </BreadcrumbLink>
-                  <BreadcrumbSeparator>
-                    <ChevronRight className="h-4 w-4" />
-                  </BreadcrumbSeparator>
+                  <BreadcrumbSeparator />
                 </>
               )}
             </BreadcrumbItem>
