@@ -2,10 +2,12 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, Package, Users, TrendingUp, Settings } from "lucide-react";
+import { Plus, Package, TrendingUp, Settings } from "lucide-react";
 import { useInventory } from "@/hooks/useInventory";
 import InventoryOverview from "@/components/Inventory/InventoryOverview";
 import InventoryReports from "@/components/Inventory/InventoryReports";
+import { InventoryItemsTable } from "@/components/Inventory/InventoryItemsTable";
+import { InventoryTransactionsTable } from "@/components/Inventory/InventoryTransactionsTable";
 import { AppLayout } from "@/components/Layout/AppLayout";
 
 const Inventory = () => {
@@ -98,15 +100,11 @@ const Inventory = () => {
           </TabsContent>
 
           <TabsContent value="items" className="space-y-6">
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">قريباً - جدول عناصر المخزون</p>
-            </div>
+            <InventoryItemsTable />
           </TabsContent>
 
           <TabsContent value="transactions" className="space-y-6">
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">قريباً - جدول حركات المخزون</p>
-            </div>
+            <InventoryTransactionsTable />
           </TabsContent>
 
           <TabsContent value="categories" className="space-y-6">
