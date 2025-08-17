@@ -1,61 +1,51 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { Plus, Wrench, Package, Droplets, DollarSign, FileText, Image } from "lucide-react";
 import { useMaintenance } from "@/hooks/useMaintenance";
-import { 
-  ClipboardList, 
-  Package, 
-  Droplets, 
-  Calculator, 
-  Camera,
-  Save,
-  X,
-  AlertTriangle
-} from "lucide-react";
-
-// Import tab components
 import { BasicInfoTab } from "./tabs/BasicInfoTab";
 import { PartsTab } from "./tabs/PartsTab";
 import { OilsTab } from "./tabs/OilsTab";
 import { CostsTab } from "./tabs/CostsTab";
+import { NotesTab } from "./tabs/NotesTab";
 import { ImagesTab } from "./tabs/ImagesTab";
 
-interface EnhancedAddMaintenanceDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
 export interface MaintenanceFormData {
-  // Basic Info - Updated to match database fields
   vehicleId: string;
   mechanicId: string;
   type: string;
+  priority: string;
   description: string;
   date: Date | undefined;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  odometerIn: number | undefined;
+  odometerOut: number | undefined;
   estimatedHours: number;
-  
-  // New fields from database
-  odometerIn?: number;
-  odometerOut?: number;
-  
-  // Parts Used
+  workStartTime: Date | undefined;
+  workEndTime: Date | undefined;
+  laborHours: number;
+  hourlyRate: number;
+  laborCost: number;
+  partsCost: number;
+  oilsCost: number;
+  additionalCosts: number;
+  discount: number;
+  warranty: boolean;
+  warrantyPeriod: number;
+  notes: string;
+  images: File[];
   partsUsed: Array<{
     partId: string;
     partName: string;
+    partNumber: string;
     quantity: number;
     unitCost: number;
     totalCost: number;
     stockBefore: number;
     stockAfter: number;
   }>;
-  
-  // Oils Used
   oilsUsed: Array<{
     oilId: string;
     oilName: string;
@@ -66,259 +56,194 @@ export interface MaintenanceFormData {
     stockBefore: number;
     stockAfter: number;
   }>;
-  
-  // Costs
-  laborHours: number;
-  hourlyRate: number;
-  laborCost: number;
-  partsCost: number;
-  oilsCost: number;
-  additionalCosts: number;
-  discount: number;
-  totalCost: number;
-  
-  // Vehicle Condition
-  vehicleConditionBefore: string;
-  vehicleConditionAfter: string;
-  beforeImages: string[];
-  afterImages: string[];
-  
-  // Additional
-  notes: string;
-  warranty: boolean;
-  warrantyPeriod: number;
-  workStartTime: Date | undefined;
-  workEndTime: Date | undefined;
 }
 
-export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAddMaintenanceDialogProps) {
-  const { toast } = useToast();
-  const { addMaintenanceRecord } = useMaintenance();
+export const EnhancedAddMaintenanceDialog = () => {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const { addMaintenanceRecord } = useMaintenance();
+
   const [formData, setFormData] = useState<MaintenanceFormData>({
-    vehicleId: "",
-    mechanicId: "",
-    type: "",
-    description: "",
+    vehicleId: '',
+    mechanicId: '',
+    type: '',
+    priority: 'medium',
+    description: '',
     date: undefined,
-    priority: "medium",
-    estimatedHours: 0,
     odometerIn: undefined,
     odometerOut: undefined,
-    partsUsed: [],
-    oilsUsed: [],
+    estimatedHours: 0,
+    workStartTime: undefined,
+    workEndTime: undefined,
     laborHours: 0,
-    hourlyRate: 50,
+    hourlyRate: 0,
     laborCost: 0,
     partsCost: 0,
     oilsCost: 0,
     additionalCosts: 0,
     discount: 0,
-    totalCost: 0,
-    vehicleConditionBefore: "",
-    vehicleConditionAfter: "",
-    beforeImages: [],
-    afterImages: [],
-    notes: "",
     warranty: false,
     warrantyPeriod: 30,
-    workStartTime: undefined,
-    workEndTime: undefined,
+    notes: '',
+    images: [],
+    partsUsed: [],
+    oilsUsed: []
   });
 
-  // Calculate costs automatically
   const calculateCosts = () => {
+    const laborCost = formData.laborHours * formData.hourlyRate;
     const partsCost = formData.partsUsed.reduce((sum, part) => sum + part.totalCost, 0);
     const oilsCost = formData.oilsUsed.reduce((sum, oil) => sum + oil.totalCost, 0);
-    const laborCost = formData.laborHours * formData.hourlyRate;
-    const subtotal = partsCost + oilsCost + laborCost + formData.additionalCosts;
-    const totalCost = subtotal - formData.discount;
-    
+
     setFormData(prev => ({
       ...prev,
-      partsCost,
-      oilsCost,
       laborCost,
-      totalCost: Math.max(0, totalCost)
+      partsCost,
+      oilsCost
     }));
   };
 
-  const validateForm = (): boolean => {
-    if (!formData.vehicleId || !formData.mechanicId || !formData.type || !formData.description) {
-      toast({
-        title: "خطأ في البيانات",
-        description: "يرجى ملء جميع الحقول الأساسية المطلوبة",
-        variant: "destructive"
-      });
-      setActiveTab("basic");
-      return false;
-    }
-    
-    if (!formData.date) {
-      toast({
-        title: "خطأ في البيانات",
-        description: "يرجى تحديد تاريخ الصيانة",
-        variant: "destructive"
-      });
-      setActiveTab("basic");
-      return false;
-    }
-    
-    return true;
-  };
-
   const handleSubmit = async () => {
-    if (!validateForm()) return;
-    
-    setIsSubmitting(true);
-    
+    if (!formData.vehicleId || !formData.mechanicId || !formData.type || !formData.description) {
+      return;
+    }
+
+    setLoading(true);
     try {
-      // Calculate final costs
-      calculateCosts();
-      
-      // Prepare maintenance data for backend
       const maintenanceData = {
         vehicle_id: formData.vehicleId,
         mechanic_id: formData.mechanicId,
-        assigned_mechanic_id: formData.mechanicId, // Map to new field
+        assigned_mechanic_id: formData.mechanicId,
         maintenance_type: formData.type,
         description: formData.description,
-        reported_issue: formData.description, // Map to new field
-        scheduled_date: formData.date?.toISOString(),
-        status: 'scheduled',
+        reported_issue: formData.description,
         priority: formData.priority,
-        odometer_in: formData.odometerIn, // New field
-        odometer_out: formData.odometerOut, // New field
+        scheduled_date: formData.date?.toISOString(),
+        odometer_in: formData.odometerIn,
+        odometer_out: formData.odometerOut,
         labor_hours: formData.laborHours,
         labor_cost: formData.laborCost,
         parts_cost: formData.partsCost,
-        total_cost: formData.totalCost,
+        cost: formData.laborCost + formData.partsCost + formData.oilsCost + formData.additionalCosts - formData.discount,
         notes: formData.notes,
         warranty_until: formData.warranty ? 
           new Date(Date.now() + formData.warrantyPeriod * 24 * 60 * 60 * 1000).toISOString() : 
           undefined,
-        images: [...formData.beforeImages, ...formData.afterImages],
-        // Store parts and oils data as JSON
-        parts_used: formData.partsUsed.length > 0 ? formData.partsUsed : undefined,
-        oils_used: formData.oilsUsed.length > 0 ? formData.oilsUsed : undefined,
+        status: 'scheduled'
       };
-      
+
       await addMaintenanceRecord(maintenanceData);
+      setOpen(false);
       
-      toast({
-        title: "تم إضافة سجل الصيانة",
-        description: "تم حفظ جميع البيانات بنجاح"
-      });
-      
-      // Reset form
+      // إعادة تعيين النموذج
       setFormData({
-        vehicleId: "",
-        mechanicId: "",
-        type: "",
-        description: "",
+        vehicleId: '',
+        mechanicId: '',
+        type: '',
+        priority: 'medium',
+        description: '',
         date: undefined,
-        priority: "medium",
-        estimatedHours: 0,
         odometerIn: undefined,
         odometerOut: undefined,
-        partsUsed: [],
-        oilsUsed: [],
+        estimatedHours: 0,
+        workStartTime: undefined,
+        workEndTime: undefined,
         laborHours: 0,
-        hourlyRate: 50,
+        hourlyRate: 0,
         laborCost: 0,
         partsCost: 0,
         oilsCost: 0,
         additionalCosts: 0,
         discount: 0,
-        totalCost: 0,
-        vehicleConditionBefore: "",
-        vehicleConditionAfter: "",
-        beforeImages: [],
-        afterImages: [],
-        notes: "",
         warranty: false,
         warrantyPeriod: 30,
-        workStartTime: undefined,
-        workEndTime: undefined,
+        notes: '',
+        images: [],
+        partsUsed: [],
+        oilsUsed: []
       });
-      
       setActiveTab("basic");
-      onOpenChange(false);
-      
     } catch (error) {
-      console.error('Error saving maintenance record:', error);
-      toast({
-        title: "خطأ في الحفظ",
-        description: "حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى",
-        variant: "destructive"
-      });
+      console.error('Error adding maintenance record:', error);
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'destructive';
-      case 'high': return 'secondary';
-      case 'medium': return 'default';
-      case 'low': return 'outline';
-      default: return 'default';
-    }
-  };
+  const isFormValid = formData.vehicleId && formData.mechanicId && formData.type && formData.description;
+  const totalCost = formData.laborCost + formData.partsCost + formData.oilsCost + formData.additionalCosts - formData.discount;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col p-0">
-        <div className="flex-shrink-0 p-6 pb-3">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-xl font-bold">إضافة سجل صيانة متقدم</DialogTitle>
-                <p className="text-muted-foreground text-sm">إدارة شاملة لسجلات الصيانة والمخزون</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant={getPriorityColor(formData.priority) as any} className="text-xs">
-                  {formData.priority === 'urgent' && 'عاجل'}
-                  {formData.priority === 'high' && 'عالي'}
-                  {formData.priority === 'medium' && 'متوسط'}
-                  {formData.priority === 'low' && 'منخفض'}
-                </Badge>
-                {formData.totalCost > 0 && (
-                  <Badge variant="secondary" className="text-sm font-bold">
-                    {formData.totalCost.toFixed(2)} ر.س
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          إضافة صيانة
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Wrench className="h-5 w-5" />
+            إضافة سجل صيانة جديد
+          </DialogTitle>
+          <DialogDescription>
+            أضف سجل صيانة شامل مع تفاصيل القطع والزيوت والتكاليف
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-hidden">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="basic" className="flex items-center gap-1">
+                <Wrench className="h-3 w-3" />
+                أساسي
+              </TabsTrigger>
+              <TabsTrigger value="parts" className="flex items-center gap-1">
+                <Package className="h-3 w-3" />
+                قطع الغيار
+                {formData.partsUsed.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {formData.partsUsed.length}
                   </Badge>
                 )}
-              </div>
-            </div>
-          </DialogHeader>
-          <Separator className="mt-3" />
-        </div>
-
-        <div className="flex-1 overflow-hidden px-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-5 mb-3 h-9 flex-shrink-0">
-              {[
-                { id: 'basic', label: 'أساسية', icon: ClipboardList },
-                { id: 'parts', label: 'قطع غيار', icon: Package },
-                { id: 'oils', label: 'زيوت', icon: Droplets },
-                { id: 'costs', label: 'تكاليف', icon: Calculator },
-                { id: 'images', label: 'صور', icon: Camera },
-              ].map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-1 px-2 text-xs">
-                    <Icon className="h-3 w-3" />
-                    <span className="hidden md:inline">{tab.label}</span>
-                  </TabsTrigger>
-                );
-              })}
+              </TabsTrigger>
+              <TabsTrigger value="oils" className="flex items-center gap-1">
+                <Droplets className="h-3 w-3" />
+                الزيوت
+                {formData.oilsUsed.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {formData.oilsUsed.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="costs" className="flex items-center gap-1">
+                <DollarSign className="h-3 w-3" />
+                التكاليف
+                {totalCost > 0 && (
+                  <Badge variant="outline" className="ml-1 text-xs">
+                    {totalCost.toFixed(0)} ر.س
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="images" className="flex items-center gap-1">
+                <Image className="h-3 w-3" />
+                الصور
+                {formData.images.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {formData.images.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="flex items-center gap-1">
+                <FileText className="h-3 w-3" />
+                الملاحظات
+              </TabsTrigger>
             </TabsList>
 
-            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              <TabsContent value="basic" className="mt-0 mb-4">
+            <div className="flex-1 overflow-y-auto mt-4">
+              <TabsContent value="basic" className="mt-0">
                 <BasicInfoTab 
                   formData={formData} 
                   setFormData={setFormData}
@@ -326,7 +251,7 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
                 />
               </TabsContent>
 
-              <TabsContent value="parts" className="mt-0 mb-4">
+              <TabsContent value="parts" className="mt-0">
                 <PartsTab 
                   formData={formData} 
                   setFormData={setFormData}
@@ -334,7 +259,7 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
                 />
               </TabsContent>
 
-              <TabsContent value="oils" className="mt-0 mb-4">
+              <TabsContent value="oils" className="mt-0">
                 <OilsTab 
                   formData={formData} 
                   setFormData={setFormData}
@@ -342,7 +267,7 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
                 />
               </TabsContent>
 
-              <TabsContent value="costs" className="mt-0 mb-4">
+              <TabsContent value="costs" className="mt-0">
                 <CostsTab 
                   formData={formData} 
                   setFormData={setFormData}
@@ -350,8 +275,15 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
                 />
               </TabsContent>
 
-              <TabsContent value="images" className="mt-0 mb-4">
+              <TabsContent value="images" className="mt-0">
                 <ImagesTab 
+                  formData={formData} 
+                  setFormData={setFormData}
+                />
+              </TabsContent>
+
+              <TabsContent value="notes" className="mt-0">
+                <NotesTab 
                   formData={formData} 
                   setFormData={setFormData}
                 />
@@ -360,43 +292,28 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
           </Tabs>
         </div>
 
-        <div className="flex-shrink-0 px-6 pb-4">
-          <Separator className="mb-3" />
+        <div className="flex items-center justify-between pt-4 border-t">
+          <div className="flex items-center gap-2">
+            {totalCost > 0 && (
+              <Badge variant="outline" className="text-sm">
+                الإجمالي: {totalCost.toFixed(2)} ر.س
+              </Badge>
+            )}
+            <Badge variant={isFormValid ? "default" : "secondary"}>
+              {isFormValid ? "مكتمل" : "غير مكتمل"}
+            </Badge>
+          </div>
           
-          {/* Summary and Actions */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="text-xs text-muted-foreground">
-                قطع: {formData.partsUsed.length} • 
-                زيوت: {formData.oilsUsed.length} • 
-                ساعات: {formData.laborHours}
-              </div>
-              {formData.totalCost > 1000 && (
-                <div className="flex items-center gap-1 text-amber-600">
-                  <AlertTriangle className="h-3 w-3" />
-                  <span className="text-xs">تكلفة عالية</span>
-                </div>
-              )}
-            </div>
-            
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-                <X className="h-3 w-3 mr-1" />
-                إلغاء
-              </Button>
-              <Button 
-                onClick={handleSubmit} 
-                disabled={isSubmitting}
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-              >
-                <Save className="h-3 w-3 mr-1" />
-                {isSubmitting ? "جاري الحفظ..." : "حفظ السجل"}
-              </Button>
-            </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              إلغاء
+            </Button>
+            <Button onClick={handleSubmit} disabled={!isFormValid || loading}>
+              {loading ? "جاري الحفظ..." : "حفظ الصيانة"}
+            </Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-}
+};
