@@ -30,6 +30,7 @@ export interface MaintenanceRecord {
   odometer_in?: number;
   odometer_out?: number;
   assigned_mechanic_id?: string;
+  priority?: string;
   vehicles?: {
     plate_number: string;
     brand: string;
