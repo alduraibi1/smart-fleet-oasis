@@ -50,25 +50,20 @@ const VehicleActions = ({ vehicle, onEdit, onDelete }: VehicleActionsProps) => {
 };
 
 const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: EnhancedVehicleGridProps) => {
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const { toast } = useToast();
 
   const handleEdit = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
-    setEditDialogOpen(true);
   };
 
   const handleDelete = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
-    setDeleteDialogOpen(true);
   };
 
   const handleVehicleUpdated = async (updatedVehicle: Vehicle) => {
     try {
       await onUpdateVehicle(updatedVehicle.id, updatedVehicle);
-      setEditDialogOpen(false);
       setSelectedVehicle(null);
       toast({
         title: "تم بنجاح",
@@ -84,10 +79,11 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
     }
   };
 
-  const handleVehicleDeleted = async (vehicle: Vehicle) => {
+  const handleVehicleDeleted = async () => {
+    if (!selectedVehicle) return;
+    
     try {
-      await onDeleteVehicle(vehicle.id);
-      setDeleteDialogOpen(false);
+      await onDeleteVehicle(selectedVehicle.id);
       setSelectedVehicle(null);
       toast({
         title: "تم بنجاح",
@@ -250,8 +246,7 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
       {selectedVehicle && (
         <EditVehicleDialog
           vehicle={selectedVehicle}
-          isOpen={editDialogOpen}
-          onClose={() => setEditDialogOpen(false)}
+          trigger={<div style={{ display: 'none' }} />}
           onVehicleUpdated={handleVehicleUpdated}
         />
       )}
@@ -260,9 +255,8 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
       {selectedVehicle && (
         <DeleteVehicleDialog
           vehicle={selectedVehicle}
-          isOpen={deleteDialogOpen}
-          onClose={() => setDeleteDialogOpen(false)}
-          onVehicleDeleted={handleVehicleDeleted}
+          onDelete={handleVehicleDeleted}
+          trigger={<div style={{ display: 'none' }} />}
         />
       )}
     </div>
