@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Camera, FileText, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,14 +24,32 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 
-interface VehicleCondition {
+// NEW: confirmation dialog (shadcn)
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader as AlertHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
+// NEW: small image preview component
+import ReturnImagePreview from './ReturnImagePreview';
+// NEW: calculations utility
+import { calculateLateFee } from '@/utils/returnCalculations';
+
+export interface VehicleCondition {
   exterior: 'excellent' | 'good' | 'fair' | 'damaged';
   interior: 'excellent' | 'good' | 'fair' | 'damaged';
   tires: 'excellent' | 'good' | 'fair' | 'damaged';
   engine: 'excellent' | 'good' | 'fair' | 'damaged';
 }
 
-interface ReturnFormData {
+export interface ReturnFormData {
   contractId: string;
   returnDate: string;
   returnTime: string;
@@ -98,6 +116,10 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
   const [returnImages, setReturnImages] = useState<File[]>([]);
   const { toast } = useToast();
 
+  // NEW: toggle auto late-fee and confirm dialog open state
+  const [autoLateFee, setAutoLateFee] = useState(true);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   // Get active contracts for the dropdown
   const activeContracts = contracts.filter(c => c.status === 'active').map(c => ({
     id: c.id,
@@ -124,6 +146,26 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
     const totalCharges = calculateTotalCharges();
     return Math.max(0, securityDeposit - totalCharges);
   };
+
+  // NEW: auto-calc late fee when enabled and inputs change
+  useEffect(() => {
+    if (!autoLateFee || !selectedContract) return;
+
+    const fee = calculateLateFee(
+      selectedContract.endDate,
+      formData.returnDate,
+      formData.returnTime,
+      selectedContract.dailyRate
+    );
+
+    setFormData(prev => ({
+      ...prev,
+      additionalCharges: {
+        ...prev.additionalCharges,
+        lateFee: fee
+      }
+    }));
+  }, [autoLateFee, selectedContract?.endDate, selectedContract?.dailyRate, formData.returnDate, formData.returnTime]);
 
   const handleSubmit = async () => {
     if (!formData.contractId || !formData.inspectorName || !formData.customerSignature) {
@@ -343,6 +385,7 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
         )}
 
         {/* Step 2: Vehicle Inspection */}
+        {/* We insert image preview just below file input */}
         {currentStep === 2 && (
           <div className="space-y-6">
             <Card>
@@ -412,6 +455,13 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
                   <p className="text-sm text-muted-foreground mt-1">
                     يُنصح بتصوير المركبة من جميع الجهات
                   </p>
+                  {/* NEW: thumbnails preview */}
+                  <ReturnImagePreview
+                    files={returnImages}
+                    onRemove={(index) =>
+                      setReturnImages(prev => prev.filter((_, i) => i !== index))
+                    }
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -424,6 +474,23 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* NEW: auto late-fee toggle and helper text */}
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="autoLateFee"
+                    checked={autoLateFee}
+                    onCheckedChange={(checked) => setAutoLateFee(!!checked)}
+                  />
+                  <Label htmlFor="autoLateFee" className="text-sm">
+                    حساب رسوم التأخير تلقائياً حسب تاريخ انتهاء العقد
+                  </Label>
+                </div>
+                {autoLateFee && selectedContract && (
+                  <p className="text-xs text-muted-foreground">
+                    سيُحتسب التأخير بناءً على {selectedContract.endDate} وبسعر يومي {selectedContract.dailyRate.toLocaleString()} ر.س
+                  </p>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="lateFee">رسوم التأخير (ر.س)</Label>
@@ -599,9 +666,58 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
               التالي
             </Button>
           ) : (
-            <Button onClick={handleSubmit} className="bg-primary hover:bg-primary-hover">
-              إنهاء الإرجاع
-            </Button>
+            <div className="flex items-center gap-2">
+              {/* NEW: quick print */}
+              <Button variant="outline" onClick={() => window.print()}>
+                طباعة محضر الإرجاع
+              </Button>
+
+              {/* NEW: confirm before submit */}
+              <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button className="bg-primary hover:bg-primary-hover">
+                    إنهاء الإرجاع
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertHeader>
+                    <AlertDialogTitle>تأكيد إنهاء الإرجاع</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      سيتم إنهاء العقد وتحديث حالة المركبة إلى متاحة.
+                      الرجاء تأكيد التفاصيل التالية:
+                    </AlertDialogDescription>
+                  </AlertHeader>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>الرسوم الإضافية:</span>
+                      <span className="font-bold">{calculateTotalCharges().toLocaleString()} ر.س</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>قراءة العداد النهائية:</span>
+                      <span className="font-bold">{formData.currentMileage.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>مستوى الوقود:</span>
+                      <span className="font-bold">%{formData.fuelLevel}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>المفتش:</span>
+                      <span className="font-bold">{formData.inspectorName || '-'}</span>
+                    </div>
+                  </div>
+
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>رجوع</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleSubmit}
+                    >
+                      تأكيد وإنهاء
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           )}
         </div>
       </DialogContent>
