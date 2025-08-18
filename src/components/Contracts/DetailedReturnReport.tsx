@@ -3,17 +3,18 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FileText, Download, Printer, Calendar, DollarSign, Car, User } from 'lucide-react';
 import { useContracts } from '@/hooks/useContracts';
 
 interface DetailedReturnReportProps {
   contractId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export default function DetailedReturnReport({ contractId }: DetailedReturnReportProps) {
+export default function DetailedReturnReport({ contractId, open, onOpenChange }: DetailedReturnReportProps) {
   const { contracts } = useContracts();
-  const [open, setOpen] = useState(false);
   
   const contract = contracts.find(c => c.id === contractId);
   
@@ -66,15 +67,20 @@ export default function DetailedReturnReport({ contractId }: DetailedReturnRepor
   const isLateReturn = returnDate && returnDate > contractEndDate;
   const daysLate = isLateReturn ? Math.ceil((returnDate.getTime() - contractEndDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
+  const getStatusBadge = (status: string) => {
+    const statusMap = {
+      active: { label: 'نشط', variant: 'default' as const },
+      completed: { label: 'مكتمل', variant: 'secondary' as const },
+      expired: { label: 'منتهي', variant: 'destructive' as const },
+      cancelled: { label: 'ملغي', variant: 'outline' as const },
+      pending: { label: 'في الانتظار', variant: 'secondary' as const },
+    };
+    
+    return statusMap[status as keyof typeof statusMap] || { label: status, variant: 'outline' as const };
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <FileText className="h-4 w-4 ml-1" />
-          تقرير مفصل
-        </Button>
-      </DialogTrigger>
-      
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

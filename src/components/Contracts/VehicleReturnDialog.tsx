@@ -81,11 +81,12 @@ const conditionOptions = {
 };
 
 interface VehicleReturnDialogProps {
-  contractId?: string;
+  contractId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogProps) {
-  const [open, setOpen] = useState(false);
+export default function VehicleReturnDialog({ contractId, open, onOpenChange }: VehicleReturnDialogProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const { contracts, completeContract } = useContracts();
   const [formData, setFormData] = useState<ReturnFormData>({
@@ -187,7 +188,7 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
       };
 
       await completeContract(formData.contractId, returnData);
-      setOpen(false);
+      onOpenChange(false);
       setCurrentStep(1);
       // Reset form data
       setFormData({
@@ -229,13 +230,7 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="text-primary">
-          <ArrowLeft className="h-4 w-4 ml-1" />
-          إرجاع المركبة
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">إرجاع المركبة</DialogTitle>
@@ -656,7 +651,7 @@ export default function VehicleReturnDialog({ contractId }: VehicleReturnDialogP
         <div className="flex justify-between mt-6">
           <Button 
             variant="outline" 
-            onClick={currentStep === 1 ? () => setOpen(false) : prevStep}
+            onClick={currentStep === 1 ? () => onOpenChange(false) : prevStep}
           >
             {currentStep === 1 ? 'إلغاء' : 'السابق'}
           </Button>
