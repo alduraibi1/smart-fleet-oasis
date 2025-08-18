@@ -8,10 +8,32 @@ import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Grid, List } from 'lucide-react';
+import { Vehicle, VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
 
 const Vehicles = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [filters, setFilters] = useState<VehicleFiltersType>({});
+  const [loading, setLoading] = useState(false);
+
+  // Mock stats data
+  const mockStats = {
+    total: 150,
+    available: 120,
+    rented: 25,
+    maintenance: 3,
+    out_of_service: 2,
+    total_value: 12500000,
+    avg_daily_rate: 250
+  };
+
+  // Mock brands data
+  const mockBrands = ['تويوتا', 'نيسان', 'هيونداي', 'كيا', 'هوندا', 'مازda', 'شيفروليه'];
+
+  const handleFiltersChange = (newFilters: VehicleFiltersType) => {
+    setFilters(newFilters);
+  };
 
   return (
     <AppLayout>
@@ -57,12 +79,17 @@ const Vehicles = () => {
 
           {/* Stats Section */}
           <div className="stats-container">
-            <VehicleStats />
+            <VehicleStats stats={mockStats} />
           </div>
 
           {/* Filters */}
           <div className="dashboard-card mb-4 sm:mb-6">
-            <VehicleFilters />
+            <VehicleFilters 
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              brands={mockBrands}
+              loading={loading}
+            />
           </div>
 
           {/* Main Content */}
@@ -78,7 +105,7 @@ const Vehicles = () => {
               </TabsList>
               
               <TabsContent value="table" className="mt-0">
-                <VehicleTable />
+                <VehicleTable vehicles={vehicles} />
               </TabsContent>
               
               <TabsContent value="grid" className="mt-0">
@@ -95,8 +122,8 @@ const Vehicles = () => {
 
         {/* Add Vehicle Dialog */}
         <AddVehicleDialog 
-          open={isAddDialogOpen} 
-          onOpenChange={setIsAddDialogOpen} 
+          isOpen={isAddDialogOpen} 
+          onClose={() => setIsAddDialogOpen(false)} 
         />
       </div>
     </AppLayout>

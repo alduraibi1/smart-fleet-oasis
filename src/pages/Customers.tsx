@@ -11,6 +11,8 @@ import { Plus } from 'lucide-react';
 const Customers = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [filters, setFilters] = useState({});
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   // Mock stats data
   const mockStats = {
@@ -26,6 +28,30 @@ const Customers = () => {
 
   const handleClearFilters = () => {
     setFilters({});
+  };
+
+  const handleEdit = (customerId: string) => {
+    console.log('Edit customer:', customerId);
+  };
+
+  const handleView = (customerId: string) => {
+    console.log('View customer:', customerId);
+  };
+
+  const handleDelete = (customerId: string) => {
+    console.log('Delete customer:', customerId);
+  };
+
+  const handleBlacklist = (customerId: string) => {
+    console.log('Blacklist customer:', customerId);
+  };
+
+  const handleExport = () => {
+    console.log('Export customers');
+  };
+
+  const handleBulkAction = (action: string, customerIds: string[]) => {
+    console.log('Bulk action:', action, customerIds);
   };
 
   return (
@@ -72,7 +98,16 @@ const Customers = () => {
 
           {/* Main Content */}
           <div className="dashboard-card">
-            <EnhancedCustomerTable />
+            <EnhancedCustomerTable 
+              customers={customers}
+              loading={loading}
+              onEdit={handleEdit}
+              onView={handleView}
+              onDelete={handleDelete}
+              onBlacklist={handleBlacklist}
+              onExport={handleExport}
+              onBulkAction={handleBulkAction}
+            />
           </div>
         </div>
 

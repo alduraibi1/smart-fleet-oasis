@@ -19,6 +19,7 @@ const Owners = () => {
     total: 45,
     active: 38,
     inactive: 7,
+    total_vehicles: 103,
     avg_vehicles_per_owner: 2.3
   };
 
