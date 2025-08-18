@@ -104,13 +104,9 @@ const Vehicles = () => {
         </Card>
 
         {/* Add Vehicle Dialog */}
-        {showAddDialog && (
-          <AddVehicleDialog
-            open={showAddDialog}
-            onOpenChange={setShowAddDialog}
-            onVehicleAdded={handleAddVehicle}
-          />
-        )}
+        <AddVehicleDialog
+          onVehicleAdded={handleAddVehicle}
+        />
       </div>
     </AppLayout>
   );
