@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,10 @@ import {
   Users
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { useToast } from "@/hooks/use-toast";
 
 interface FinancialReportsProps {
   contracts: any[];
@@ -22,6 +27,7 @@ interface FinancialReportsProps {
 export const FinancialReports = ({ contracts }: FinancialReportsProps) => {
   const [reportType, setReportType] = useState('revenue');
   const [timePeriod, setTimePeriod] = useState('month');
+  const { toast } = useToast();
 
   // حساب البيانات المالية
   const totalRevenue = contracts.reduce((sum, c) => sum + (c.total_amount || 0), 0);
@@ -57,7 +63,133 @@ export const FinancialReports = ({ contracts }: FinancialReportsProps) => {
   ];
 
   const exportReport = (format: string) => {
-    console.log(`Exporting ${reportType} report as ${format}`);
+    const timestamp = new Date().toISOString().split('T')[0];
+    const baseFileName = `financial-report-${timestamp}`;
+
+    if (format === "excel") {
+      // Summary sheet
+      const summaryRows = [
+        ["إجمالي الإيرادات", totalRevenue],
+        ["المدفوع", totalPaid],
+        ["المعلق", totalPending],
+        ["متوسط اليومي (للعقد الواحد)", Math.round(avgDailyRate)],
+      ];
+      const wsSummary = XLSX.utils.aoa_to_sheet([["البند", "القيمة"], ...summaryRows]);
+
+      // Monthly revenue sheet
+      const wsMonthly = XLSX.utils.json_to_sheet(
+        monthlyRevenue.map((m) => ({
+          الشهر: m.month,
+          الإيرادات: m.revenue,
+          العقود: m.contracts,
+        }))
+      );
+
+      // Top customers sheet
+      const wsCustomers = XLSX.utils.json_to_sheet(
+        topCustomers.map((c, idx) => ({
+          الترتيب: idx + 1,
+          العميل: c.name,
+          الإيرادات: c.revenue,
+          العقود: c.contracts,
+          "متوسط/عقد": Math.round(c.revenue / c.contracts),
+        }))
+      );
+
+      // Vehicle types sheet
+      const wsVehicles = XLSX.utils.json_to_sheet(
+        vehicleTypes.map((v) => ({
+          النوع: v.type,
+          الإيرادات: v.revenue,
+          العدد: v.count,
+          النسبة: `${v.percentage}%`,
+          "متوسط/مركبة": Math.round(v.revenue / v.count),
+        }))
+      );
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, wsSummary, "ملخص");
+      XLSX.utils.book_append_sheet(wb, wsMonthly, "إيرادات شهرية");
+      XLSX.utils.book_append_sheet(wb, wsCustomers, "أفضل العملاء");
+      XLSX.utils.book_append_sheet(wb, wsVehicles, "أنواع المركبات");
+
+      XLSX.writeFile(wb, `${baseFileName}.xlsx`);
+      toast({ title: "تم التصدير", description: "تم إنشاء ملف Excel بنجاح" });
+      return;
+    }
+
+    if (format === "pdf") {
+      const doc = new jsPDF({ orientation: "p", unit: "pt" });
+
+      // Title
+      doc.setFontSize(16);
+      doc.text("تقرير مالي", 40, 40);
+
+      // Summary
+      doc.setFontSize(12);
+      autoTable(doc, {
+        startY: 60,
+        head: [["البند", "القيمة"]],
+        body: [
+          ["إجمالي الإيرادات", totalRevenue.toLocaleString()],
+          ["المدفوع", totalPaid.toLocaleString()],
+          ["المعلق", totalPending.toLocaleString()],
+          ["متوسط اليومي (للعقد الواحد)", Math.round(avgDailyRate).toLocaleString()],
+        ],
+        styles: { halign: "right" },
+        headStyles: { halign: "right" },
+      });
+
+      // Monthly revenue
+      autoTable(doc, {
+        head: [["الشهر", "الإيرادات", "العقود"]],
+        body: monthlyRevenue.map((m) => [
+          m.month,
+          m.revenue.toLocaleString(),
+          m.contracts,
+        ]),
+        styles: { halign: "right" },
+        headStyles: { halign: "right" },
+        startY: (doc as any).lastAutoTable.finalY + 20,
+      });
+
+      // Top customers
+      autoTable(doc, {
+        head: [["الترتيب", "العميل", "الإيرادات", "العقود", "متوسط/عقد"]],
+        body: topCustomers.map((c, idx) => [
+          idx + 1,
+          c.name,
+          c.revenue.toLocaleString(),
+          c.contracts,
+          Math.round(c.revenue / c.contracts).toLocaleString(),
+        ]),
+        styles: { halign: "right" },
+        headStyles: { halign: "right" },
+        startY: (doc as any).lastAutoTable.finalY + 20,
+      });
+
+      // Vehicle types
+      autoTable(doc, {
+        head: [["النوع", "الإيرادات", "العدد", "النسبة", "متوسط/مركبة"]],
+        body: vehicleTypes.map((v) => [
+          v.type,
+          v.revenue.toLocaleString(),
+          v.count,
+          `${v.percentage}%`,
+          Math.round(v.revenue / v.count).toLocaleString(),
+        ]),
+        styles: { halign: "right" },
+        headStyles: { halign: "right" },
+        startY: (doc as any).lastAutoTable.finalY + 20,
+      });
+
+      doc.save(`${baseFileName}.pdf`);
+      toast({ title: "تم الإنشاء", description: "تم إنشاء ملف PDF بنجاح" });
+      return;
+    }
+
+    // تنبيه في حال صيغة غير مدعومة
+    toast({ title: "صيغة غير مدعومة", description: "يرجى اختيار PDF أو Excel", variant: "destructive" });
   };
 
   return (
