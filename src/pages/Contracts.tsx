@@ -1,4 +1,5 @@
 
+
 import { useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,6 @@ import VehicleReturnDialog from '@/components/Contracts/VehicleReturnDialog';
 
 const Contracts = () => {
   const { contracts, stats, loading } = useContracts();
-  const [showAddDialog, setShowAddDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
 
@@ -77,10 +77,7 @@ const Contracts = () => {
             </div>
             
             <div className="flex gap-2">
-              <Button onClick={() => setShowAddDialog(true)} className="gap-2">
-                <Plus className="h-4 w-4" />
-                إنشاء عقد جديد
-              </Button>
+              <AddContractDialog />
             </div>
           </div>
 
@@ -196,9 +193,7 @@ const Contracts = () => {
                                   <Edit className="h-4 w-4" />
                                 </Button>
                                 {contract.status === 'active' && (
-                                  <Button variant="ghost" size="sm">
-                                    <ArrowLeft className="h-4 w-4" />
-                                  </Button>
+                                  <VehicleReturnDialog contractId={contract.id} />
                                 )}
                               </div>
                             </td>
@@ -218,17 +213,10 @@ const Contracts = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Dialogs */}
-        <AddContractDialog 
-          open={showAddDialog} 
-          onOpenChange={setShowAddDialog}
-        />
-        
-        <VehicleReturnDialog />
       </div>
     </AppLayout>
   );
 };
 
 export default Contracts;
+
