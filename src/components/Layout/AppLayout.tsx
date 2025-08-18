@@ -11,8 +11,13 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const handleLayoutError = (error: Error, errorInfo: React.ErrorInfo) => {
+    console.error('Layout Error:', error, errorInfo);
+    // Here you could send to error tracking service
+  };
+
   return (
-    <ErrorBoundary>
+    <ErrorBoundary onError={handleLayoutError}>
       <SidebarProvider defaultOpen={false}>
         <div className="min-h-screen-mobile flex w-full bg-background">
           <AppSidebar />
@@ -21,7 +26,9 @@ export function AppLayout({ children }: AppLayoutProps) {
             <Header onMenuClick={() => {}} />
             <div className="flex-1 flex flex-col min-h-0">
               <div className="px-2 py-1.5 sm:px-3 sm:py-2 md:px-6 md:py-3 border-b border-border/50">
-                <BreadcrumbNavigation />
+                <ErrorBoundary>
+                  <BreadcrumbNavigation />
+                </ErrorBoundary>
               </div>
               <main className="flex-1 overflow-auto bg-background">
                 <div className="w-full max-w-none mx-auto spacing-adaptive">
