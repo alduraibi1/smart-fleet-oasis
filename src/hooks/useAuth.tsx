@@ -62,20 +62,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      // Fix: Use the correct column name based on your database schema
+      // Try different possible column names based on common database schemas
       const { data, error } = await supabase
         .from('role_permissions')
-        .select('permission_name')  // Changed from 'permission' to 'permission_name'
+        .select('permission, permission_name')  // Try both common column names
         .in('role', roles);
 
       if (error) {
         console.error('Role permissions query error:', error);
-        // If the table doesn't exist or column is wrong, fallback to empty permissions
+        // If the table doesn't exist or columns are wrong, fallback to empty permissions
         setUserPermissions([]);
         return;
       }
       
-      const permissions = data?.map(p => p.permission_name) || [];
+      // Use whichever column exists (permission or permission_name)
+      const permissions = data?.map(p => p.permission || p.permission_name).filter(Boolean) || [];
       setUserPermissions([...new Set(permissions)]); // إزالة التكرار
     } catch (error) {
       console.error('Error fetching user permissions:', error);

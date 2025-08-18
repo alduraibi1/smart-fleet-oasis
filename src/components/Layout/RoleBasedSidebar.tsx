@@ -13,76 +13,78 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
+type UserRole = 'admin' | 'accountant' | 'employee' | 'manager';
+
 const menuItems = [
   {
     title: "الرئيسية",
     icon: Home,
     url: "/",
     category: "main",
-    requiredRole: null
+    requiredRole: null as UserRole | null
   },
   {
     title: "العملاء",
     icon: Users,
     url: "/customers",
     category: "operations",
-    requiredRole: "employee"
+    requiredRole: "employee" as UserRole
   },
   {
     title: "ملاك المركبات",
     icon: Building2,
     url: "/owners",
     category: "operations",
-    requiredRole: "employee"
+    requiredRole: "employee" as UserRole
   },
   {
     title: "المركبات",
     icon: Car,
     url: "/vehicles",
     category: "operations",
-    requiredRole: "employee"
+    requiredRole: "employee" as UserRole
   },
   {
     title: "العقود",
     icon: FileText,
     url: "/contracts",
     category: "operations",
-    requiredRole: "employee"
+    requiredRole: "employee" as UserRole
   },
   {
     title: "الصيانة",
     icon: Wrench,
     url: "/maintenance",
     category: "maintenance",
-    requiredRole: "employee"
+    requiredRole: "employee" as UserRole
   },
   {
     title: "المخزون",
     icon: Package,
     url: "/inventory",
     category: "maintenance",
-    requiredRole: "employee"
+    requiredRole: "employee" as UserRole
   },
   {
     title: "المحاسبة",
     icon: Calculator,
     url: "/accounting",
     category: "financial",
-    requiredRole: "accountant"
+    requiredRole: "accountant" as UserRole
   },
   {
     title: "التقارير",
     icon: BarChart3,
     url: "/reports",
     category: "financial",
-    requiredRole: "manager"
+    requiredRole: "manager" as UserRole
   },
   {
     title: "إدارة النظام",
     icon: Settings,
     url: "/system-management",
     category: "admin",
-    requiredRole: "admin"
+    requiredRole: "admin" as UserRole
   },
 ];
 

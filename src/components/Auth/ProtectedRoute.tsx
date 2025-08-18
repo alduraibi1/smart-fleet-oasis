@@ -5,9 +5,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
+type UserRole = 'admin' | 'accountant' | 'employee' | 'manager';
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: string;
+  requiredRole?: UserRole;
   requiredPermission?: string;
 }
 
