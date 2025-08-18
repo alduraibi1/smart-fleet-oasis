@@ -15,7 +15,7 @@ import {
   Download
 } from 'lucide-react';
 import { CustomerArrearsMonitoringDashboard } from '@/components/Customers/CustomerArrearsMonitoringDashboard';
-import { CustomerArrearsAlerts } from '@/components/Contracts/CustomerArrearsAlerts';
+import CustomerArrearsAlerts from '@/components/Contracts/CustomerArrearsAlerts';
 import { useCustomerArrears } from '@/hooks/useCustomerArrears';
 
 export default function CustomerArrearsControl() {
