@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -114,7 +115,7 @@ export const useMaintenance = () => {
       const processedData = (data || []).map(record => {
         const mechanicsData = record.mechanics;
         
-        // More explicit type checking to satisfy TypeScript
+        // Handle null/undefined cases first
         if (mechanicsData === null || mechanicsData === undefined) {
           return {
             ...record,
@@ -122,13 +123,15 @@ export const useMaintenance = () => {
           };
         }
         
-        // Now we know mechanicsData is not null/undefined
-        if (typeof mechanicsData === 'object' && 'name' in mechanicsData) {
-          const mechanic = mechanicsData as { name: unknown };
-          if (typeof mechanic.name === 'string') {
+        // Now TypeScript knows mechanicsData is not null/undefined
+        // Check if it's an object and has a name property
+        if (typeof mechanicsData === 'object' && mechanicsData && 'name' in mechanicsData) {
+          // Type assertion with proper typing
+          const mechanicObj = mechanicsData as Record<string, unknown>;
+          if (typeof mechanicObj.name === 'string') {
             return {
               ...record,
-              mechanics: { name: mechanic.name }
+              mechanics: { name: mechanicObj.name }
             };
           }
         }
