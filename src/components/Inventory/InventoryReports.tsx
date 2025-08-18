@@ -1,293 +1,276 @@
+
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  BarChart, 
-  Download, 
-  TrendingUp, 
-  TrendingDown,
-  Package,
-  DollarSign,
-  AlertTriangle,
-  Calendar
-} from "lucide-react";
-import { 
-  BarChart as RechartsBarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
 import { Badge } from "@/components/ui/badge";
-
-const monthlyData = [
-  { month: 'يناير', input: 45000, output: 38000, profit: 7000 },
-  { month: 'فبراير', input: 52000, output: 46000, profit: 6000 },
-  { month: 'مارس', input: 48000, output: 51000, profit: -3000 },
-  { month: 'أبريل', input: 61000, output: 42000, profit: 19000 },
-  { month: 'مايو', input: 55000, output: 48000, profit: 7000 },
-  { month: 'يونيو', input: 67000, output: 53000, profit: 14000 },
-];
-
-const categoryPerformance = [
-  { name: 'قطع غيار', value: 45, sales: 156000, growth: 12 },
-  { name: 'زيوت ومواد', value: 25, sales: 89000, growth: -5 },
-  { name: 'إطارات', value: 20, sales: 78000, growth: 8 },
-  { name: 'أخرى', value: 10, sales: 34000, growth: 3 },
-];
-
-const topSellingItems = [
-  { name: 'فلتر زيت موتور', quantity: 89, revenue: 3115, growth: 15 },
-  { name: 'زيت محرك 5W-30', quantity: 67, revenue: 4355, growth: 8 },
-  { name: 'فحمات فرامل', quantity: 45, revenue: 2250, growth: -3 },
-  { name: 'إطار 225/60 R16', quantity: 34, revenue: 6120, growth: 22 },
-  { name: 'فلتر هواء', quantity: 78, revenue: 1560, growth: 5 },
-];
-
-const stockMovement = [
-  { date: '01/01', incoming: 120, outgoing: 89 },
-  { date: '02/01', incoming: 95, outgoing: 134 },
-  { date: '03/01', incoming: 156, outgoing: 98 },
-  { date: '04/01', incoming: 78, outgoing: 167 },
-  { date: '05/01', incoming: 134, outgoing: 145 },
-  { date: '06/01', incoming: 189, outgoing: 112 },
-  { date: '07/01', incoming: 145, outgoing: 178 },
-];
-
-const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
+import { 
+  FileText, 
+  Download, 
+  Calendar, 
+  TrendingUp, 
+  Package, 
+  AlertTriangle,
+  BarChart3,
+  PieChart
+} from "lucide-react";
 
 const InventoryReports = () => {
+  const [selectedReport, setSelectedReport] = useState("stock-levels");
+  const [timeRange, setTimeRange] = useState("month");
+
+  // Mock reports data
+  const reports = [
+    {
+      id: "stock-levels",
+      name: "تقرير مستويات المخزون",
+      description: "عرض تفصيلي لمستويات المخزون الحالية",
+      icon: Package,
+      color: "text-blue-600"
+    },
+    {
+      id: "movement",
+      name: "تقرير حركة المخزون",
+      description: "تتبع حركة المخزون الداخلة والخارجة",
+      icon: TrendingUp,
+      color: "text-green-600"
+    },
+    {
+      id: "low-stock",
+      name: "تقرير المخزون المنخفض",
+      description: "العناصر التي تحتاج إلى إعادة تجديد",
+      icon: AlertTriangle,
+      color: "text-orange-600"
+    },
+    {
+      id: "valuation",
+      name: "تقرير تقييم المخزون",
+      description: "القيمة المالية للمخزون الحالي",
+      icon: BarChart3,
+      color: "text-purple-600"
+    },
+    {
+      id: "categories",
+      name: "تقرير الفئات",
+      description: "توزيع المخزون حسب الفئات",
+      icon: PieChart,
+      color: "text-teal-600"
+    }
+  ];
+
+  // Mock report data
+  const reportData = {
+    "stock-levels": [
+      { item: "فلتر زيت محرك", current: 45, min: 20, max: 100, status: "جيد" },
+      { item: "زيت محرك 5W-30", current: 8, min: 15, max: 50, status: "منخفض" },
+      { item: "فرامل أقراص", current: 25, min: 10, max: 60, status: "جيد" }
+    ],
+    "movement": [
+      { date: "2024-01-15", item: "فلتر زيت محرك", type: "دخول", quantity: 50, reason: "شراء" },
+      { date: "2024-01-14", item: "زيت محرك 5W-30", type: "خروج", quantity: 12, reason: "استخدام" },
+      { date: "2024-01-13", item: "فرامل أقراص", type: "دخول", quantity: 30, reason: "شراء" }
+    ],
+    "low-stock": [
+      { item: "زيت محرك 5W-30", current: 8, min: 15, shortage: 7 },
+      { item: "فلتر هواء", current: 5, min: 12, shortage: 7 }
+    ]
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "جيد":
+        return <Badge className="bg-green-100 text-green-800">جيد</Badge>;
+      case "منخفض":
+        return <Badge variant="destructive">منخفض</Badge>;
+      case "عالي":
+        return <Badge className="bg-blue-100 text-blue-800">عالي</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const selectedReportData = reports.find(r => r.id === selectedReport);
+
   return (
     <div className="space-y-6">
-      {/* Header Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Select defaultValue="monthly">
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="الفترة الزمنية" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="weekly">أسبوعي</SelectItem>
-              <SelectItem value="monthly">شهري</SelectItem>
-              <SelectItem value="quarterly">ربع سنوي</SelectItem>
-              <SelectItem value="yearly">سنوي</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select defaultValue="all">
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="الفئة" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">جميع الفئات</SelectItem>
-              <SelectItem value="قطع غيار">قطع غيار</SelectItem>
-              <SelectItem value="زيوت ومواد">زيوت ومواد</SelectItem>
-              <SelectItem value="إطارات">إطارات</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold flex items-center gap-2">
+          <FileText className="h-6 w-6" />
+          تقارير المخزون
+        </h2>
+        <div className="flex gap-2">
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            تصدير PDF
+          </Button>
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            تصدير Excel
+          </Button>
         </div>
-        
-        <Button className="flex items-center gap-2">
-          <Download className="h-4 w-4" />
-          تصدير التقرير
-        </Button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">إجمالي قيمة المخزون</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$485,200</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-500 flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +12.5% من الشهر الماضي
-              </span>
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">حركة المخزون</CardTitle>
-            <BarChart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,247</div>
-            <p className="text-xs text-muted-foreground">
-              منتج تم بيعه هذا الشهر
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">معدل دوران المخزون</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">4.2x</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-500">
-                +0.3 من الربع الماضي
-              </span>
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">تكلفة التخزين</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$12,400</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-red-500 flex items-center">
-                <TrendingDown className="h-3 w-3 mr-1" />
-                -3.2% من الشهر الماضي
-              </span>
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>تحليل الأرباح والخسائر الشهرية</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <RechartsBarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`$${value}`, '']} />
-                <Bar dataKey="input" name="المدخلات" fill="hsl(var(--chart-1))" />
-                <Bar dataKey="output" name="المخرجات" fill="hsl(var(--chart-2))" />
-                <Bar dataKey="profit" name="الربح" fill="hsl(var(--chart-3))" />
-              </RechartsBarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>حركة المخزون اليومية</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={stockMovement}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="incoming" stroke="hsl(var(--chart-1))" strokeWidth={2} name="الواردات" />
-                <Line type="monotone" dataKey="outgoing" stroke="hsl(var(--chart-2))" strokeWidth={2} name="الصادرات" />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Performance Analysis */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>أداء الفئات</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={categoryPerformance}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Report Selection */}
+        <div className="lg:col-span-1">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">أنواع التقارير</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {reports.map((report) => (
+                <button
+                  key={report.id}
+                  onClick={() => setSelectedReport(report.id)}
+                  className={`w-full text-right p-3 rounded-lg border transition-colors ${
+                    selectedReport === report.id
+                      ? "bg-primary/10 border-primary"
+                      : "hover:bg-muted"
+                  }`}
                 >
-                  {categoryPerformance.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>المنتجات الأكثر مبيعاً</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {topSellingItems.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium">{item.name}</h4>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                      <span>الكمية: {item.quantity}</span>
-                      <span>الإيرادات: ${item.revenue}</span>
+                  <div className="flex items-start gap-3">
+                    <report.icon className={`h-5 w-5 ${report.color} mt-0.5`} />
+                    <div>
+                      <h4 className="font-medium text-sm">{report.name}</h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {report.description}
+                      </p>
                     </div>
                   </div>
-                  <Badge 
-                    variant={item.growth >= 0 ? "default" : "secondary"}
-                    className={item.growth >= 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
-                  >
-                    {item.growth >= 0 ? '+' : ''}{item.growth}%
-                  </Badge>
-                </div>
+                </button>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Category Performance Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>تفاصيل أداء الفئات</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {categoryPerformance.map((category, index) => (
-              <div key={index} className="p-4 border rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium">{category.name}</h3>
-                  <Badge 
-                    variant={category.growth >= 0 ? "default" : "secondary"}
-                    className={category.growth >= 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
-                  >
-                    {category.growth >= 0 ? '+' : ''}{category.growth}%
-                  </Badge>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-2xl font-bold">${(category.sales / 1000).toFixed(0)}k</div>
-                  <div className="text-sm text-muted-foreground">إجمالي المبيعات</div>
-                  <div className="text-sm text-muted-foreground">{category.value}% من المخزون</div>
+        {/* Report Content */}
+        <div className="lg:col-span-3">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2">
+                  {selectedReportData && (
+                    <>
+                      <selectedReportData.icon className={`h-5 w-5 ${selectedReportData.color}`} />
+                      {selectedReportData.name}
+                    </>
+                  )}
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  <Select value={timeRange} onValueChange={setTimeRange}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="week">الأسبوع</SelectItem>
+                      <SelectItem value="month">الشهر</SelectItem>
+                      <SelectItem value="quarter">الربع</SelectItem>
+                      <SelectItem value="year">السنة</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent>
+              {selectedReport === "stock-levels" && (
+                <div className="space-y-4">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-right p-2">العنصر</th>
+                          <th className="text-right p-2">المخزون الحالي</th>
+                          <th className="text-right p-2">الحد الأدنى</th>
+                          <th className="text-right p-2">الحد الأقصى</th>
+                          <th className="text-right p-2">الحالة</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reportData["stock-levels"].map((item, index) => (
+                          <tr key={index} className="border-b">
+                            <td className="p-2 font-medium">{item.item}</td>
+                            <td className="p-2">{item.current}</td>
+                            <td className="p-2">{item.min}</td>
+                            <td className="p-2">{item.max}</td>
+                            <td className="p-2">{getStatusBadge(item.status)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {selectedReport === "movement" && (
+                <div className="space-y-4">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-right p-2">التاريخ</th>
+                          <th className="text-right p-2">العنصر</th>
+                          <th className="text-right p-2">النوع</th>
+                          <th className="text-right p-2">الكمية</th>
+                          <th className="text-right p-2">السبب</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reportData.movement.map((transaction, index) => (
+                          <tr key={index} className="border-b">
+                            <td className="p-2">{transaction.date}</td>
+                            <td className="p-2 font-medium">{transaction.item}</td>
+                            <td className="p-2">
+                              <Badge variant={transaction.type === "دخول" ? "default" : "outline"}>
+                                {transaction.type}
+                              </Badge>
+                            </td>
+                            <td className="p-2">{transaction.quantity}</td>
+                            <td className="p-2">{transaction.reason}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {selectedReport === "low-stock" && (
+                <div className="space-y-4">
+                  <div className="grid gap-4">
+                    {reportData["low-stock"].map((item, index) => (
+                      <div key={index} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h4 className="font-medium">{item.item}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              المخزون الحالي: {item.current} | الحد الأدنى: {item.min}
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <Badge variant="destructive">
+                              نقص {item.shortage} قطعة
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(selectedReport === "valuation" || selectedReport === "categories") && (
+                <div className="text-center py-12">
+                  <div className="text-muted-foreground">
+                    <selectedReportData.icon className="h-12 w-12 mx-auto mb-4" />
+                    <p>سيتم إضافة هذا التقرير قريباً</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };
