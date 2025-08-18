@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Grid, List } from "lucide-react";
 import { useVehicles } from '@/hooks/useVehicles';
-import { VehicleStats } from '@/components/Vehicles/VehicleStats';
-import { VehicleFilters } from '@/components/Vehicles/VehicleFilters';
+import VehicleStats from '@/components/Vehicles/VehicleStats';
+import VehicleFilters from '@/components/Vehicles/VehicleFilters';
 import VehicleGrid from '@/components/Vehicles/VehicleGrid';
-import { VehicleTable } from '@/components/Vehicles/VehicleTable';
-import { AddVehicleDialog } from '@/components/Vehicles/AddVehicleDialog';
+import VehicleTable from '@/components/Vehicles/VehicleTable';
+import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { Vehicle, VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
 

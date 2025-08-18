@@ -10,12 +10,12 @@ import {
   TrendingUp
 } from "lucide-react";
 import { AppLayout } from '@/components/Layout/AppLayout';
-import { SystemSettings } from '@/components/SystemManagement/SystemSettings';
-import { UserManagement } from '@/components/SystemManagement/UserManagement';
-import { ActivityLogs } from '@/components/SystemManagement/ActivityLogs';
-import { SystemStatus } from '@/components/SystemManagement/SystemStatus';
-import { RoleManagement } from '@/components/SystemManagement/RoleManagement';
-import { SampleDataManager } from '@/components/SystemManagement/SampleDataManager';
+import SystemSettings from '@/components/SystemManagement/SystemSettings';
+import UserManagement from '@/components/SystemManagement/UserManagement';
+import ActivityLogs from '@/components/SystemManagement/ActivityLogs';
+import SystemStatus from '@/components/SystemManagement/SystemStatus';
+import RoleManagement from '@/components/SystemManagement/RoleManagement';
+import SampleDataManager from '@/components/SystemManagement/SampleDataManager';
 
 const SystemManagement = () => {
   return (
