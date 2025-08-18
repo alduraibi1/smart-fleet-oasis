@@ -1,4 +1,3 @@
-
 import { DollarSign, TrendingUp, Calendar, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -10,9 +9,6 @@ interface FinancialTabProps {
 }
 
 export default function FinancialTab({ vehicle }: FinancialTabProps) {
-  // Handle the purchase property safely since it might not exist on the Vehicle type
-  const purchaseInfo = (vehicle as any).purchase || null;
-
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -26,7 +22,7 @@ export default function FinancialTab({ vehicle }: FinancialTabProps) {
           <CardContent className="space-y-4">
             <div>
               <Label className="text-sm font-medium text-muted-foreground">سعر الشراء</Label>
-              <p className="text-2xl font-bold text-primary">₪{purchaseInfo?.purchasePrice?.toLocaleString() || 'غير محدد'}</p>
+              <p className="text-2xl font-bold text-primary">₪{vehicle.purchase?.purchasePrice?.toLocaleString() || 'غير محدد'}</p>
             </div>
             
             <div>
@@ -35,17 +31,17 @@ export default function FinancialTab({ vehicle }: FinancialTabProps) {
                 تاريخ الشراء
               </Label>
               <p className="font-medium">
-                {purchaseInfo?.purchaseDate ? new Date(purchaseInfo.purchaseDate).toLocaleDateString('ar') : 'غير محدد'}
+                {vehicle.purchase?.purchaseDate ? new Date(vehicle.purchase.purchaseDate).toLocaleDateString('ar') : 'غير محدد'}
               </p>
             </div>
 
-            {purchaseInfo?.financingCompany && (
+            {vehicle.purchase?.financingCompany && (
               <div>
                 <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
                   <CreditCard className="h-4 w-4" />
                   شركة التمويل
                 </Label>
-                <p className="font-medium">{purchaseInfo.financingCompany}</p>
+                <p className="font-medium">{vehicle.purchase.financingCompany}</p>
               </div>
             )}
           </CardContent>
@@ -59,12 +55,12 @@ export default function FinancialTab({ vehicle }: FinancialTabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {purchaseInfo?.purchasePrice ? (
+            {vehicle.purchase?.purchasePrice ? (
               <>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">القيمة الحالية</Label>
                   <p className="text-2xl font-bold text-green-600">
-                    ₪{Math.round(purchaseInfo.purchasePrice * 0.7).toLocaleString()}
+                    ₪{Math.round(vehicle.purchase.purchasePrice * 0.7).toLocaleString()}
                   </p>
                 </div>
                 
@@ -78,7 +74,7 @@ export default function FinancialTab({ vehicle }: FinancialTabProps) {
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">إجمالي الإهلاك</Label>
                   <p className="font-medium text-red-600">
-                    ₪{Math.round(purchaseInfo.purchasePrice * 0.3).toLocaleString()}
+                    ₪{Math.round(vehicle.purchase.purchasePrice * 0.3).toLocaleString()}
                   </p>
                 </div>
               </>

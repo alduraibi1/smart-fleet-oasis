@@ -1,191 +1,126 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Package, 
-  TrendingUp, 
-  BarChart3, 
-  Plus, 
-  AlertTriangle, 
-  Settings,
-  ShoppingCart,
-  Truck,
-  Search,
-  Filter
-} from "lucide-react";
-
-import { InventoryStats } from "@/components/Inventory/InventoryStats";
-import { InventoryItemsTable } from "@/components/Inventory/InventoryItemsTable";
-import { InventoryTransactionsTable } from "@/components/Inventory/InventoryTransactionsTable";
-import { AddInventoryItemDialog } from "@/components/Inventory/AddInventoryItemDialog";
-import { AddCategoryDialog } from "@/components/Inventory/AddCategoryDialog";
-import { InventoryOverview } from "@/components/Inventory/InventoryOverview";
-import { StockManagement } from "@/components/Inventory/StockManagement";
-import SuppliersManagement from "@/components/Inventory/SuppliersManagement";
-import AutoReordering from "@/components/Inventory/AutoReordering";
-import QualityControl from "@/components/Inventory/QualityControl";
-import InventoryReports from "@/components/Inventory/InventoryReports";
+import { Plus, Package, Users, TrendingUp, Settings } from "lucide-react";
 import { useInventory } from "@/hooks/useInventory";
+import InventoryOverview from "@/components/Inventory/InventoryOverview";
+import InventoryReports from "@/components/Inventory/InventoryReports";
+import { AppLayout } from "@/components/Layout/AppLayout";
 
 const Inventory = () => {
-  const [addItemOpen, setAddItemOpen] = useState(false);
-  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-  const { getInventoryStats, getLowStockItems, getExpiredItems } = useInventory();
-  
-  const stats = getInventoryStats();
-  const lowStockItems = getLowStockItems();
-  const expiredItems = getExpiredItems();
+  const [activeTab, setActiveTab] = useState("overview");
+  const [showAddItemDialog, setShowAddItemDialog] = useState(false);
+  const [showAddTransactionDialog, setShowAddTransactionDialog] = useState(false);
+  const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
+
+  const { loading } = useInventory();
+
+  const handleAddItem = () => {
+    setShowAddItemDialog(true);
+  };
+
+  const handleAddTransaction = () => {
+    setShowAddTransactionDialog(true);
+  };
+
+  const handleAddCategory = () => {
+    setShowAddCategoryDialog(true);
+  };
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">جاري تحميل بيانات المخزون...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
-    <div className="container mx-auto p-6 space-y-6 max-w-7xl">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">نظام إدارة المخزون المتقدم</h1>
+    <AppLayout>
+      <div className="space-y-6">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">إدارة المخزون</h1>
           <p className="text-muted-foreground">
-            إدارة شاملة للمخزون وقطع الغيار مع تتبع ذكي للمستويات
+            نظام شامل لإدارة المخزون وقطع الغيار والمواد
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            onClick={() => setAddCategoryOpen(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            فئة جديدة
-          </Button>
-          <Button onClick={() => setAddItemOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            عنصر جديد
-          </Button>
-        </div>
-      </div>
 
-      {/* Quick Alerts */}
-      {(lowStockItems.length > 0 || expiredItems.length > 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {lowStockItems.length > 0 && (
-            <Card className="border-amber-200 bg-amber-50">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-amber-600" />
-                  <CardTitle className="text-amber-800">تنبيه: مخزون منخفض</CardTitle>
-                  <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-                    {lowStockItems.length}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-amber-700">
-                  هناك {lowStockItems.length} عنصر بحاجة لإعادة تموين
-                </p>
-              </CardContent>
-            </Card>
-          )}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <TabsList className="grid w-full sm:w-auto grid-cols-5">
+              <TabsTrigger value="overview" className="text-sm">
+                نظرة عامة
+              </TabsTrigger>
+              <TabsTrigger value="items" className="text-sm">
+                عناصر المخزون
+              </TabsTrigger>
+              <TabsTrigger value="transactions" className="text-sm">
+                حركات المخزون
+              </TabsTrigger>
+              <TabsTrigger value="categories" className="text-sm">
+                الفئات
+              </TabsTrigger>
+              <TabsTrigger value="reports" className="text-sm">
+                التقارير
+              </TabsTrigger>
+            </TabsList>
 
-          {expiredItems.length > 0 && (
-            <Card className="border-red-200 bg-red-50">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-red-600" />
-                  <CardTitle className="text-red-800">تنبيه: منتهية الصلاحية</CardTitle>
-                  <Badge variant="destructive" className="bg-red-100 text-red-800">
-                    {expiredItems.length}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-red-700">
-                  هناك {expiredItems.length} عنصر منتهي الصلاحية
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
-
-      {/* Statistics Overview */}
-      <InventoryStats />
-
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            نظرة عامة
-          </TabsTrigger>
-          <TabsTrigger value="items" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            العناصر
-          </TabsTrigger>
-          <TabsTrigger value="transactions" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            الحركات
-          </TabsTrigger>
-          <TabsTrigger value="stock" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            إدارة المخزون
-          </TabsTrigger>
-          <TabsTrigger value="suppliers" className="flex items-center gap-2">
-            <Truck className="h-4 w-4" />
-            الموردين
-          </TabsTrigger>
-          <TabsTrigger value="quality" className="flex items-center gap-2">
-            <Search className="h-4 w-4" />
-            مراقبة الجودة
-          </TabsTrigger>
-          <TabsTrigger value="reports" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            التقارير
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          <InventoryOverview />
-        </TabsContent>
-
-        {/* Inventory Items Tab */}
-        <TabsContent value="items" className="space-y-4">
-          <InventoryItemsTable />
-        </TabsContent>
-        
-        {/* Transactions Tab */}
-        <TabsContent value="transactions" className="space-y-4">
-          <InventoryTransactionsTable />
-        </TabsContent>
-
-        {/* Stock Management Tab */}
-        <TabsContent value="stock" className="space-y-6">
-          <div className="grid gap-6">
-            <StockManagement />
-            <AutoReordering />
+            <div className="flex gap-2">
+              {activeTab === "items" && (
+                <Button onClick={handleAddItem} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  إضافة عنصر
+                </Button>
+              )}
+              {activeTab === "transactions" && (
+                <Button onClick={handleAddTransaction} className="gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  إضافة حركة
+                </Button>
+              )}
+              {activeTab === "categories" && (
+                <Button onClick={handleAddCategory} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  إضافة فئة
+                </Button>
+              )}
+            </div>
           </div>
-        </TabsContent>
 
-        {/* Suppliers Tab */}
-        <TabsContent value="suppliers" className="space-y-6">
-          <SuppliersManagement />
-        </TabsContent>
+          <TabsContent value="overview" className="space-y-6">
+            <InventoryOverview />
+          </TabsContent>
 
-        {/* Quality Control Tab */}
-        <TabsContent value="quality" className="space-y-6">
-          <QualityControl />
-        </TabsContent>
+          <TabsContent value="items" className="space-y-6">
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">قريباً - جدول عناصر المخزون</p>
+            </div>
+          </TabsContent>
 
-        {/* Reports Tab */}
-        <TabsContent value="reports" className="space-y-6">
-          <InventoryReports />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="transactions" className="space-y-6">
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">قريباً - جدول حركات المخزون</p>
+            </div>
+          </TabsContent>
 
-      {/* Dialogs */}
-      <AddInventoryItemDialog />
-      <AddCategoryDialog />
-    </div>
+          <TabsContent value="categories" className="space-y-6">
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">قريباً - إدارة فئات المخزون</p>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="reports" className="space-y-6">
+            <InventoryReports />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AppLayout>
   );
 };
 

@@ -1,240 +1,126 @@
-
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Search, 
-  Filter, 
-  Building2, 
-  Phone, 
-  Mail, 
-  Star,
-  Plus
-} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSuppliers } from "@/hooks/useSuppliers";
-import { SupplierQuickActions } from "./SupplierQuickActions";
-import { CreatePurchaseOrderDialog } from "./CreatePurchaseOrderDialog";
+import { AddSupplierDialog } from "./AddSupplierDialog";
+import { Edit, Trash2, Star, Phone, Mail } from "lucide-react";
 
 export const SuppliersTable = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [ratingFilter, setRatingFilter] = useState("all");
-  const [showCreateOrder, setShowCreateOrder] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState(null);
-  const { suppliers } = useSuppliers();
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const { suppliers, deleteSupplier, updateSupplierRating } = useSuppliers();
 
-  const filteredSuppliers = suppliers.filter(supplier => {
-    const matchesSearch = supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (supplier.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-    const matchesStatus = statusFilter === "all" || 
-                         (statusFilter === "active" && supplier.is_active) ||
-                         (statusFilter === "inactive" && !supplier.is_active);
-    const matchesRating = ratingFilter === "all" ||
-                         (ratingFilter === "excellent" && supplier.rating >= 4) ||
-                         (ratingFilter === "good" && supplier.rating >= 3 && supplier.rating < 4) ||
-                         (ratingFilter === "poor" && supplier.rating < 3);
-    
-    return matchesSearch && matchesStatus && matchesRating;
-  });
-
-  const getStatusBadge = (isActive: boolean) => {
-    return isActive ? 
-      <Badge className="bg-green-100 text-green-800 animate-fade-in">نشط</Badge> :
-      <Badge variant="secondary" className="animate-fade-in">غير نشط</Badge>;
+  const handleDelete = async (id: string) => {
+    if (confirm("هل أنت متأكد من حذف هذا المورد؟")) {
+      await deleteSupplier(id);
+    }
   };
 
-  const getRatingStars = (rating: number) => {
-    return (
-      <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`h-3 w-3 transition-colors ${
-              star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-            }`}
-          />
-        ))}
-        <span className="text-sm text-muted-foreground ml-1">({rating})</span>
-      </div>
-    );
+  const renderStars = (rating: number | null) => {
+    const stars = [];
+    const ratingValue = rating || 0;
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <Star
+          key={i}
+          className={`w-4 h-4 ${i <= ratingValue ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+        />
+      );
+    }
+    return <div className="flex">{stars}</div>;
   };
-
-  const handleCreateOrder = (supplier: any) => {
-    setSelectedSupplier(supplier);
-    setShowCreateOrder(true);
-  };
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("all");
-    setRatingFilter("all");
-  };
-
-  const hasActiveFilters = searchTerm || statusFilter !== "all" || ratingFilter !== "all";
 
   return (
-    <>
-      <div className="space-y-4">
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="البحث في الموردين..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 transition-all focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="الحالة" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">جميع الحالات</SelectItem>
-              <SelectItem value="active">نشط</SelectItem>
-              <SelectItem value="inactive">غير نشط</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={ratingFilter} onValueChange={setRatingFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="التقييم" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">جميع التقييمات</SelectItem>
-              <SelectItem value="excellent">ممتاز (4+)</SelectItem>
-              <SelectItem value="good">جيد (3-4)</SelectItem>
-              <SelectItem value="poor">ضعيف (أقل من 3)</SelectItem>
-            </SelectContent>
-          </Select>
-          {hasActiveFilters && (
-            <Button variant="ghost" onClick={clearFilters} size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              مسح الفلاتر
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>قائمة الموردين</CardTitle>
+          <Button onClick={() => setShowAddDialog(true)}>
+            إضافة مورد جديد
+          </Button>
+        </div>
+        <CardDescription>إدارة جميع الموردين والبائعين</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {suppliers.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">لا توجد موردين</p>
+            <Button onClick={() => setShowAddDialog(true)} className="mt-4">
+              إضافة أول مورد
             </Button>
-          )}
-        </div>
-
-        {/* Results Summary */}
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>
-            عرض {filteredSuppliers.length} من أصل {suppliers.length} مورد
-          </span>
-          {hasActiveFilters && (
-            <Badge variant="outline" className="animate-fade-in">
-              تم تطبيق فلاتر
-            </Badge>
-          )}
-        </div>
-
-        {/* Suppliers Cards */}
-        <div className="grid gap-4">
-          {filteredSuppliers.map((supplier) => (
-            <Card key={supplier.id} className="hover:shadow-md transition-shadow animate-fade-in">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Building2 className="h-6 w-6 text-primary" />
-                      <div>
-                        <h3 className="font-semibold text-lg">{supplier.name}</h3>
-                        {supplier.contact_person && (
-                          <p className="text-sm text-muted-foreground">
-                            جهة الاتصال: {supplier.contact_person}
-                          </p>
-                        )}
-                      </div>
-                      {getStatusBadge(supplier.is_active)}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>اسم المورد</TableHead>
+                <TableHead>الشخص المسؤول</TableHead>
+                <TableHead>التواصل</TableHead>
+                <TableHead>التقييم</TableHead>
+                <TableHead>الحالة</TableHead>
+                <TableHead>الإجراءات</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {suppliers.map((supplier) => (
+                <TableRow key={supplier.id}>
+                  <TableCell className="font-medium">
+                    {supplier.name}
+                  </TableCell>
+                  <TableCell>
+                    {supplier.contact_person || "-"}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
                       {supplier.phone && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span>{supplier.phone}</span>
+                        <div className="flex items-center gap-1 text-sm">
+                          <Phone className="w-3 h-3" />
+                          {supplier.phone}
                         </div>
                       )}
                       {supplier.email && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span className="truncate">{supplier.email}</span>
+                        <div className="flex items-center gap-1 text-sm">
+                          <Mail className="w-3 h-3" />
+                          {supplier.email}
                         </div>
                       )}
-                      <div className="flex items-center gap-2">
-                        {getRatingStars(supplier.rating)}
-                      </div>
+                      {!supplier.phone && !supplier.email && "-"}
                     </div>
-
-                    {supplier.address && (
-                      <p className="text-sm text-muted-foreground mb-3">
-                        العنوان: {supplier.address}
-                      </p>
-                    )}
-
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {supplier.payment_terms && (
-                        <Badge variant="outline" className="text-xs">
-                          شروط الدفع: {supplier.payment_terms}
-                        </Badge>
-                      )}
-                      {supplier.tax_number && (
-                        <Badge variant="outline" className="text-xs">
-                          الرقم الضريبي: {supplier.tax_number}
-                        </Badge>
-                      )}
+                  </TableCell>
+                  <TableCell>
+                    {renderStars(supplier.rating)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={supplier.is_active ? "default" : "secondary"}>
+                      {supplier.is_active ? "نشط" : "غير نشط"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDelete(supplier.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
-                  </div>
-
-                  <SupplierQuickActions
-                    supplier={supplier}
-                    onCreateOrder={handleCreateOrder}
-                    onEdit={(supplier) => {
-                      // TODO: Implement edit dialog
-                      console.log("Edit supplier:", supplier);
-                    }}
-                    onView={(supplier) => {
-                      // TODO: Implement view dialog
-                      console.log("View supplier:", supplier);
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredSuppliers.length === 0 && (
-          <Card className="animate-fade-in">
-            <CardContent className="p-12 text-center">
-              <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-medium mb-2">لا توجد موردين</h3>
-              <p className="text-muted-foreground mb-4">
-                {hasActiveFilters 
-                  ? "لم يتم العثور على موردين مطابقين للفلاتر المحددة"
-                  : "لا توجد موردين في النظام حالياً"
-                }
-              </p>
-              {hasActiveFilters && (
-                <Button variant="outline" onClick={clearFilters}>
-                  مسح الفلاتر
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
-      </div>
+      </CardContent>
 
-      {/* Create Purchase Order Dialog */}
-      <CreatePurchaseOrderDialog
-        open={showCreateOrder}
-        onOpenChange={(open) => {
-          setShowCreateOrder(open);
-          if (!open) setSelectedSupplier(null);
-        }}
+      <AddSupplierDialog 
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
       />
-    </>
+    </Card>
   );
 };

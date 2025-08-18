@@ -135,7 +135,6 @@ export type Database = {
           ip_address: unknown | null
           resource_id: string | null
           resource_type: string | null
-          tag: string | null
           user_agent: string | null
           user_id: string | null
         }
@@ -147,7 +146,6 @@ export type Database = {
           ip_address?: unknown | null
           resource_id?: string | null
           resource_type?: string | null
-          tag?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
@@ -159,7 +157,6 @@ export type Database = {
           ip_address?: unknown | null
           resource_id?: string | null
           resource_type?: string | null
-          tag?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
@@ -1242,7 +1239,6 @@ export type Database = {
           maximum_stock: number | null
           minimum_stock: number
           name: string
-          part_number: string | null
           reorder_point: number | null
           selling_price: number | null
           sku: string | null
@@ -1264,7 +1260,6 @@ export type Database = {
           maximum_stock?: number | null
           minimum_stock?: number
           name: string
-          part_number?: string | null
           reorder_point?: number | null
           selling_price?: number | null
           sku?: string | null
@@ -1286,7 +1281,6 @@ export type Database = {
           maximum_stock?: number | null
           minimum_stock?: number
           name?: string
-          part_number?: string | null
           reorder_point?: number | null
           selling_price?: number | null
           sku?: string | null
@@ -1593,24 +1587,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "maintenance_oils_used_inventory_item_id_fkey"
-            columns: ["inventory_item_id"]
-            isOneToOne: false
-            referencedRelation: "inventory_items_extended"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "maintenance_oils_used_maintenance_id_fkey"
             columns: ["maintenance_id"]
             isOneToOne: false
             referencedRelation: "vehicle_maintenance"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "maintenance_oils_used_maintenance_id_fkey"
-            columns: ["maintenance_id"]
-            isOneToOne: false
-            referencedRelation: "work_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -1655,24 +1635,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "maintenance_parts_used_inventory_item_id_fkey"
-            columns: ["inventory_item_id"]
-            isOneToOne: false
-            referencedRelation: "inventory_items_extended"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "maintenance_parts_used_maintenance_id_fkey"
             columns: ["maintenance_id"]
             isOneToOne: false
             referencedRelation: "vehicle_maintenance"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "maintenance_parts_used_maintenance_id_fkey"
-            columns: ["maintenance_id"]
-            isOneToOne: false
-            referencedRelation: "work_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -1875,13 +1841,6 @@ export type Database = {
             columns: ["maintenance_id"]
             isOneToOne: false
             referencedRelation: "vehicle_maintenance"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "maintenance_work_hours_maintenance_id_fkey"
-            columns: ["maintenance_id"]
-            isOneToOne: false
-            referencedRelation: "work_orders"
             referencedColumns: ["id"]
           },
           {
@@ -2480,13 +2439,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "payment_vouchers_maintenance_id_fkey"
-            columns: ["maintenance_id"]
-            isOneToOne: false
-            referencedRelation: "work_orders"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "payment_vouchers_purchase_order_id_fkey"
             columns: ["purchase_order_id"]
             isOneToOne: false
@@ -2671,13 +2623,6 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "inventory_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_order_items_item_id_fkey"
-            columns: ["item_id"]
-            isOneToOne: false
-            referencedRelation: "inventory_items_extended"
             referencedColumns: ["id"]
           },
           {
@@ -3235,13 +3180,6 @@ export type Database = {
             referencedRelation: "inventory_items"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "stock_transactions_item_id_fkey"
-            columns: ["item_id"]
-            isOneToOne: false
-            referencedRelation: "inventory_items_extended"
-            referencedColumns: ["id"]
-          },
         ]
       }
       suppliers: {
@@ -3511,7 +3449,6 @@ export type Database = {
       vehicle_maintenance: {
         Row: {
           actual_duration_hours: number | null
-          assigned_mechanic_id: string | null
           completed_date: string | null
           cost: number | null
           created_at: string
@@ -3524,12 +3461,9 @@ export type Database = {
           maintenance_type: string
           mechanic_id: string | null
           notes: string | null
-          odometer_in: number | null
-          odometer_out: number | null
           oils_used: Json | null
           parts_cost: number | null
           parts_used: string[] | null
-          reported_issue: string | null
           scheduled_date: string | null
           status: string
           template_id: string | null
@@ -3542,7 +3476,6 @@ export type Database = {
         }
         Insert: {
           actual_duration_hours?: number | null
-          assigned_mechanic_id?: string | null
           completed_date?: string | null
           cost?: number | null
           created_at?: string
@@ -3555,12 +3488,9 @@ export type Database = {
           maintenance_type: string
           mechanic_id?: string | null
           notes?: string | null
-          odometer_in?: number | null
-          odometer_out?: number | null
           oils_used?: Json | null
           parts_cost?: number | null
           parts_used?: string[] | null
-          reported_issue?: string | null
           scheduled_date?: string | null
           status?: string
           template_id?: string | null
@@ -3573,7 +3503,6 @@ export type Database = {
         }
         Update: {
           actual_duration_hours?: number | null
-          assigned_mechanic_id?: string | null
           completed_date?: string | null
           cost?: number | null
           created_at?: string
@@ -3586,12 +3515,9 @@ export type Database = {
           maintenance_type?: string
           mechanic_id?: string | null
           notes?: string | null
-          odometer_in?: number | null
-          odometer_out?: number | null
           oils_used?: Json | null
           parts_cost?: number | null
           parts_used?: string[] | null
-          reported_issue?: string | null
           scheduled_date?: string | null
           status?: string
           template_id?: string | null
@@ -3603,13 +3529,6 @@ export type Database = {
           work_start_time?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "vehicle_maintenance_assigned_mechanic_id_fkey"
-            columns: ["assigned_mechanic_id"]
-            isOneToOne: false
-            referencedRelation: "mechanics"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "vehicle_maintenance_mechanic_id_fkey"
             columns: ["mechanic_id"]
@@ -3715,13 +3634,10 @@ export type Database = {
           created_at: string
           created_by: string | null
           daily_rate: number
-          default_monthly_rate: number | null
           engine_number: string | null
           features: string[] | null
           fuel_type: string
           id: string
-          inspection_expiry: string | null
-          insurance_expiry: string | null
           mileage: number
           model: string
           notes: string | null
@@ -3742,13 +3658,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           daily_rate?: number
-          default_monthly_rate?: number | null
           engine_number?: string | null
           features?: string[] | null
           fuel_type?: string
           id?: string
-          inspection_expiry?: string | null
-          insurance_expiry?: string | null
           mileage?: number
           model: string
           notes?: string | null
@@ -3769,13 +3682,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           daily_rate?: number
-          default_monthly_rate?: number | null
           engine_number?: string | null
           features?: string[] | null
           fuel_type?: string
           id?: string
-          inspection_expiry?: string | null
-          insurance_expiry?: string | null
           mileage?: number
           model?: string
           notes?: string | null
@@ -3870,264 +3780,7 @@ export type Database = {
       }
     }
     Views: {
-      inventory_items_extended: {
-        Row: {
-          barcode: string | null
-          category_id: string | null
-          created_at: string | null
-          description: string | null
-          expiry_date: string | null
-          id: string | null
-          is_active: boolean | null
-          location: string | null
-          maximum_stock: number | null
-          name: string | null
-          part_number: string | null
-          quantity_available: number | null
-          reorder_level: number | null
-          reorder_point: number | null
-          selling_price: number | null
-          sku: string | null
-          supplier_id: string | null
-          unit_cost: number | null
-          unit_of_measure: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          barcode?: string | null
-          category_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          expiry_date?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          location?: string | null
-          maximum_stock?: number | null
-          name?: string | null
-          part_number?: string | null
-          quantity_available?: number | null
-          reorder_level?: number | null
-          reorder_point?: number | null
-          selling_price?: number | null
-          sku?: string | null
-          supplier_id?: string | null
-          unit_cost?: number | null
-          unit_of_measure?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          barcode?: string | null
-          category_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          expiry_date?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          location?: string | null
-          maximum_stock?: number | null
-          name?: string | null
-          part_number?: string | null
-          quantity_available?: number | null
-          reorder_level?: number | null
-          reorder_point?: number | null
-          selling_price?: number | null
-          sku?: string | null
-          supplier_id?: string | null
-          unit_cost?: number | null
-          unit_of_measure?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "inventory_items_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "inventory_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "inventory_items_supplier_id_fkey"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "suppliers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      inventory_transactions: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          item_id: string | null
-          notes: string | null
-          performed_by: string | null
-          quantity: number | null
-          reference_id: string | null
-          reference_type: string | null
-          total_cost: number | null
-          transaction_date: string | null
-          transaction_type: string | null
-          unit_cost: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string | null
-          item_id?: string | null
-          notes?: string | null
-          performed_by?: string | null
-          quantity?: number | null
-          reference_id?: string | null
-          reference_type?: string | null
-          total_cost?: number | null
-          transaction_date?: string | null
-          transaction_type?: string | null
-          unit_cost?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string | null
-          item_id?: string | null
-          notes?: string | null
-          performed_by?: string | null
-          quantity?: number | null
-          reference_id?: string | null
-          reference_type?: string | null
-          total_cost?: number | null
-          transaction_date?: string | null
-          transaction_type?: string | null
-          unit_cost?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "stock_transactions_item_id_fkey"
-            columns: ["item_id"]
-            isOneToOne: false
-            referencedRelation: "inventory_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "stock_transactions_item_id_fkey"
-            columns: ["item_id"]
-            isOneToOne: false
-            referencedRelation: "inventory_items_extended"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      service_schedule: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          id: string | null
-          maintenance_type: string | null
-          notes: string | null
-          priority: string | null
-          scheduled_date: string | null
-          scheduled_mileage: number | null
-          status: string | null
-          template_id: string | null
-          updated_at: string | null
-          vehicle_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string | null
-          maintenance_type?: string | null
-          notes?: string | null
-          priority?: string | null
-          scheduled_date?: string | null
-          scheduled_mileage?: number | null
-          status?: string | null
-          template_id?: string | null
-          updated_at?: string | null
-          vehicle_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string | null
-          maintenance_type?: string | null
-          notes?: string | null
-          priority?: string | null
-          scheduled_date?: string | null
-          scheduled_mileage?: number | null
-          status?: string | null
-          template_id?: string | null
-          updated_at?: string | null
-          vehicle_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "maintenance_schedules_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "maintenance_templates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "maintenance_schedules_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      work_orders: {
-        Row: {
-          assigned_mechanic_id: string | null
-          closed_at: string | null
-          cost: number | null
-          id: string | null
-          odometer_in: number | null
-          odometer_out: number | null
-          opened_at: string | null
-          reported_issue: string | null
-          status: string | null
-          vehicle_id: string | null
-        }
-        Insert: {
-          assigned_mechanic_id?: string | null
-          closed_at?: string | null
-          cost?: never
-          id?: string | null
-          odometer_in?: number | null
-          odometer_out?: number | null
-          opened_at?: never
-          reported_issue?: string | null
-          status?: string | null
-          vehicle_id?: string | null
-        }
-        Update: {
-          assigned_mechanic_id?: string | null
-          closed_at?: string | null
-          cost?: never
-          id?: string | null
-          odometer_in?: number | null
-          odometer_out?: number | null
-          opened_at?: never
-          reported_issue?: string | null
-          status?: string | null
-          vehicle_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vehicle_maintenance_assigned_mechanic_id_fkey"
-            columns: ["assigned_mechanic_id"]
-            isOneToOne: false
-            referencedRelation: "mechanics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "vehicle_maintenance_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       analyze_customer_behavior: {
@@ -4264,16 +3917,6 @@ export type Database = {
       validate_voucher_payment: {
         Args: { p_amount: number; p_owner_id: string }
         Returns: Json
-      }
-      write_activity: {
-        Args: {
-          p_action: string
-          p_details?: Json
-          p_entity_id: string
-          p_entity_type: string
-          p_tag: string
-        }
-        Returns: undefined
       }
     }
     Enums: {

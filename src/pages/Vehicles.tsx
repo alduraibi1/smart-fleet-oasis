@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useVehicles } from '@/hooks/useVehicles';
 import VehicleStats from '@/components/Vehicles/VehicleStats';
@@ -8,7 +9,8 @@ import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/Layout/AppLayout';
-import { VehicleFilters as VehicleFiltersType, Vehicle } from '@/types/vehicles';
+import { VehicleFilters as VehicleFiltersType } from '@/types/vehicles';
+import { Vehicle } from '@/types/vehicle';
 
 const Vehicles = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'enhanced'>('enhanced');
@@ -26,8 +28,8 @@ const Vehicles = () => {
     fetchVehicles(filters); // Refresh the list
   };
 
-  // Convert vehicles from the hook to ensure consistency - now both types are the same
-  const convertedVehicles: Vehicle[] = vehicles.map((vehicle: any) => ({
+  // Convert vehicles from the hook to the Vehicle type used in EnhancedVehicleGrid
+  const convertedVehicles: Vehicle[] = vehicles.map(vehicle => ({
     ...vehicle,
     plateNumber: vehicle.plate_number,
     dailyRate: vehicle.daily_rate,
@@ -37,7 +39,7 @@ const Vehicles = () => {
     seatingCapacity: vehicle.seating_capacity,
     maintenance: vehicle.maintenance ? 
       (Array.isArray(vehicle.maintenance) ? 
-        vehicle.maintenance.map((m: any) => ({
+        vehicle.maintenance.map(m => ({
           ...m,
           maintenance_type: m.maintenance_type || 'general',
           created_at: m.created_at || new Date().toISOString(),
@@ -61,11 +63,11 @@ const Vehicles = () => {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }],
-    documents: (vehicle.documents || []).map((doc: any) => ({
+    documents: (vehicle.documents || []).map(doc => ({
       ...doc,
       upload_date: doc.upload_date || new Date().toISOString(),
     })),
-    images: (vehicle.images || []).map((img: any) => ({
+    images: (vehicle.images || []).map(img => ({
       ...img,
       upload_date: img.upload_date || new Date().toISOString(),
     })),
@@ -80,18 +82,18 @@ const Vehicles = () => {
   }));
 
   const handleUpdateVehicle = async (id: string, vehicleData: Partial<Vehicle>) => {
-    // Convert back to the format expected by the hook - fix property names
+    // Convert back to the format expected by the hook
     const convertedData = {
       ...vehicleData,
-      plate_number: vehicleData.plate_number || vehicleData.plateNumber,
-      daily_rate: vehicleData.daily_rate || vehicleData.dailyRate,
-      engine_number: vehicleData.engine_number || vehicleData.engineNumber,
-      chassis_number: vehicleData.chassis_number || vehicleData.chassisNumber,
-      fuel_type: vehicleData.fuel_type || vehicleData.fuelType,
-      seating_capacity: vehicleData.seating_capacity || vehicleData.seatingCapacity,
+      plate_number: vehicleData.plateNumber || vehicleData.plate_number,
+      daily_rate: vehicleData.dailyRate || vehicleData.daily_rate,
+      engine_number: vehicleData.engineNumber || vehicleData.engine_number,
+      chassis_number: vehicleData.chassisNumber || vehicleData.chassis_number,
+      fuel_type: vehicleData.fuelType || vehicleData.fuel_type,
+      seating_capacity: vehicleData.seatingCapacity || vehicleData.seating_capacity,
       // Convert maintenance back to array format if needed
       maintenance: vehicleData.maintenance ? 
-        vehicleData.maintenance.map((m: any) => ({
+        vehicleData.maintenance.map(m => ({
           ...m,
           maintenance_type: m.maintenance_type || 'general',
           created_at: m.created_at || new Date().toISOString(),
@@ -100,11 +102,11 @@ const Vehicles = () => {
         })) : 
         undefined,
       // Ensure documents and images have required properties
-      documents: vehicleData.documents?.map((doc: any) => ({
+      documents: vehicleData.documents?.map(doc => ({
         ...doc,
         upload_date: doc.upload_date || new Date().toISOString(),
       })),
-      images: vehicleData.images?.map((img: any) => ({
+      images: vehicleData.images?.map(img => ({
         ...img,
         upload_date: img.upload_date || new Date().toISOString(),
       })),

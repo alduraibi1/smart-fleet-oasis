@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { Search, Filter, X, BadgeAlert } from 'lucide-react';
+import { Search, Filter, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
+import { VehicleFilters as VehicleFiltersType } from '@/types/vehicles';
 
 interface VehicleFiltersProps {
   filters: VehicleFiltersType;
@@ -49,7 +48,6 @@ export default function VehicleFilters({
       maxPrice: undefined,
       minYear: undefined,
       maxYear: undefined,
-      expiryWindow: undefined,
     };
     setLocalFilters(emptyFilters);
     onFiltersChange(emptyFilters);
@@ -62,12 +60,6 @@ export default function VehicleFilters({
     { value: 'maintenance', label: 'صيانة' },
     { value: 'out_of_service', label: 'خارج الخدمة' }
   ];
-
-  const expiryOptions = [
-    { value: 'expired', label: 'منتهية' },
-    { value: 'warning', label: 'قريبة الانتهاء' },
-    { value: 'valid', label: 'صالحة' },
-  ] as const;
 
   return (
     <Card>
@@ -175,23 +167,6 @@ export default function VehicleFilters({
                 type="number"
                 disabled={loading}
               />
-
-              {/* Expiry Window Filter */}
-              <Select value={localFilters.expiryWindow || ''} onValueChange={(value) => updateFilter('expiryWindow', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="حالة الصلاحية (أي مستند)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {expiryOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      <div className="flex items-center gap-2">
-                        <BadgeAlert className="h-4 w-4 text-muted-foreground" />
-                        {opt.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           )}
         </div>

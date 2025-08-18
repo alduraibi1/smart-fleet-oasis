@@ -1,3 +1,4 @@
+
 export interface VehicleOwner {
   id: string;
   name: string;
@@ -53,11 +54,6 @@ export interface VehicleMaintenance {
   created_by?: string;
   lastMaintenanceDate?: string;
   nextMaintenanceDate?: string;
-  // New fields aligned with DB
-  reported_issue?: string;
-  odometer_in?: number;
-  odometer_out?: number;
-  assigned_mechanic_id?: string;
 }
 
 export interface VehicleLocation {
@@ -109,9 +105,6 @@ export interface Vehicle {
   seatingCapacity?: number;
   features?: string[];
   registration_expiry?: string;
-  insurance_expiry?: string;
-  inspection_expiry?: string;
-  default_monthly_rate?: number;
   
   // Owner
   owner_id?: string;
@@ -130,29 +123,4 @@ export interface Vehicle {
   created_at?: string;
   updated_at?: string;
   created_by?: string;
-}
-
-export interface VehicleFilters {
-  search?: string;
-  status?: string;
-  brand?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  minYear?: number;
-  maxYear?: number;
-  fuel_type?: string;
-  transmission?: string;
-  owner_id?: string;
-  // New: filter by any expiry window across registration/insurance/inspection
-  expiryWindow?: 'expired' | 'warning' | 'valid';
-}
-
-export interface VehicleStats {
-  total: number;
-  available: number;
-  rented: number;
-  maintenance: number;
-  out_of_service: number;
-  total_value: number;
-  avg_daily_rate: number;
 }

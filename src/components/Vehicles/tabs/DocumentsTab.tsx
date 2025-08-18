@@ -1,10 +1,8 @@
-
 import { FileText, Download, Eye } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Vehicle } from '@/types/vehicle';
-import { useSystemSettings } from '@/hooks/useSystemSettings';
 
 interface DocumentsTabProps {
   vehicle: Vehicle;
@@ -13,33 +11,12 @@ interface DocumentsTabProps {
 }
 
 export default function DocumentsTab({ vehicle, getDocumentStatus, getDocumentTypeLabel }: DocumentsTabProps) {
-  const { settings } = useSystemSettings();
-  const warningDays =
-    (settings?.registrationExpiryWarningDays as number | undefined) ||
-    (settings?.registrationExpiryWarning as number | undefined) ||
-    30;
-
-  const computeStatus = (expiryStr?: string) => {
-    if (!expiryStr) return 'valid';
-    const expiry = new Date(expiryStr);
-    const today = new Date();
-    // Normalize times (ignore hours)
-    expiry.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    const diffMs = expiry.getTime() - today.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays < 0) return 'expired';
-    if (diffDays <= warningDays) return 'near_expiry';
-    return 'valid';
-  };
-
   return (
     <div className="space-y-4">
       {vehicle.documents && vehicle.documents.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {vehicle.documents.map((doc) => {
-            const derivedStatus = computeStatus(doc.expiryDate || doc.expiry_date);
-            const docStatus = getDocumentStatus(derivedStatus);
+            const docStatus = getDocumentStatus(doc.status);
             return (
               <Card key={doc.id}>
                 <CardContent className="p-4">

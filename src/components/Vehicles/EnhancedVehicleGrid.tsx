@@ -17,7 +17,7 @@ import {
   Settings,
   User,
 } from "lucide-react";
-import { Vehicle } from '@/types/vehicles';
+import { Vehicle } from '@/types/vehicle';
 import { Button } from '@/components/ui/button';
 import { EditVehicleDialog } from './EditVehicleDialog';
 import { DeleteVehicleDialog } from './DeleteVehicleDialog';
@@ -65,9 +65,9 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
     setDeleteDialogOpen(true);
   };
 
-  const handleVehicleUpdated = async (id: string, updatedData: Partial<Vehicle>) => {
+  const handleVehicleUpdated = async (updatedVehicle: Vehicle) => {
     try {
-      await onUpdateVehicle(id, updatedData);
+      await onUpdateVehicle(updatedVehicle.id, updatedVehicle);
       setEditDialogOpen(false);
       setSelectedVehicle(null);
       toast({
@@ -84,9 +84,9 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
     }
   };
 
-  const handleVehicleDeleted = async (id: string) => {
+  const handleVehicleDeleted = async (vehicle: Vehicle) => {
     try {
-      await onDeleteVehicle(id);
+      await onDeleteVehicle(vehicle.id);
       setDeleteDialogOpen(false);
       setSelectedVehicle(null);
       toast({
@@ -250,7 +250,9 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
       {selectedVehicle && (
         <EditVehicleDialog
           vehicle={selectedVehicle}
-          onUpdate={handleVehicleUpdated}
+          isOpen={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          onVehicleUpdated={handleVehicleUpdated}
         />
       )}
 
@@ -258,7 +260,9 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
       {selectedVehicle && (
         <DeleteVehicleDialog
           vehicle={selectedVehicle}
-          onDelete={handleVehicleDeleted}
+          isOpen={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          onVehicleDeleted={handleVehicleDeleted}
         />
       )}
     </div>

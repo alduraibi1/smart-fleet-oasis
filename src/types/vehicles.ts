@@ -1,4 +1,3 @@
-
 export interface VehicleOwner {
   id: string;
   name: string;
@@ -17,12 +16,9 @@ export interface VehicleDocument {
   name: string;
   type: 'license' | 'insurance' | 'inspection' | 'registration' | 'other';
   file_url?: string;
-  url?: string;
   file_name?: string;
   upload_date: string;
-  uploadDate?: string;
   expiry_date?: string;
-  expiryDate?: string;
   status: 'valid' | 'expired' | 'near_expiry';
   uploaded_by?: string;
 }
@@ -34,7 +30,6 @@ export interface VehicleImage {
   type: 'exterior' | 'interior' | 'damage' | 'other';
   description?: string;
   upload_date: string;
-  uploadDate?: string;
   uploaded_by?: string;
 }
 
@@ -52,13 +47,6 @@ export interface VehicleMaintenance {
   created_at: string;
   updated_at: string;
   created_by?: string;
-  lastMaintenanceDate?: string;
-  nextMaintenanceDate?: string;
-  // New fields aligned with DB
-  reported_issue?: string;
-  odometer_in?: number;
-  odometer_out?: number;
-  assigned_mechanic_id?: string;
 }
 
 export interface VehicleLocation {
@@ -68,68 +56,43 @@ export interface VehicleLocation {
   longitude?: number;
   address?: string;
   last_updated?: string;
-  lastUpdated?: string;
   is_tracked: boolean;
-}
-
-export interface VehiclePurchase {
-  purchasePrice?: number;
-  purchaseDate?: string;
-  financingCompany?: string;
-}
-
-export interface VehicleCurrentRental {
-  customerName: string;
-  startDate: string;
-  endDate: string;
 }
 
 export interface Vehicle {
   id: string;
   plate_number: string;
-  plateNumber?: string;
   brand: string;
   model: string;
   year: number;
   color: string;
   status: 'available' | 'rented' | 'maintenance' | 'out_of_service';
   daily_rate: number;
-  dailyRate?: number;
   mileage: number;
   
   // Vehicle Details
   vin?: string;
   engine_number?: string;
-  engineNumber?: string;
   chassis_number?: string;
-  chassisNumber?: string;
   fuel_type: 'gasoline' | 'diesel' | 'hybrid' | 'electric';
-  fuelType?: 'gasoline' | 'diesel' | 'hybrid' | 'electric';
   transmission: 'manual' | 'automatic';
   seating_capacity: number;
-  seatingCapacity?: number;
   features?: string[];
-  registration_expiry?: string;
-  insurance_expiry?: string;
-  inspection_expiry?: string;
-  default_monthly_rate?: number;
   
   // Owner
   owner_id?: string;
   owner?: VehicleOwner;
   
-  // Related data - Always arrays for consistency
+  // Related data
   documents?: VehicleDocument[];
   images?: VehicleImage[];
   maintenance?: VehicleMaintenance[];
   location?: VehicleLocation;
-  purchase?: VehiclePurchase;
-  currentRental?: VehicleCurrentRental;
   
-  // Administrative - Make created_at optional to match usage
+  // Administrative
   notes?: string;
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
   created_by?: string;
 }
 
@@ -144,8 +107,6 @@ export interface VehicleFilters {
   fuel_type?: string;
   transmission?: string;
   owner_id?: string;
-  // New: filter by any expiry window across registration/insurance/inspection
-  expiryWindow?: 'expired' | 'warning' | 'valid';
 }
 
 export interface VehicleStats {

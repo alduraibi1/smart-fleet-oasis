@@ -1,4 +1,3 @@
-
 import { Car, DollarSign, Clock, FileText, Image as ImageIcon, Users, Fuel, Gauge } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,9 +11,6 @@ interface OverviewTabProps {
 }
 
 export default function OverviewTab({ vehicle, statusBadge, getFuelTypeLabel }: OverviewTabProps) {
-  // Handle the currentRental property safely since it might not exist on the Vehicle type
-  const currentRentalInfo = (vehicle as any).currentRental || null;
-
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -79,7 +75,7 @@ export default function OverviewTab({ vehicle, statusBadge, getFuelTypeLabel }: 
       </div>
 
       {/* Current Rental Info */}
-      {currentRentalInfo && (
+      {vehicle.currentRental && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -91,15 +87,15 @@ export default function OverviewTab({ vehicle, statusBadge, getFuelTypeLabel }: 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label className="text-muted-foreground">اسم العميل</Label>
-                <p className="font-medium">{currentRentalInfo.customerName}</p>
+                <p className="font-medium">{vehicle.currentRental.customerName}</p>
               </div>
               <div>
                 <Label className="text-muted-foreground">تاريخ البداية</Label>
-                <p className="font-medium">{new Date(currentRentalInfo.startDate).toLocaleDateString('ar')}</p>
+                <p className="font-medium">{new Date(vehicle.currentRental.startDate).toLocaleDateString('ar')}</p>
               </div>
               <div>
                 <Label className="text-muted-foreground">تاريخ النهاية</Label>
-                <p className="font-medium">{new Date(currentRentalInfo.endDate).toLocaleDateString('ar')}</p>
+                <p className="font-medium">{new Date(vehicle.currentRental.endDate).toLocaleDateString('ar')}</p>
               </div>
             </div>
           </CardContent>

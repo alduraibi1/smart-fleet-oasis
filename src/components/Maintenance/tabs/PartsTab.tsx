@@ -1,279 +1,357 @@
-
 import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertTriangle, Package, Plus, Trash2, Search, AlertCircle } from "lucide-react";
-import { useInventory } from "@/hooks/useInventory";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Package, 
+  Plus, 
+  Minus, 
+  Trash2, 
+  Search, 
+  AlertTriangle, 
+  CheckCircle,
+  Barcode
+} from "lucide-react";
 import { MaintenanceFormData } from "../EnhancedAddMaintenanceDialog";
 
 interface PartsTabProps {
   formData: MaintenanceFormData;
-  setFormData: (data: MaintenanceFormData) => void;
+  setFormData: (data: MaintenanceFormData | ((prev: MaintenanceFormData) => MaintenanceFormData)) => void;
   onCalculateCosts: () => void;
 }
 
+// Mock inventory data
+const mockPartsInventory = [
+  { id: 'p1', name: 'فلتر الهواء', brand: 'Mann Filter', stock: 25, unitCost: 45, sellingPrice: 65, category: 'filter', barcode: '1234567890' },
+  { id: 'p2', name: 'فلتر الزيت', brand: 'Bosch', stock: 30, unitCost: 35, sellingPrice: 50, category: 'filter', barcode: '1234567891' },
+  { id: 'p3', name: 'أقراص الفرامل الأمامية', brand: 'Brembo', stock: 8, unitCost: 180, sellingPrice: 250, category: 'brake', barcode: '1234567892' },
+  { id: 'p4', name: 'أقراص الفرامل الخلفية', brand: 'Brembo', stock: 12, unitCost: 150, sellingPrice: 210, category: 'brake', barcode: '1234567893' },
+  { id: 'p5', name: 'بطارية 12V 70Ah', brand: 'ACDelco', stock: 5, unitCost: 320, sellingPrice: 450, category: 'battery', barcode: '1234567894' },
+  { id: 'p6', name: 'شمعات الإشعال', brand: 'NGK', stock: 40, unitCost: 25, sellingPrice: 40, category: 'spark_plug', barcode: '1234567895' },
+  { id: 'p7', name: 'حزام التوقيت', brand: 'Gates', stock: 3, unitCost: 120, sellingPrice: 180, category: 'belt', barcode: '1234567896' },
+  { id: 'p8', name: 'إطار 195/65R15', brand: 'Bridgestone', stock: 16, unitCost: 280, sellingPrice: 380, category: 'tire', barcode: '1234567897' },
+];
+
 export function PartsTab({ formData, setFormData, onCalculateCosts }: PartsTabProps) {
-  const { items } = useInventory();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPartId, setSelectedPartId] = useState("");
   const [quantity, setQuantity] = useState(1);
 
-  // تصفية قطع الغيار حسب البحث
-  const filteredParts = items.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.part_number?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredParts = mockPartsInventory.filter(part =>
+    part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    part.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    part.barcode.includes(searchTerm)
   );
 
   const addPart = () => {
-    if (!selectedPartId || quantity <= 0) return;
-    
-    const selectedPart = items.find(item => item.id === selectedPartId);
-    if (!selectedPart) return;
+    const selectedPart = mockPartsInventory.find(p => p.id === selectedPartId);
+    if (!selectedPart || quantity <= 0) return;
 
-    // التحقق من توفر الكمية في المخزون
-    if (selectedPart.current_stock < quantity) {
-      alert(`الكمية المتاحة في المخزون: ${selectedPart.current_stock}`);
+    if (quantity > selectedPart.stock) {
+      alert(`المخزون غير كافي. المتوفر: ${selectedPart.stock}`);
       return;
     }
 
-    const newPart = {
-      partId: selectedPart.id,
-      partName: selectedPart.name,
-      partNumber: selectedPart.part_number || selectedPart.sku || '',
-      quantity: quantity,
-      unitCost: selectedPart.unit_cost,
-      totalCost: quantity * selectedPart.unit_cost,
-      stockBefore: selectedPart.current_stock,
-      stockAfter: selectedPart.current_stock - quantity
-    };
-
-    const updatedParts = [...formData.partsUsed, newPart];
-    setFormData({ ...formData, partsUsed: updatedParts });
+    const existingPartIndex = formData.partsUsed.findIndex(p => p.partId === selectedPartId);
     
-    // إعادة تعيين الحقول
+    if (existingPartIndex >= 0) {
+      // Update existing part
+      const updatedParts = [...formData.partsUsed];
+      updatedParts[existingPartIndex] = {
+        ...updatedParts[existingPartIndex],
+        quantity: updatedParts[existingPartIndex].quantity + quantity,
+        totalCost: (updatedParts[existingPartIndex].quantity + quantity) * selectedPart.sellingPrice,
+        stockAfter: selectedPart.stock - (updatedParts[existingPartIndex].quantity + quantity)
+      };
+      
+      setFormData(prev => ({ ...prev, partsUsed: updatedParts }));
+    } else {
+      // Add new part
+      const newPart = {
+        partId: selectedPart.id,
+        partName: selectedPart.name,
+        quantity,
+        unitCost: selectedPart.sellingPrice,
+        totalCost: quantity * selectedPart.sellingPrice,
+        stockBefore: selectedPart.stock,
+        stockAfter: selectedPart.stock - quantity
+      };
+      
+      setFormData(prev => ({ ...prev, partsUsed: [...prev.partsUsed, newPart] }));
+    }
+
+    // Reset form
     setSelectedPartId("");
     setQuantity(1);
-    setSearchTerm("");
-    
-    // حساب التكاليف
-    setTimeout(onCalculateCosts, 100);
+    setTimeout(onCalculateCosts, 0);
   };
 
   const removePart = (index: number) => {
     const updatedParts = formData.partsUsed.filter((_, i) => i !== index);
-    setFormData({ ...formData, partsUsed: updatedParts });
-    onCalculateCosts();
+    setFormData(prev => ({ ...prev, partsUsed: updatedParts }));
+    setTimeout(onCalculateCosts, 0);
   };
 
   const updatePartQuantity = (index: number, newQuantity: number) => {
-    if (newQuantity <= 0) return;
-    
-    const updatedParts = [...formData.partsUsed];
-    const part = updatedParts[index];
-    
-    // التحقق من توفر الكمية الجديدة
-    const originalItem = items.find(item => item.id === part.partId);
-    if (originalItem && originalItem.current_stock < newQuantity) {
-      alert(`الكمية المتاحة في المخزون: ${originalItem.current_stock}`);
+    if (newQuantity <= 0) {
+      removePart(index);
       return;
     }
+
+    const updatedParts = [...formData.partsUsed];
+    const part = updatedParts[index];
+    const originalPart = mockPartsInventory.find(p => p.id === part.partId);
     
-    part.quantity = newQuantity;
-    part.totalCost = newQuantity * part.unitCost;
-    part.stockAfter = part.stockBefore - newQuantity;
-    
-    setFormData({ ...formData, partsUsed: updatedParts });
-    onCalculateCosts();
+    if (!originalPart) return;
+
+    if (newQuantity > originalPart.stock) {
+      alert(`المخزون غير كافي. المتوفر: ${originalPart.stock}`);
+      return;
+    }
+
+    updatedParts[index] = {
+      ...part,
+      quantity: newQuantity,
+      totalCost: newQuantity * part.unitCost,
+      stockAfter: originalPart.stock - newQuantity
+    };
+
+    setFormData(prev => ({ ...prev, partsUsed: updatedParts }));
+    setTimeout(onCalculateCosts, 0);
   };
 
-  const getTotalPartsValue = () => {
-    return formData.partsUsed.reduce((sum, part) => sum + part.totalCost, 0);
+  const getStockStatus = (stock: number, minStock: number = 5) => {
+    if (stock === 0) return { label: 'نفد المخزون', variant: 'destructive' as const };
+    if (stock <= minStock) return { label: 'مخزون منخفض', variant: 'secondary' as const };
+    return { label: 'متوفر', variant: 'default' as const };
   };
 
-  const getStockStatusColor = (currentStock: number, minStock: number) => {
-    if (currentStock <= 0) return 'destructive';
-    if (currentStock <= minStock) return 'secondary';
-    return 'default';
-  };
+  const selectedPart = mockPartsInventory.find(p => p.id === selectedPartId);
 
   return (
-    <div className="space-y-4">
-      {/* إضافة قطعة غيار جديدة */}
+    <div className="space-y-6">
+      {/* Add Parts Section */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            إضافة قطعة غيار
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            إضافة قطع غيار
           </CardTitle>
           <CardDescription>
-            ابحث واختر قطع الغيار المطلوبة للصيانة
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="ابحث عن قطعة غيار (الاسم، رقم القطعة، SKU)..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="part">قطعة الغيار</Label>
-              <Select value={selectedPartId} onValueChange={setSelectedPartId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="اختر قطعة الغيار" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredParts.map((part) => (
-                    <SelectItem key={part.id} value={part.id}>
-                      <div className="flex items-center justify-between w-full">
-                        <div>
-                          <div className="font-medium">{part.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {part.part_number && `رقم القطعة: ${part.part_number}`}
-                            {part.sku && ` | SKU: ${part.sku}`}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={getStockStatusColor(part.current_stock, part.minimum_stock)}>
-                            {part.current_stock}
-                          </Badge>
-                          <span className="text-xs">{part.unit_cost} ر.س</span>
-                        </div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="quantity">الكمية</Label>
-              <Input
-                id="quantity"
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                placeholder="الكمية"
-              />
-            </div>
-
-            <div className="flex items-end">
-              <Button onClick={addPart} disabled={!selectedPartId} className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                إضافة
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* قائمة قطع الغيار المضافة */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            قطع الغيار المستخدمة ({formData.partsUsed.length})
-          </CardTitle>
-          <CardDescription>
-            إجمالي قيمة قطع الغيار: {getTotalPartsValue().toFixed(2)} ر.س
+            اختر قطع الغيار المستخدمة في الصيانة من المخزون
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {formData.partsUsed.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>لم يتم إضافة أي قطع غيار بعد</p>
-              <p className="text-sm">استخدم النموذج أعلاه لإضافة قطع الغيار</p>
+          <div className="space-y-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="ابحث بالاسم، الماركة، أو الباركود..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>قطعة الغيار</TableHead>
-                    <TableHead>الكمية</TableHead>
-                    <TableHead>سعر الوحدة</TableHead>
-                    <TableHead>الإجمالي</TableHead>
-                    <TableHead>المخزون</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {formData.partsUsed.map((part, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{part.partName}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {part.partNumber && `رقم القطعة: ${part.partNumber}`}
+
+            {/* Part Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <Label>قطعة الغيار</Label>
+                <Select value={selectedPartId} onValueChange={setSelectedPartId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر قطعة الغيار" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredParts.map((part) => {
+                      const status = getStockStatus(part.stock);
+                      return (
+                        <SelectItem key={part.id} value={part.id} disabled={part.stock === 0}>
+                          <div className="flex items-center justify-between w-full">
+                            <div>
+                              <div className="font-medium">{part.name}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {part.brand} - {part.sellingPrice} ر.س
+                              </div>
+                            </div>
+                            <Badge variant={status.variant} className="mr-2">
+                              {part.stock}
+                            </Badge>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={part.quantity}
-                          onChange={(e) => updatePartQuantity(index, parseInt(e.target.value) || 1)}
-                          className="w-20"
-                        />
-                      </TableCell>
-                      <TableCell>{part.unitCost.toFixed(2)} ر.س</TableCell>
-                      <TableCell className="font-medium">{part.totalCost.toFixed(2)} ر.س</TableCell>
-                      <TableCell>
-                        <div className="text-xs">
-                          <div>قبل: {part.stockBefore}</div>
-                          <div className="flex items-center gap-1">
-                            بعد: {part.stockAfter}
-                            {part.stockAfter <= 0 && (
-                              <AlertTriangle className="h-3 w-3 text-destructive" />
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removePart(index)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>الكمية</Label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                    className="text-center"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity(quantity + 1)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
-          )}
+
+            {/* Selected Part Info */}
+            {selectedPart && (
+              <Card className="bg-muted/50">
+                <CardContent className="pt-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">المخزون المتوفر:</span>
+                      <div className="font-medium">{selectedPart.stock} قطعة</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">سعر الوحدة:</span>
+                      <div className="font-medium">{selectedPart.sellingPrice} ر.س</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">الإجمالي:</span>
+                      <div className="font-medium">{(selectedPart.sellingPrice * quantity).toFixed(2)} ر.س</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">الباركود:</span>
+                      <div className="font-medium font-mono">{selectedPart.barcode}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <Button onClick={addPart} disabled={!selectedPartId || quantity <= 0}>
+              <Plus className="h-4 w-4 mr-2" />
+              إضافة إلى القائمة
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
-      {/* تحذيرات المخزون */}
-      {formData.partsUsed.some(part => part.stockAfter <= 0) && (
-        <Card className="border-destructive">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5" />
-              <span className="font-medium">تحذير: نقص في المخزون</span>
+      {/* Parts List */}
+      {formData.partsUsed.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>قطع الغيار المحددة</CardTitle>
+            <CardDescription>
+              إجمالي قطع الغيار: {formData.partsUsed.length} قطعة
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>اسم القطعة</TableHead>
+                  <TableHead className="text-center">الكمية</TableHead>
+                  <TableHead className="text-center">سعر الوحدة</TableHead>
+                  <TableHead className="text-center">الإجمالي</TableHead>
+                  <TableHead className="text-center">المخزون المتبقي</TableHead>
+                  <TableHead className="text-center">الإجراءات</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {formData.partsUsed.map((part, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{part.partName}</div>
+                        <div className="text-sm text-muted-foreground">
+                          كان متوفر: {part.stockBefore}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updatePartQuantity(index, part.quantity - 1)}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="px-2 font-medium">{part.quantity}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updatePartQuantity(index, part.quantity + 1)}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">{part.unitCost} ر.س</TableCell>
+                    <TableCell className="text-center font-medium">{part.totalCost.toFixed(2)} ر.س</TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant={part.stockAfter <= 5 ? 'secondary' : 'default'}>
+                        {part.stockAfter}
+                        {part.stockAfter <= 5 && (
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                        )}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removePart(index)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            <Separator className="my-4" />
+            
+            <div className="flex justify-between items-center">
+              <div className="text-lg font-semibold">
+                إجمالي تكلفة قطع الغيار: {formData.partsCost.toFixed(2)} ر.س
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {formData.partsUsed.reduce((sum, part) => sum + part.quantity, 0)} قطعة إجمالي
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              بعض قطع الغيار المحددة ستؤدي إلى نفاد المخزون. تأكد من توفر البدائل أو تحديث المخزون.
-            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Low Stock Alert */}
+      {formData.partsUsed.some(part => part.stockAfter <= 5) && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-amber-700">
+              <AlertTriangle className="h-5 w-5" />
+              <span className="font-medium">تنبيه: بعض قطع الغيار ستصل لحد المخزون المنخفض</span>
+            </div>
           </CardContent>
         </Card>
       )}
