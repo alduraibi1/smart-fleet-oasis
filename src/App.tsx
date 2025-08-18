@@ -14,6 +14,7 @@ import Maintenance from './pages/Maintenance';
 import Inventory from './pages/Inventory';
 import SystemManagement from './pages/SystemManagement';
 import EnhancedSystemManagement from './pages/EnhancedSystemManagement';
+import HR from './pages/HR';
 import { Toaster } from '@/components/ui/toaster';
 import './App.css';
 
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/inventory" element={<Inventory />} />
                 <Route path="/system-management" element={<SystemManagement />} />
                 <Route path="/enhanced-system-management" element={<EnhancedSystemManagement />} />
+                <Route path="/hr" element={<HR />} />
               </Routes>
             </div>
             <Toaster />
