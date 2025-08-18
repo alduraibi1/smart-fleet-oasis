@@ -1,58 +1,84 @@
 
-import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Settings, 
+  Users, 
+  Activity, 
+  Database,
+  Shield,
+  TrendingUp
+} from "lucide-react";
 import { AppLayout } from '@/components/Layout/AppLayout';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import SystemManagementOverview from '@/components/SystemManagement/SystemManagementOverview';
-import UserManagement from '@/components/SystemManagement/UserManagement';
-import RoleManagement from '@/components/SystemManagement/RoleManagement';
-import SystemSettings from '@/components/SystemManagement/SystemSettings';
-import ActivityLogs from '@/components/SystemManagement/ActivityLogs';
-import SystemStatus from '@/components/SystemManagement/SystemStatus';
+import { SystemSettings } from '@/components/SystemManagement/SystemSettings';
+import { UserManagement } from '@/components/SystemManagement/UserManagement';
+import { ActivityLogs } from '@/components/SystemManagement/ActivityLogs';
+import { SystemStatus } from '@/components/SystemManagement/SystemStatus';
+import { RoleManagement } from '@/components/SystemManagement/RoleManagement';
+import { SampleDataManager } from '@/components/SystemManagement/SampleDataManager';
 
 const SystemManagement = () => {
-  const [activeTab, setActiveTab] = useState('overview');
-
   return (
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">إدارة النظام</h1>
-          <p className="text-muted-foreground mt-1">
-            إدارة شاملة للنظام والمستخدمين والصلاحيات
+          <h1 className="text-3xl font-bold tracking-tight">إدارة النظام</h1>
+          <p className="text-muted-foreground">
+            إدارة شاملة للنظام والمستخدمين والإعدادات
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
-            <TabsTrigger value="status">حالة النظام</TabsTrigger>
-            <TabsTrigger value="users">المستخدمين</TabsTrigger>
-            <TabsTrigger value="roles">الصلاحيات</TabsTrigger>
-            <TabsTrigger value="settings">الإعدادات</TabsTrigger>
-            <TabsTrigger value="logs">سجل الأنشطة</TabsTrigger>
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList className="grid grid-cols-6 w-full">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              نظرة عامة
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              الإعدادات
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              المستخدمين
+            </TabsTrigger>
+            <TabsTrigger value="roles" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              الأدوار
+            </TabsTrigger>
+            <TabsTrigger value="data" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              البيانات
+            </TabsTrigger>
+            <TabsTrigger value="logs" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              السجلات
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
-            <SystemManagementOverview />
+          <TabsContent value="overview">
+            <div className="grid gap-4">
+              <SystemStatus />
+            </div>
           </TabsContent>
 
-          <TabsContent value="status" className="space-y-6">
-            <SystemStatus />
-          </TabsContent>
-
-          <TabsContent value="users" className="space-y-6">
-            <UserManagement />
-          </TabsContent>
-
-          <TabsContent value="roles" className="space-y-6">
-            <RoleManagement />
-          </TabsContent>
-
-          <TabsContent value="settings" className="space-y-6">
+          <TabsContent value="settings">
             <SystemSettings />
           </TabsContent>
 
-          <TabsContent value="logs" className="space-y-6">
+          <TabsContent value="users">
+            <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="roles">
+            <RoleManagement />
+          </TabsContent>
+
+          <TabsContent value="data">
+            <SampleDataManager />
+          </TabsContent>
+
+          <TabsContent value="logs">
             <ActivityLogs />
           </TabsContent>
         </Tabs>

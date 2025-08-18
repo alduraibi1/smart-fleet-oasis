@@ -1,16 +1,93 @@
+
+import { useState } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Edit,
+  Trash2,
+  Gauge,
+  Palette,
+  Fuel,
+  Settings,
+  User,
+  Car,
+  Eye,
+  FileText,
+} from "lucide-react";
 import { Vehicle } from '@/types/vehicle';
-import { Car, Edit, Eye, User, FileText, AlertCircle, Calendar, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import EnhancedVehicleDetailsDialog from './EnhancedVehicleDetailsDialog';
+import { EditVehicleDialog } from './EditVehicleDialog';
+import { DeleteVehicleDialog } from './DeleteVehicleDialog';
+import { useToast } from '@/hooks/use-toast';
+import { VehicleRegistrationExpiry } from './VehicleRegistrationExpiry';
 
 interface VehicleGridProps {
   vehicles: Vehicle[];
+  onUpdateVehicle: (id: string, vehicleData: Partial<Vehicle>) => Promise<void>;
+  onDeleteVehicle: (id: string) => Promise<void>;
 }
 
-export default function VehicleGrid({ vehicles }: VehicleGridProps) {
+const VehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleGridProps) => {
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [dialogAction, setDialogAction] = useState<'edit' | 'delete' | null>(null);
+  const { toast } = useToast();
+
+  const handleEdit = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
+    setDialogAction('edit');
+  };
+
+  const handleDelete = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
+    setDialogAction('delete');
+  };
+
+  const handleVehicleUpdate = async (id: string, data: Partial<Vehicle>) => {
+    try {
+      await onUpdateVehicle(id, data);
+      setSelectedVehicle(null);
+      setDialogAction(null);
+      toast({
+        title: "تم بنجاح",
+        description: "تم تحديث بيانات المركبة بنجاح",
+      });
+    } catch (error) {
+      console.error("Failed to update vehicle:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في تحديث بيانات المركبة",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleVehicleDeleted = async () => {
+    if (!selectedVehicle) return;
+    
+    try {
+      await onDeleteVehicle(selectedVehicle.id);
+      setSelectedVehicle(null);
+      setDialogAction(null);
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف المركبة بنجاح",
+      });
+    } catch (error) {
+      console.error("Failed to delete vehicle:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف المركبة",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const statusMap = {
       available: { 
@@ -41,22 +118,60 @@ export default function VehicleGrid({ vehicles }: VehicleGridProps) {
     return statusMap[status as keyof typeof statusMap] || statusMap.available;
   };
 
-  const getConditionColor = (mileage: number) => {
-    if (mileage < 50000) return 'text-success';
-    if (mileage < 100000) return 'text-warning';
-    return 'text-destructive';
+  const getStatusVariant = (status: Vehicle['status']) => {
+    switch (status) {
+      case 'available':
+        return 'default';
+      case 'rented':
+        return 'secondary';
+      case 'maintenance':
+        return 'destructive';
+      case 'out_of_service':
+        return 'outline';
+      default:
+        return 'default';
+    }
   };
 
-  const getColorIndicator = (color: string) => {
-    const colorMap: Record<string, string> = {
-      'أبيض': '#f8fafc',
-      'أسود': '#1e293b',
-      'فضي': '#64748b',
-      'أحمر': '#dc2626',
-      'أزرق': '#2563eb',
-      'أخضر': '#16a34a'
-    };
-    return colorMap[color] || '#6b7280';
+  const getStatusLabel = (status: Vehicle['status']) => {
+    switch (status) {
+      case 'available':
+        return 'متاحة';
+      case 'rented':
+        return 'مؤجرة';
+      case 'maintenance':
+        return 'تحت الصيانة';
+      case 'out_of_service':
+        return 'خارج الخدمة';
+      default:
+        return 'غير محدد';
+    }
+  };
+
+  const getFuelTypeLabel = (fuelType: Vehicle['fuel_type']) => {
+    switch (fuelType) {
+      case 'gasoline':
+        return 'بنزين';
+      case 'diesel':
+        return 'ديزل';
+      case 'hybrid':
+        return 'هجين';
+      case 'electric':
+        return 'كهرباء';
+      default:
+        return 'غير محدد';
+    }
+  };
+
+  const getTransmissionLabel = (transmission: Vehicle['transmission']) => {
+    switch (transmission) {
+      case 'manual':
+        return 'يدوي';
+      case 'automatic':
+        return 'تلقائي';
+      default:
+        return 'غير محدد';
+    }
   };
 
   if (vehicles.length === 0) {
@@ -72,127 +187,148 @@ export default function VehicleGrid({ vehicles }: VehicleGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {vehicles.map((vehicle) => {
-        const statusInfo = getStatusBadge(vehicle.status);
-        
-        return (
-          <Card 
-            key={vehicle.id} 
-            className="group hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer border-l-4 border-l-primary/20 hover:border-l-primary overflow-hidden"
-          >
-            {/* Vehicle Image Placeholder */}
-            <div className="h-48 bg-gradient-to-br from-muted/30 via-muted/20 to-primary/10 relative overflow-hidden">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Car className="h-16 w-16 text-muted-foreground/50 group-hover:text-primary/50 transition-colors" />
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {vehicles.map((vehicle) => {
+          const statusInfo = getStatusBadge(vehicle.status);
+          
+          return (
+            <Card 
+              key={vehicle.id} 
+              className="group hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer border-l-4 border-l-primary/20 hover:border-l-primary overflow-hidden"
+            >
+              {/* Vehicle Image Placeholder */}
+              <div className="h-48 bg-gradient-to-br from-muted/30 via-muted/20 to-primary/10 relative overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Car className="h-16 w-16 text-muted-foreground/50 group-hover:text-primary/50 transition-colors" />
+                </div>
+                <div className="absolute top-4 right-4">
+                  <Badge className={`${statusInfo.color} font-medium`}>
+                    <span className="mr-1">{statusInfo.icon}</span>
+                    {statusInfo.label}
+                  </Badge>
+                </div>
+                <div className="absolute bottom-4 left-4">
+                  <Badge variant="secondary" className="bg-white/90 text-primary">
+                    {vehicle.daily_rate} ريال/يوم
+                  </Badge>
+                </div>
               </div>
-              <div className="absolute top-4 right-4">
-                <Badge className={`${statusInfo.color} font-medium`}>
-                  <span className="mr-1">{statusInfo.icon}</span>
-                  {statusInfo.label}
-                </Badge>
-              </div>
-              <div className="absolute bottom-4 left-4">
-                <Badge variant="secondary" className="bg-white/90 text-primary">
-                  {vehicle.daily_rate} ريال/يوم
-                </Badge>
-              </div>
-            </div>
 
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${vehicle.brand}&backgroundColor=6366f1`} />
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      {vehicle.brand.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">
-                      {vehicle.brand} {vehicle.model}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <span className="font-mono bg-muted/50 px-2 py-0.5 rounded text-xs">
-                        {vehicle.plate_number}
-                      </span>
-                      <span>•</span>
-                      <span>{vehicle.year}</span>
-                    </p>
+                    <CardTitle className="text-lg">{vehicle.plate_number}</CardTitle>
+                    <CardDescription>
+                      {vehicle.brand} {vehicle.model} - {vehicle.year}
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="ghost" size="icon" onClick={() => handleEdit(vehicle)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(vehicle)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-              </div>
-            </CardHeader>
+              </CardHeader>
+              
+              <CardContent className="space-y-3">
+                {/* Status Badge */}
+                <div className="flex items-center justify-between">
+                  <Badge variant={getStatusVariant(vehicle.status)} className="text-xs">
+                    {getStatusLabel(vehicle.status)}
+                  </Badge>
+                  <span className="text-sm font-medium text-primary">
+                    {vehicle.daily_rate} ريال/يوم
+                  </span>
+                </div>
 
-            <CardContent className="space-y-4">
-              {/* Vehicle Details Grid */}
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-4 h-4 rounded-full border-2 border-muted"
-                      style={{ backgroundColor: getColorIndicator(vehicle.color) }}
-                    ></div>
-                    <span className="text-muted-foreground">{vehicle.color}</span>
+                {/* Registration Expiry Status */}
+                {vehicle.registration_expiry && (
+                  <div>
+                    <VehicleRegistrationExpiry 
+                      expiryDate={vehicle.registration_expiry}
+                      className="text-xs"
+                    />
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className={`w-4 h-4 ${getConditionColor(vehicle.mileage)}`} />
-                    <span className="text-muted-foreground">
-                      {vehicle.mileage.toLocaleString()} كم
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  {vehicle.owner && (
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-muted-foreground truncate text-xs">
-                        {vehicle.owner.name}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {vehicle.location && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-muted-foreground truncate text-xs">
-                        {vehicle.location.address}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
+                )}
 
-              {/* Vehicle Status Info */}
-              {vehicle.status === 'rented' && (
-                <div className="bg-warning/10 p-3 rounded-lg border border-warning/20">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Calendar className="w-4 h-4 text-warning" />
-                    <span className="text-sm font-medium text-warning">مؤجرة حالياً</span>
+                {/* Vehicle Details */}
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-1">
+                    <Gauge className="h-3 w-3 text-muted-foreground" />
+                    <span>{vehicle.mileage?.toLocaleString() || 0} كم</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Palette className="h-3 w-3 text-muted-foreground" />
+                    <span>{vehicle.color}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Fuel className="h-3 w-3 text-muted-foreground" />
+                    <span>{getFuelTypeLabel(vehicle.fuel_type)}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Settings className="h-3 w-3 text-muted-foreground" />
+                    <span>{getTransmissionLabel(vehicle.transmission)}</span>
                   </div>
                 </div>
-              )}
 
-              {/* Action Buttons */}
-              <div className="flex gap-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1 gap-1">
-                  <Eye className="w-4 h-4" />
-                  <span className="hidden sm:inline">عرض</span>
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1 gap-1">
-                  <Edit className="w-4 h-4" />
-                  <span className="hidden sm:inline">تعديل</span>
-                </Button>
-                <Button variant="outline" size="sm" className="gap-1">
-                  <FileText className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
+                {/* Owner Info */}
+                {vehicle.owner && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <User className="h-3 w-3" />
+                    <span>{vehicle.owner.name}</span>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-2">
+                  <Button variant="outline" size="sm" className="flex-1 gap-1">
+                    <Eye className="w-4 h-4" />
+                    <span className="hidden sm:inline">عرض</span>
+                  </Button>
+                  <Button variant="outline" size="sm" className="flex-1 gap-1" onClick={() => handleEdit(vehicle)}>
+                    <Edit className="w-4 h-4" />
+                    <span className="hidden sm:inline">تعديل</span>
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <FileText className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Notes */}
+                {vehicle.notes && (
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {vehicle.notes}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Edit Dialog */}
+      {selectedVehicle && dialogAction === 'edit' && (
+        <EditVehicleDialog
+          vehicle={selectedVehicle}
+          trigger={<div style={{ display: 'none' }} />}
+          onUpdate={handleVehicleUpdate}
+        />
+      )}
+
+      {/* Delete Dialog */}
+      {selectedVehicle && dialogAction === 'delete' && (
+        <DeleteVehicleDialog
+          vehicle={selectedVehicle}
+          onDelete={handleVehicleDeleted}
+          trigger={<div style={{ display: 'none' }} />}
+        />
+      )}
     </div>
   );
-}
+};
+
+export default VehicleGrid;
