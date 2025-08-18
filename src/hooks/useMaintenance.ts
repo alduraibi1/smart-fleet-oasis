@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -114,14 +115,23 @@ export const useMaintenance = () => {
       const processedData = (data || []).map(record => {
         const mechanicsData = record.mechanics;
         
-        // Use proper type narrowing with explicit null checks
-        if (mechanicsData != null && typeof mechanicsData === 'object' && 'name' in mechanicsData && typeof mechanicsData.name === 'string') {
+        // First check if mechanicsData exists and is not null
+        if (mechanicsData === null || mechanicsData === undefined) {
+          return {
+            ...record,
+            mechanics: null
+          };
+        }
+        
+        // Then check if it's an object with the name property
+        if (typeof mechanicsData === 'object' && 'name' in mechanicsData && typeof mechanicsData.name === 'string') {
           return {
             ...record,
             mechanics: { name: mechanicsData.name }
           };
         }
         
+        // Default case
         return {
           ...record,
           mechanics: null
