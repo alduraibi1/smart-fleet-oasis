@@ -12,6 +12,7 @@ import { useContracts } from '@/hooks/useContracts';
 // التحسينات الجديدة
 import VehicleReturnStats from '@/components/Contracts/VehicleReturnStats';
 import ContractExpiryAlerts from '@/components/Contracts/ContractExpiryAlerts';
+import CustomerArrearsAlerts from '@/components/Contracts/CustomerArrearsAlerts';
 
 export default function Contracts() {
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -37,6 +38,9 @@ export default function Contracts() {
       
       {/* تنبيهات انتهاء العقود */}
       <ContractExpiryAlerts />
+
+      {/* تنبيهات العملاء المتعثرين */}
+      <CustomerArrearsAlerts />
 
       {/* إحصائيات العقود العامة */}
       <ContractsStats stats={stats} />

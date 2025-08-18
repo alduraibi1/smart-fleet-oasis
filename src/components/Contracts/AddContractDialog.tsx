@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
     endDate: '',
     dailyRate: '',
     totalAmount: '',
+    depositAmount: '1000',
     notes: '',
   });
 
@@ -56,6 +58,30 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
       return;
     }
 
+    // تحقق من مدة العقد >= 90 يوم
+    const start = new Date(formData.startDate);
+    const end = new Date(formData.endDate);
+    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    if (isNaN(days) || days < 90) {
+      toast({
+        variant: "destructive",
+        title: "مدة العقد غير كافية",
+        description: "الحد الأدنى لمدة العقد هو 90 يوماً",
+      });
+      return;
+    }
+
+    // تحقق من الوديعة >= 1000 ريال
+    const depositNum = parseFloat(formData.depositAmount || '0');
+    if (isNaN(depositNum) || depositNum < 1000) {
+      toast({
+        variant: "destructive",
+        title: "قيمة الوديعة غير صالحة",
+        description: "الحد الأدنى للوديعة هو 1000 ريال",
+      });
+      return;
+    }
+
     try {
       await createContract({
         customer_id: formData.customerId,
@@ -63,7 +89,8 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
         start_date: formData.startDate,
         end_date: formData.endDate,
         daily_rate: parseFloat(formData.dailyRate),
-        total_amount: parseFloat(formData.totalAmount) || parseFloat(formData.dailyRate),
+        total_amount: parseFloat(formData.totalAmount) || (days * parseFloat(formData.dailyRate)),
+        deposit_amount: depositNum,
         notes: formData.notes,
       });
 
@@ -75,6 +102,7 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
         endDate: '',
         dailyRate: '',
         totalAmount: '',
+        depositAmount: '1000',
         notes: '',
       });
 
@@ -192,6 +220,26 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
                 value={formData.totalAmount}
                 onChange={(e) => setFormData(prev => ({ ...prev, totalAmount: e.target.value }))}
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="depositAmount">الوديعة (ر.س)</Label>
+              <Input
+                id="depositAmount"
+                type="number"
+                min={1000}
+                step="0.01"
+                value={formData.depositAmount}
+                onChange={(e) => setFormData(prev => ({ ...prev, depositAmount: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                الحد الأدنى للوديعة: 1000 ريال
+              </p>
+            </div>
+            <div>
+              {/* فراغ للحفاظ على الشبكة */}
             </div>
           </div>
 

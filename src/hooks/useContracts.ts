@@ -229,18 +229,34 @@ export const useContracts = () => {
   // Create new contract
   const createContract = async (contractData: CreateContractData) => {
     try {
+      // التحقق المسبق: مدة العقد لا تقل عن 90 يوم
+      const start = new Date(contractData.start_date);
+      const end = new Date(contractData.end_date);
+      const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      console.log('[createContract] duration days:', days);
+      if (isNaN(days) || days < 90) {
+        toast({
+          title: 'مدة العقد غير كافية',
+          description: 'لا يمكن إنشاء عقد لمدة أقل من 90 يوماً',
+          variant: 'destructive',
+        });
+        throw new Error('Contract duration must be at least 90 days');
+      }
+
       const contractNumber = generateContractNumber();
-      
+
+      // حساب الوديعة: حد أدنى 1000 ريال
+      const deposit = Math.max(1000, contractData.deposit_amount ?? 1000);
       // Calculate paid and remaining amounts
-      const paidAmount = contractData.deposit_amount || 0;
-      const remainingAmount = contractData.total_amount - paidAmount;
+      const paidAmount = deposit;
+      const remainingAmount = Math.max(0, contractData.total_amount - paidAmount);
 
       const newContract = {
         ...contractData,
         contract_number: contractNumber,
         paid_amount: paidAmount,
         remaining_amount: remainingAmount,
-        deposit_amount: contractData.deposit_amount || 0,
+        deposit_amount: deposit,
         insurance_amount: contractData.insurance_amount || 0,
         additional_charges: contractData.additional_charges || 0,
         discount_amount: contractData.discount_amount || 0,
@@ -248,6 +264,8 @@ export const useContracts = () => {
         payment_status: contractData.payment_status || 'pending',
         status: 'active',
       };
+
+      console.log('[createContract] payload:', newContract);
 
       const { data, error } = await supabase
         .from('rental_contracts')
