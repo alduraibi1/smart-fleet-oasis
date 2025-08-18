@@ -1,71 +1,58 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { useOwners, OwnerFilters } from "@/hooks/useOwners";
-import { AddOwnerDialog } from "@/components/Owners/AddOwnerDialog";
-import { OwnerStats } from "@/components/Owners/OwnerStats";
-import { OwnerFilters as OwnerFiltersComponent } from "@/components/Owners/OwnerFilters";
-import { OwnerTable } from "@/components/Owners/OwnerTable";
-import { AppLayout } from "@/components/Layout/AppLayout";
+import { useState } from 'react';
+import { AppLayout } from '@/components/Layout/AppLayout';
+import { OwnerStats } from '@/components/Owners/OwnerStats';
+import { OwnerFilters } from '@/components/Owners/OwnerFilters';
+import { OwnerTable } from '@/components/Owners/OwnerTable';
+import { AddOwnerDialog } from '@/components/Owners/AddOwnerDialog';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 const Owners = () => {
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [filters, setFilters] = useState<OwnerFilters>({});
-
-  const {
-    owners,
-    loading,
-    stats,
-    fetchOwners,
-    addOwner,
-    updateOwner,
-    deleteOwner,
-  } = useOwners();
-
-  const handleFiltersChange = (newFilters: OwnerFilters) => {
-    setFilters(newFilters);
-    fetchOwners(newFilters);
-  };
-
-  const handleOwnerAdded = async (ownerData: any) => {
-    try {
-      await addOwner(ownerData);
-      fetchOwners(filters);
-    } catch (error) {
-      // Error is handled in the hook
-    }
-  };
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">إدارة الملاك</h1>
-            <p className="text-muted-foreground">
-              إدارة ملاك المركبات ومعلوماتهم
-            </p>
+      <div className="page-container">
+        <div className="content-wrapper">
+          {/* Page Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="space-y-1">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">مالكي المركبات</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                إدارة ملاك المركبات والحسابات المالية
+              </p>
+            </div>
+            <Button 
+              onClick={() => setIsAddDialogOpen(true)}
+              className="btn-responsive flex-shrink-0"
+              size="sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              إضافة مالك
+            </Button>
           </div>
-          <Button onClick={() => setAddDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            إضافة مالك جديد
-          </Button>
+
+          {/* Stats Section */}
+          <div className="stats-container">
+            <OwnerStats />
+          </div>
+
+          {/* Filters */}
+          <div className="dashboard-card mb-4 sm:mb-6">
+            <OwnerFilters />
+          </div>
+
+          {/* Main Content */}
+          <div className="dashboard-card">
+            <OwnerTable />
+          </div>
         </div>
 
-        <OwnerStats stats={stats} loading={loading} />
-        <OwnerFiltersComponent onFiltersChange={handleFiltersChange} />
-        <OwnerTable
-          owners={owners}
-          loading={loading}
-          onUpdate={updateOwner}
-          onDelete={deleteOwner}
-        />
-
-        <AddOwnerDialog
-          open={addDialogOpen}
-          onOpenChange={setAddDialogOpen}
-          onAdd={handleOwnerAdded}
+        {/* Add Owner Dialog */}
+        <AddOwnerDialog 
+          open={isAddDialogOpen} 
+          onOpenChange={setIsAddDialogOpen} 
         />
       </div>
     </AppLayout>

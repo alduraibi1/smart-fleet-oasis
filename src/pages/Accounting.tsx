@@ -1,136 +1,170 @@
 
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon, Download, TrendingUp, TrendingDown, DollarSign, PieChart } from "lucide-react";
-import { AccountingOverview } from "@/components/Accounting/AccountingOverview";
-import { IntegratedFinancialDashboard } from "@/components/Accounting/IntegratedFinancialDashboard";
-import { RevenueExpenseReport } from "@/components/Accounting/RevenueExpenseReport";
-import { CashFlowReport } from "@/components/Accounting/CashFlowReport";
-import { AssetsReport } from "@/components/Accounting/AssetsReport";
-import { AccountsReceivable } from "@/components/Accounting/AccountsReceivable";
-import { AccountsPayable } from "@/components/Accounting/AccountsPayable";
-import { TaxManagement } from "@/components/Accounting/TaxManagement";
-import { FinancialKPIs } from "@/components/Accounting/FinancialKPIs";
-import { FinancialForecasting } from "@/components/Accounting/FinancialForecasting";
-import { ExecutiveDashboard } from "@/components/Accounting/ExecutiveDashboard";
-import { VehicleProfitabilityReport } from "@/components/Accounting/VehicleProfitability/VehicleProfitabilityReport";
-import { OwnerProfitabilityReport } from "@/components/Accounting/OwnerProfitability/OwnerProfitabilityReport";
-import { VouchersManagement } from "@/components/Accounting/VouchersManagement/VouchersManagement";
-import { InvoiceManagement } from "@/components/Accounting/IntegratedInvoicing/InvoiceManagement";
-import { CostTracking } from "@/components/Accounting/IntegratedCosts/CostTracking";
-import { FinancialAnalytics } from "@/components/Accounting/AdvancedReports/FinancialAnalytics";
-import { AppLayout } from "@/components/Layout/AppLayout";
+import { useState } from 'react';
+import { AppLayout } from '@/components/Layout/AppLayout';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Calculator, 
+  TrendingUp, 
+  DollarSign, 
+  FileText,
+  PieChart,
+  BarChart3,
+  Download,
+  Filter
+} from 'lucide-react';
 
-export default function Accounting() {
+// Import accounting components
+import { AccountingOverview } from '@/components/Accounting/AccountingOverview';
+import { IntegratedFinancialDashboard } from '@/components/Accounting/IntegratedFinancialDashboard';
+import { VouchersManagement } from '@/components/Accounting/VouchersManagement/VouchersManagement';
+
+const Accounting = () => {
+  const [activeTab, setActiveTab] = useState("overview");
+
+  const quickStats = [
+    {
+      title: "إجمالي الإيرادات",
+      value: "524,000 ر.س",
+      change: "+12.5%",
+      trend: "up",
+      icon: DollarSign,
+      color: "text-green-600"
+    },
+    {
+      title: "المصروفات",
+      value: "189,000 ر.س", 
+      change: "+5.2%",
+      trend: "up",
+      icon: TrendingUp,
+      color: "text-blue-600"
+    },
+    {
+      title: "صافي الربح",
+      value: "335,000 ر.س",
+      change: "+18.3%",
+      trend: "up",
+      icon: BarChart3,
+      color: "text-emerald-600"
+    },
+    {
+      title: "السندات المعلقة",
+      value: "23",
+      change: "-8%",
+      trend: "down",
+      icon: FileText,
+      color: "text-orange-600"
+    }
+  ];
+
+  const mainTabs = [
+    { id: "overview", label: "نظرة عامة", icon: PieChart },
+    { id: "dashboard", label: "لوحة التحكم", icon: BarChart3 },
+    { id: "vouchers", label: "إدارة السندات", icon: FileText },
+  ];
+
   return (
     <AppLayout>
-      <div className="space-y-6">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">النظام المحاسبي</h1>
-            <p className="text-muted-foreground mt-2">
-              إدارة ومتابعة الوضع المالي للشركة
-            </p>
+      <div className="page-container">
+        <div className="content-wrapper">
+          {/* Page Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="space-y-1">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">المحاسبة</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                إدارة شاملة للشؤون المالية والمحاسبية
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="btn-responsive">
+                <Filter className="h-4 w-4 mr-2" />
+                فلترة
+              </Button>
+              <Button size="sm" className="btn-responsive">
+                <Download className="h-4 w-4 mr-2" />
+                تصدير
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
-              <CalendarIcon className="h-4 w-4" />
-              تخصيص الفترة
-            </Button>
-            <Button className="gap-2">
-              <Download className="h-4 w-4" />
-              تصدير التقارير
-            </Button>
+
+          {/* Quick Stats */}
+          <div className="stats-container">
+            {quickStats.map((stat, index) => (
+              <Card key={index} className="border-border/50 hover:border-primary/20 transition-colors">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
+                        {stat.title}
+                      </p>
+                      <p className="text-lg sm:text-xl font-bold">{stat.value}</p>
+                      <div className="flex items-center gap-1 mt-2">
+                        <Badge 
+                          variant="secondary" 
+                          className={`text-xs ${stat.color} bg-transparent`}
+                        >
+                          {stat.change}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className={`p-2 rounded-lg bg-background ${stat.color} opacity-80`}>
+                      <stat.icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
+
+          {/* Main Content */}
+          <Card className="border-border/50">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Calculator className="h-5 w-5" />
+                إدارة المحاسبة
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <div className="px-4 sm:px-6 border-b border-border/50">
+                  <div className="flexible-tabs">
+                    <TabsList className="tabs-list bg-muted/50 h-auto p-1">
+                      {mainTabs.map((tab) => (
+                        <TabsTrigger 
+                          key={tab.id}
+                          value={tab.id} 
+                          className="tabs-trigger data-[state=active]:bg-background"
+                        >
+                          <tab.icon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          {tab.label}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </div>
+                </div>
+                
+                <div className="p-4 sm:p-6">
+                  <TabsContent value="overview" className="mt-0">
+                    <AccountingOverview />
+                  </TabsContent>
+                  
+                  <TabsContent value="dashboard" className="mt-0">
+                    <IntegratedFinancialDashboard />
+                  </TabsContent>
+                  
+                  <TabsContent value="vouchers" className="mt-0">
+                    <VouchersManagement />
+                  </TabsContent>
+                </div>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
-
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 xl:grid-cols-15">
-            <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
-            <TabsTrigger value="analytics">التحليلات</TabsTrigger>
-            <TabsTrigger value="invoices">الفواتير</TabsTrigger>
-            <TabsTrigger value="vouchers">السندات</TabsTrigger>
-            <TabsTrigger value="costs">التكاليف</TabsTrigger>
-            <TabsTrigger value="vehicle-profitability">ربحية المركبات</TabsTrigger>
-            <TabsTrigger value="owner-profitability">أرباح المالكين</TabsTrigger>
-            <TabsTrigger value="revenue-expense">الإيرادات</TabsTrigger>
-            <TabsTrigger value="cash-flow">التدفق النقدي</TabsTrigger>
-            <TabsTrigger value="assets">الأصول</TabsTrigger>
-            <TabsTrigger value="receivables">المدينة</TabsTrigger>
-            <TabsTrigger value="payables">الدائنة</TabsTrigger>
-            <TabsTrigger value="tax">الضرائب</TabsTrigger>
-            <TabsTrigger value="kpis">مؤشرات الأداء</TabsTrigger>
-            <TabsTrigger value="forecasting">التنبؤات</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <IntegratedFinancialDashboard />
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-6">
-            <FinancialAnalytics />
-          </TabsContent>
-
-          <TabsContent value="invoices" className="space-y-6">
-            <InvoiceManagement />
-          </TabsContent>
-
-          <TabsContent value="vouchers" className="space-y-6">
-            <VouchersManagement />
-          </TabsContent>
-
-          <TabsContent value="costs" className="space-y-6">
-            <CostTracking />
-          </TabsContent>
-
-          <TabsContent value="revenue-expense" className="space-y-6">
-            <RevenueExpenseReport />
-          </TabsContent>
-
-          <TabsContent value="cash-flow" className="space-y-6">
-            <CashFlowReport />
-          </TabsContent>
-
-          <TabsContent value="assets" className="space-y-6">
-            <AssetsReport />
-          </TabsContent>
-
-          <TabsContent value="receivables" className="space-y-6">
-            <AccountsReceivable />
-          </TabsContent>
-
-          <TabsContent value="payables" className="space-y-6">
-            <AccountsPayable />
-          </TabsContent>
-
-          <TabsContent value="vehicle-profitability" className="space-y-6">
-            <VehicleProfitabilityReport />
-          </TabsContent>
-
-          <TabsContent value="owner-profitability" className="space-y-6">
-            <OwnerProfitabilityReport />
-          </TabsContent>
-
-          <TabsContent value="tax" className="space-y-6">
-            <TaxManagement />
-          </TabsContent>
-
-          <TabsContent value="kpis" className="space-y-6">
-            <FinancialKPIs />
-          </TabsContent>
-
-          <TabsContent value="forecasting" className="space-y-6">
-            <FinancialForecasting />
-          </TabsContent>
-
-          <TabsContent value="executive" className="space-y-6">
-            <ExecutiveDashboard />
-          </TabsContent>
-        </Tabs>
       </div>
     </AppLayout>
   );
-}
+};
+
+export default Accounting;

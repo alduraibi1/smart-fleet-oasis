@@ -1,111 +1,102 @@
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, Grid, List } from "lucide-react";
-import { useVehicles } from '@/hooks/useVehicles';
-import VehicleStats from '@/components/Vehicles/VehicleStats';
-import VehicleFilters from '@/components/Vehicles/VehicleFilters';
-import VehicleGrid from '@/components/Vehicles/VehicleGrid';
-import VehicleTable from '@/components/Vehicles/VehicleTable';
-import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { AppLayout } from '@/components/Layout/AppLayout';
-import { Vehicle, VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
+import { VehicleStats } from '@/components/Vehicles/VehicleStats';
+import { VehicleFilters } from '@/components/Vehicles/VehicleFilters';
+import { VehicleTable } from '@/components/Vehicles/VehicleTable';
+import { AddVehicleDialog } from '@/components/Vehicles/AddVehicleDialog';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Grid, List } from 'lucide-react';
 
 const Vehicles = () => {
-  const { vehicles, loading, stats, fetchVehicles, addVehicle, updateVehicle, deleteVehicle, getBrands } = useVehicles();
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [filters, setFilters] = useState<VehicleFiltersType>({});
-
-  const handleFilterChange = (newFilters: VehicleFiltersType) => {
-    setFilters(newFilters);
-    fetchVehicles(newFilters);
-  };
-
-  const handleAddVehicle = async (vehicleData: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => {
-    try {
-      await addVehicle(vehicleData);
-      setShowAddDialog(false);
-    } catch (error) {
-      console.error('Error adding vehicle:', error);
-    }
-  };
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">إدارة المركبات</h1>
-            <p className="text-muted-foreground">
-              إدارة شاملة لأسطول المركبات مع تتبع الحالة والصيانة
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center rounded-md border">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+      <div className="page-container">
+        <div className="content-wrapper">
+          {/* Page Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="space-y-1">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">المركبات</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                إدارة أسطول المركبات ومعلومات الصيانة
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center border border-border rounded-lg p-1">
+                <Button
+                  variant={viewMode === 'table' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('table')}
+                  className="h-7 px-2"
+                >
+                  <List className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="h-7 px-2"
+                >
+                  <Grid className="h-3 w-3" />
+                </Button>
+              </div>
+              <Button 
+                onClick={() => setIsAddDialogOpen(true)}
+                className="btn-responsive flex-shrink-0"
                 size="sm"
-                onClick={() => setViewMode('grid')}
               >
-                <Grid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'table' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('table')}
-              >
-                <List className="h-4 w-4" />
+                <Plus className="h-4 w-4 mr-2" />
+                إضافة مركبة
               </Button>
             </div>
-            <Button onClick={() => setShowAddDialog(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              إضافة مركبة
-            </Button>
+          </div>
+
+          {/* Stats Section */}
+          <div className="stats-container">
+            <VehicleStats />
+          </div>
+
+          {/* Filters */}
+          <div className="dashboard-card mb-4 sm:mb-6">
+            <VehicleFilters />
+          </div>
+
+          {/* Main Content */}
+          <div className="dashboard-card">
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'table' | 'grid')}>
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="table" className="text-xs sm:text-sm">
+                  عرض جدولي
+                </TabsTrigger>
+                <TabsTrigger value="grid" className="text-xs sm:text-sm">
+                  عرض بطاقات
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="table" className="mt-0">
+                <VehicleTable />
+              </TabsContent>
+              
+              <TabsContent value="grid" className="mt-0">
+                <div className="adaptive-grid">
+                  {/* VehicleGrid component would go here */}
+                  <div className="text-center text-muted-foreground py-8">
+                    عرض البطاقات قيد التطوير
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
 
-        {/* Stats */}
-        <VehicleStats stats={stats} />
-
-        {/* Filters */}
-        <VehicleFilters
-          filters={filters}
-          onFiltersChange={handleFilterChange}
-          brands={getBrands()}
-          loading={loading}
-        />
-
-        {/* Vehicles Content */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              المركبات ({vehicles.length})
-              <div className="text-sm font-normal text-muted-foreground">
-                {loading ? 'جاري التحميل...' : `${vehicles.length} مركبة`}
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {viewMode === 'grid' ? (
-              <VehicleGrid
-                vehicles={vehicles}
-                onUpdateVehicle={updateVehicle}
-                onDeleteVehicle={deleteVehicle}
-              />
-            ) : (
-              <VehicleTable
-                vehicles={vehicles}
-              />
-            )}
-          </CardContent>
-        </Card>
-
         {/* Add Vehicle Dialog */}
-        <AddVehicleDialog
-          onVehicleAdded={handleAddVehicle}
+        <AddVehicleDialog 
+          open={isAddDialogOpen} 
+          onOpenChange={setIsAddDialogOpen} 
         />
       </div>
     </AppLayout>
