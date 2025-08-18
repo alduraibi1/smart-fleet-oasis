@@ -35,7 +35,7 @@ const navigationItems = [
   { title: "إعدادات الإشعارات", url: "/notification-settings", icon: Bell },
 ]
 
-export function AppSidebar() {
+export default function AppSidebar() {
   const location = useLocation()
 
   return (
