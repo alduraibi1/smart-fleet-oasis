@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, ArrowLeft, Search, Filter, Eye, Edit, Trash2 } from 'lucide-react';
 import { useContracts } from '@/hooks/useContracts';
-import { AddContractDialog } from '@/components/Contracts/AddContractDialog';
+import AddContractDialog from '@/components/Contracts/AddContractDialog';
 import VehicleReturnDialog from '@/components/Contracts/VehicleReturnDialog';
 
 const Contracts = () => {
