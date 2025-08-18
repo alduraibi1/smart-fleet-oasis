@@ -32,7 +32,7 @@ export interface MaintenanceRecord {
   };
   mechanics?: {
     name: string;
-  };
+  } | null;
 }
 
 export interface MaintenanceTemplate {
@@ -109,7 +109,16 @@ export const useMaintenance = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMaintenanceRecords(data || []);
+      
+      // Handle the case where mechanics might not exist or join might fail
+      const processedData = (data || []).map(record => ({
+        ...record,
+        mechanics: record.mechanics && typeof record.mechanics === 'object' && 'name' in record.mechanics 
+          ? record.mechanics 
+          : null
+      }));
+      
+      setMaintenanceRecords(processedData);
     } catch (error) {
       console.error('خطأ في جلب سجلات الصيانة:', error);
       toast({
