@@ -122,8 +122,8 @@ const Vehicles = () => {
 
         {/* Add Vehicle Dialog */}
         <AddVehicleDialog 
-          isOpen={isAddDialogOpen} 
-          onClose={() => setIsAddDialogOpen(false)} 
+          open={isAddDialogOpen} 
+          onOpenChange={setIsAddDialogOpen} 
         />
       </div>
     </AppLayout>

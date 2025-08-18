@@ -7,12 +7,14 @@ import { EnhancedCustomerTable } from '@/components/Customers/EnhancedCustomerTa
 import { AddCustomerDialog } from '@/components/Customers/AddCustomerDialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { Customer } from '@/types/customer';
 
 const Customers = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [filters, setFilters] = useState({});
-  const [customers, setCustomers] = useState([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
 
   // Mock stats data
   const mockStats = {
@@ -30,20 +32,20 @@ const Customers = () => {
     setFilters({});
   };
 
-  const handleEdit = (customerId: string) => {
-    console.log('Edit customer:', customerId);
+  const handleEdit = (customer: Customer) => {
+    console.log('Edit customer:', customer.id);
   };
 
-  const handleView = (customerId: string) => {
-    console.log('View customer:', customerId);
+  const handleView = (customer: Customer) => {
+    console.log('View customer:', customer.id);
   };
 
-  const handleDelete = (customerId: string) => {
-    console.log('Delete customer:', customerId);
+  const handleDelete = (customer: Customer) => {
+    console.log('Delete customer:', customer.id);
   };
 
-  const handleBlacklist = (customerId: string) => {
-    console.log('Blacklist customer:', customerId);
+  const handleBlacklist = (customer: Customer) => {
+    console.log('Blacklist customer:', customer.id);
   };
 
   const handleExport = () => {
@@ -52,6 +54,18 @@ const Customers = () => {
 
   const handleBulkAction = (action: string, customerIds: string[]) => {
     console.log('Bulk action:', action, customerIds);
+  };
+
+  const handleSelectCustomer = (customerId: string) => {
+    setSelectedCustomers(prev => 
+      prev.includes(customerId) 
+        ? prev.filter(id => id !== customerId)
+        : [...prev, customerId]
+    );
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedCustomers(checked ? customers.map(c => c.id) : []);
   };
 
   return (
@@ -105,8 +119,9 @@ const Customers = () => {
               onView={handleView}
               onDelete={handleDelete}
               onBlacklist={handleBlacklist}
-              onExport={handleExport}
-              onBulkAction={handleBulkAction}
+              selectedCustomers={selectedCustomers}
+              onSelectCustomer={handleSelectCustomer}
+              onSelectAll={handleSelectAll}
             />
           </div>
         </div>
