@@ -10,6 +10,8 @@ import Owners from './pages/Owners';
 import Vehicles from './pages/Vehicles';
 import Contracts from './pages/Contracts';
 import Accounting from './pages/Accounting';
+import Maintenance from './pages/Maintenance';
+import Inventory from './pages/Inventory';
 import SystemManagement from './pages/SystemManagement';
 import EnhancedSystemManagement from './pages/EnhancedSystemManagement';
 import { Toaster } from '@/components/ui/toaster';
@@ -32,6 +34,8 @@ function App() {
                 <Route path="/vehicles" element={<Vehicles />} />
                 <Route path="/contracts" element={<Contracts />} />
                 <Route path="/accounting" element={<Accounting />} />
+                <Route path="/maintenance" element={<Maintenance />} />
+                <Route path="/inventory" element={<Inventory />} />
                 <Route path="/system-management" element={<SystemManagement />} />
                 <Route path="/enhanced-system-management" element={<EnhancedSystemManagement />} />
               </Routes>
