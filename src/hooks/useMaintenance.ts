@@ -115,20 +115,25 @@ export const useMaintenance = () => {
         const mechanicsData = record.mechanics;
         
         // More explicit type checking to satisfy TypeScript
-        if (mechanicsData !== null && mechanicsData !== undefined) {
-          // Type guard to check if it's an object with a name property
-          if (typeof mechanicsData === 'object' && mechanicsData !== null && 'name' in mechanicsData) {
-            const mechanic = mechanicsData as { name: unknown };
-            if (typeof mechanic.name === 'string') {
-              return {
-                ...record,
-                mechanics: { name: mechanic.name }
-              };
-            }
+        if (mechanicsData === null || mechanicsData === undefined) {
+          return {
+            ...record,
+            mechanics: null
+          };
+        }
+        
+        // Now we know mechanicsData is not null/undefined
+        if (typeof mechanicsData === 'object' && 'name' in mechanicsData) {
+          const mechanic = mechanicsData as { name: unknown };
+          if (typeof mechanic.name === 'string') {
+            return {
+              ...record,
+              mechanics: { name: mechanic.name }
+            };
           }
         }
         
-        // Default case for null, undefined, or invalid structure
+        // Default case for invalid structure
         return {
           ...record,
           mechanics: null
