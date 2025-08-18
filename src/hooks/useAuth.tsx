@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,22 +61,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      // Try different possible column names based on common database schemas
+      // Select all columns to satisfy TS types, then safely pick the permission field at runtime
       const { data, error } = await supabase
         .from('role_permissions')
-        .select('permission, permission_name')  // Try both common column names
+        .select('*')
         .in('role', roles);
 
       if (error) {
         console.error('Role permissions query error:', error);
-        // If the table doesn't exist or columns are wrong, fallback to empty permissions
         setUserPermissions([]);
         return;
       }
-      
-      // Use whichever column exists (permission or permission_name)
-      const permissions = data?.map(p => p.permission || p.permission_name).filter(Boolean) || [];
-      setUserPermissions([...new Set(permissions)]); // إزالة التكرار
+
+      const rows = (data as unknown as Array<Record<string, any>>) || [];
+      const permissions = rows
+        .map((r) => r.permission ?? r.permission_name)
+        .filter((v): v is string => typeof v === 'string' && v.length > 0);
+
+      setUserPermissions([...new Set(permissions)]);
     } catch (error) {
       console.error('Error fetching user permissions:', error);
       setUserPermissions([]);
