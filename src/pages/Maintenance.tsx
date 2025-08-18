@@ -11,7 +11,9 @@ import { MaintenanceFilters } from "@/components/Maintenance/MaintenanceFilters"
 import { AddMaintenanceDialog } from "@/components/Maintenance/AddMaintenanceDialog";
 import { AddMechanicDialog } from "@/components/Maintenance/AddMechanicDialog";
 import { MaintenanceScheduleTable } from "@/components/Maintenance/MaintenanceScheduleTable";
-import { AdvancedMaintenanceDashboard } from "@/components/Maintenance/AdvancedMaintenanceDashboard";
+import { MaintenanceDashboardLayout } from "@/components/Maintenance/MaintenanceDashboardLayout";
+import { MechanicsManagement } from "@/components/Maintenance/MechanicsManagement";
+import { SmartMaintenanceAlerts } from "@/components/Maintenance/SmartMaintenanceAlerts";
 
 const Maintenance = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,7 +31,7 @@ const Maintenance = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">نظام الصيانة المتقدم</h1>
           <p className="text-muted-foreground">
-            إدارة شاملة لجميع عمليات الصيانة والورش والفنيين
+            إدارة شاملة وذكية لجميع عمليات الصيانة والورش والفنيين
           </p>
         </div>
         <div className="flex gap-2">
@@ -51,11 +53,11 @@ const Maintenance = () => {
       <MaintenanceStats />
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs defaultValue="dashboard" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
+          <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            نظرة عامة
+            لوحة التحكم
           </TabsTrigger>
           <TabsTrigger value="records" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -75,9 +77,9 @@ const Maintenance = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Overview Tab - Dashboard */}
-        <TabsContent value="overview" className="space-y-6">
-          <AdvancedMaintenanceDashboard />
+        {/* Dashboard Tab - Advanced Dashboard */}
+        <TabsContent value="dashboard" className="space-y-6">
+          <MaintenanceDashboardLayout />
         </TabsContent>
 
         {/* Maintenance Records Tab */}
@@ -119,40 +121,14 @@ const Maintenance = () => {
           <MaintenanceScheduleTable />
         </TabsContent>
 
-        {/* Mechanics Tab */}
+        {/* Mechanics Tab - Now with actual management */}
         <TabsContent value="mechanics" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>إدارة الفنيين</CardTitle>
-              <CardDescription>
-                عرض وإدارة جميع الفنيين والورش
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Users className="h-12 w-12 mx-auto mb-4" />
-                <p>سيتم إضافة إدارة الفنيين قريباً</p>
-              </div>
-            </CardContent>
-          </Card>
+          <MechanicsManagement />
         </TabsContent>
 
-        {/* Alerts Tab */}
+        {/* Alerts Tab - Smart Maintenance Alerts */}
         <TabsContent value="alerts" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>التنبيهات والإشعارات</CardTitle>
-              <CardDescription>
-                تنبيهات الصيانة الذكية والمواعيد المستحقة
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <AlertTriangle className="h-12 w-12 mx-auto mb-4" />
-                <p>سيتم إضافة نظام التنبيهات الذكي قريباً</p>
-              </div>
-            </CardContent>
-          </Card>
+          <SmartMaintenanceAlerts />
         </TabsContent>
       </Tabs>
 
