@@ -18,7 +18,7 @@ export default function ProtectedRoute({
   requiredRole, 
   requiredPermission 
 }: ProtectedRouteProps) {
-  const { user, loading, hasRole } = useAuth();
+  const { user, loading, hasRole, hasPermissionSync } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,10 +28,15 @@ export default function ProtectedRoute({
     }
 
     if (user && requiredRole && !hasRole(requiredRole)) {
-      navigate('/'); // توجيه للصفحة الرئيسية إذا لم تكن هناك صلاحيات
+      navigate('/');
       return;
     }
-  }, [user, loading, requiredRole, hasRole, navigate]);
+
+    if (user && requiredPermission && !hasPermissionSync(requiredPermission)) {
+      navigate('/');
+      return;
+    }
+  }, [user, loading, requiredRole, requiredPermission, hasRole, hasPermissionSync, navigate]);
 
   if (loading) {
     return (
@@ -47,7 +52,7 @@ export default function ProtectedRoute({
   }
 
   if (!user) {
-    return null; // سيتم التوجيه إلى صفحة تسجيل الدخول
+    return null;
   }
 
   if (requiredRole && !hasRole(requiredRole)) {
@@ -57,7 +62,22 @@ export default function ProtectedRoute({
           <CardContent className="p-8 text-center">
             <h2 className="text-xl font-bold text-destructive mb-2">غير مصرح</h2>
             <p className="text-muted-foreground">
-              ليس لديك الصلاحيات المطلوبة للوصول لهذه الصفحة
+              ليس لديك الدور المطلوب للوصول لهذه الصفحة
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (requiredPermission && !hasPermissionSync(requiredPermission)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-96">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-xl font-bold text-destructive mb-2">غير مصرح</h2>
+            <p className="text-muted-foreground">
+              ليس لديك الصلاحية المطلوبة للوصول لهذه الصفحة
             </p>
           </CardContent>
         </Card>

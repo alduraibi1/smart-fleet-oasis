@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
@@ -36,54 +35,53 @@ function App() {
                   </ProtectedRoute>
                 } />
                 <Route path="/customers" element={
-                  <ProtectedRoute requiredRole="employee">
+                  <ProtectedRoute requiredRole="employee" requiredPermission="customers.read">
                     <Customers />
                   </ProtectedRoute>
                 } />
                 <Route path="/owners" element={
-                  <ProtectedRoute requiredRole="employee">
+                  <ProtectedRoute requiredRole="employee" requiredPermission="vehicles.read">
                     <Owners />
                   </ProtectedRoute>
                 } />
                 <Route path="/vehicles" element={
-                  <ProtectedRoute requiredRole="employee">
+                  <ProtectedRoute requiredRole="employee" requiredPermission="vehicles.read">
                     <Vehicles />
                   </ProtectedRoute>
                 } />
                 <Route path="/contracts" element={
-                  <ProtectedRoute requiredRole="employee">
+                  <ProtectedRoute requiredRole="employee" requiredPermission="contracts.read">
                     <Contracts />
                   </ProtectedRoute>
                 } />
                 <Route path="/accounting" element={
-                  <ProtectedRoute requiredRole="accountant">
+                  <ProtectedRoute requiredRole="accountant" requiredPermission="accounting.read">
                     <Accounting />
                   </ProtectedRoute>
                 } />
                 <Route path="/reports" element={
-                  <ProtectedRoute requiredRole="manager">
+                  <ProtectedRoute requiredRole="manager" requiredPermission="reports.read">
                     <Reports />
                   </ProtectedRoute>
                 } />
                 <Route path="/maintenance" element={
-                  <ProtectedRoute requiredRole="employee">
+                  <ProtectedRoute requiredRole="employee" requiredPermission="maintenance.read">
                     <Maintenance />
                   </ProtectedRoute>
                 } />
                 <Route path="/inventory" element={
-                  <ProtectedRoute requiredRole="employee">
+                  <ProtectedRoute requiredRole="employee" requiredPermission="inventory.read">
                     <Inventory />
                   </ProtectedRoute>
                 } />
-                {/* Redirect old advanced reports path to unified reports */}
                 <Route path="/advanced-reports" element={<Navigate to="/reports" replace />} />
                 <Route path="/system-management" element={
-                  <ProtectedRoute requiredRole="admin">
+                  <ProtectedRoute requiredRole="admin" requiredPermission="system.read">
                     <SystemManagement />
                   </ProtectedRoute>
                 } />
                 <Route path="/enhanced-system-management" element={
-                  <ProtectedRoute requiredRole="admin">
+                  <ProtectedRoute requiredRole="admin" requiredPermission="system.write">
                     <EnhancedSystemManagement />
                   </ProtectedRoute>
                 } />
