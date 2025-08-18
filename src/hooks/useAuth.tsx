@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +11,8 @@ interface AuthContextType {
   userProfile: any;
   signOut: () => Promise<void>;
   hasRole: (role: string) => boolean;
-  hasPermission: (permission: string) => boolean;
+  hasPermission: (permission: string) => Promise<boolean>;
+  hasPermissionSync: (permission: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
 
   // جلب أدوار المستخدم
   const fetchUserRoles = async (userId: string) => {
@@ -34,9 +37,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const roles = data?.map(r => r.role) || [];
       setUserRoles(roles);
+      
+      // جلب الصلاحيات بناء على الأدوار
+      await fetchUserPermissions(roles);
     } catch (error) {
       console.error('Error fetching user roles:', error);
       setUserRoles([]);
+      setUserPermissions([]);
+    }
+  };
+
+  // جلب صلاحيات المستخدم
+  const fetchUserPermissions = async (roles: string[]) => {
+    if (roles.length === 0) {
+      setUserPermissions([]);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('role_permissions')
+        .select('permission')
+        .in('role', roles);
+
+      if (error) throw error;
+      
+      const permissions = data?.map(p => p.permission) || [];
+      setUserPermissions([...new Set(permissions)]); // إزالة التكرار
+    } catch (error) {
+      console.error('Error fetching user permissions:', error);
+      setUserPermissions([]);
     }
   };
 
@@ -49,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') throw error;
       
       setUserProfile(data);
     } catch (error) {
@@ -63,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return userRoles.includes(role);
   };
 
-  // التحقق من وجود صلاحية معينة
+  // التحقق من وجود صلاحية معينة (async)
   const hasPermission = async (permission: string): Promise<boolean> => {
     if (!user) return false;
     
@@ -73,12 +103,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         _permission_name: permission
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error checking permission:', error);
+        return false;
+      }
       return data || false;
     } catch (error) {
       console.error('Error checking permission:', error);
       return false;
     }
+  };
+
+  // التحقق من وجود صلاحية معينة (sync)
+  const hasPermissionSync = (permission: string): boolean => {
+    return userPermissions.includes(permission);
   };
 
   // تسجيل الخروج
@@ -89,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(null);
       setUserRoles([]);
       setUserProfile(null);
+      setUserPermissions([]);
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -110,6 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setUserRoles([]);
           setUserProfile(null);
+          setUserPermissions([]);
         }
         
         setLoading(false);
@@ -140,11 +180,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     userProfile,
     signOut,
     hasRole,
-    hasPermission: (permission: string) => {
-      // نظرًا لأن hasPermission async، نعيد false افتراضياً هنا
-      // يمكن استخدام hasPermissionAsync للفحص الفعلي
-      return false;
-    },
+    hasPermission,
+    hasPermissionSync,
   };
 
   return (

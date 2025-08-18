@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { AuthProvider } from '@/hooks/useAuth';
+import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 import Index from './pages/Index';
 import Auth from './pages/Auth';
 import Customers from './pages/Customers';
@@ -28,20 +29,64 @@ function App() {
           <Router>
             <div className="App">
               <Routes>
-                <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/customers" element={<Customers />} />
-                <Route path="/owners" element={<Owners />} />
-                <Route path="/vehicles" element={<Vehicles />} />
-                <Route path="/contracts" element={<Contracts />} />
-                <Route path="/accounting" element={<Accounting />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/maintenance" element={<Maintenance />} />
-                <Route path="/inventory" element={<Inventory />} />
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <Index />
+                  </ProtectedRoute>
+                } />
+                <Route path="/customers" element={
+                  <ProtectedRoute requiredRole="employee">
+                    <Customers />
+                  </ProtectedRoute>
+                } />
+                <Route path="/owners" element={
+                  <ProtectedRoute requiredRole="employee">
+                    <Owners />
+                  </ProtectedRoute>
+                } />
+                <Route path="/vehicles" element={
+                  <ProtectedRoute requiredRole="employee">
+                    <Vehicles />
+                  </ProtectedRoute>
+                } />
+                <Route path="/contracts" element={
+                  <ProtectedRoute requiredRole="employee">
+                    <Contracts />
+                  </ProtectedRoute>
+                } />
+                <Route path="/accounting" element={
+                  <ProtectedRoute requiredRole="accountant">
+                    <Accounting />
+                  </ProtectedRoute>
+                } />
+                <Route path="/reports" element={
+                  <ProtectedRoute requiredRole="manager">
+                    <Reports />
+                  </ProtectedRoute>
+                } />
+                <Route path="/maintenance" element={
+                  <ProtectedRoute requiredRole="employee">
+                    <Maintenance />
+                  </ProtectedRoute>
+                } />
+                <Route path="/inventory" element={
+                  <ProtectedRoute requiredRole="employee">
+                    <Inventory />
+                  </ProtectedRoute>
+                } />
                 {/* Redirect old advanced reports path to unified reports */}
                 <Route path="/advanced-reports" element={<Navigate to="/reports" replace />} />
-                <Route path="/system-management" element={<SystemManagement />} />
-                <Route path="/enhanced-system-management" element={<EnhancedSystemManagement />} />
+                <Route path="/system-management" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <SystemManagement />
+                  </ProtectedRoute>
+                } />
+                <Route path="/enhanced-system-management" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <EnhancedSystemManagement />
+                  </ProtectedRoute>
+                } />
               </Routes>
             </div>
             <Toaster />
