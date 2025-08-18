@@ -20,7 +20,9 @@ import {
   Calculator,
   BarChart3,
   Settings,
-  UserCheck
+  UserCheck,
+  Wrench,
+  Package
 } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 import { Logo } from "@/components/ui/logo"
@@ -50,6 +52,16 @@ const menuItems = [
     title: "العقود",
     url: "/contracts",
     icon: FileText,
+  },
+  {
+    title: "الصيانة",
+    url: "/maintenance",
+    icon: Wrench,
+  },
+  {
+    title: "المخزون",
+    url: "/inventory",
+    icon: Package,
   },
   {
     title: "المحاسبة",
