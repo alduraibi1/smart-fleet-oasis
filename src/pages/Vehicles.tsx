@@ -35,6 +35,35 @@ const Vehicles = () => {
     setFilters(newFilters);
   };
 
+  const handleVehicleAdded = (vehicleData: any) => {
+    // Create a new vehicle object with required fields
+    const newVehicle: Vehicle = {
+      id: Date.now().toString(),
+      plate_number: vehicleData.plate_number,
+      brand: vehicleData.brand,
+      model: vehicleData.model,
+      year: vehicleData.year,
+      color: vehicleData.color,
+      status: vehicleData.status,
+      daily_rate: vehicleData.daily_rate,
+      mileage: vehicleData.mileage,
+      fuel_type: vehicleData.fuel_type,
+      transmission: vehicleData.transmission,
+      seating_capacity: vehicleData.seating_capacity,
+      vin: vehicleData.vin,
+      engine_number: vehicleData.engine_number,
+      chassis_number: vehicleData.chassis_number,
+      owner_id: vehicleData.owner_id,
+      notes: vehicleData.notes,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    
+    // Add the new vehicle to the list
+    setVehicles(prev => [newVehicle, ...prev]);
+    console.log('Vehicle added:', newVehicle);
+  };
+
   return (
     <AppLayout>
       <div className="page-container">
@@ -121,7 +150,7 @@ const Vehicles = () => {
         </div>
 
         {/* Add Vehicle Dialog */}
-        <AddVehicleDialog />
+        <AddVehicleDialog onVehicleAdded={handleVehicleAdded} />
       </div>
     </AppLayout>
   );
