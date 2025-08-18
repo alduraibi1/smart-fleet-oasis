@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,7 +80,7 @@ export const PurchaseOrdersTable = () => {
     if (diffDays < 0) {
       return <Badge variant="destructive" className="text-xs">متأخر {Math.abs(diffDays)} يوم</Badge>;
     } else if (diffDays <= 3) {
-      return <Badge variant="warning" className="text-xs">مستحق خلال {diffDays} يوم</Badge>;
+      return <Badge variant="secondary" className="text-xs">مستحق خلال {diffDays} يوم</Badge>;
     }
     
     return null;
