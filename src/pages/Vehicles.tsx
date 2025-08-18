@@ -75,7 +75,7 @@ const Vehicles = () => {
           </CardHeader>
           <CardContent>
             <VehicleFilters
-              onFilterChange={handleFilterChange}
+              onFiltersChange={handleFilterChange}
               brands={getBrands()}
               loading={loading}
             />
@@ -102,7 +102,6 @@ const Vehicles = () => {
             ) : (
               <VehicleTable
                 vehicles={vehicles}
-                loading={loading}
               />
             )}
           </CardContent>
@@ -110,9 +109,7 @@ const Vehicles = () => {
 
         {/* Add Vehicle Dialog */}
         <AddVehicleDialog
-          open={showAddDialog}
-          onOpenChange={setShowAddDialog}
-          onSubmit={handleAddVehicle}
+          onVehicleAdded={handleAddVehicle}
         />
       </div>
     </AppLayout>
