@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { debounce } from 'lodash';
 
@@ -16,6 +15,7 @@ interface OptimizationSettings {
   enableVirtualization: boolean;
   lazyLoadImages: boolean;
   enablePrefetch: boolean;
+  preloadCriticalData: boolean;
   optimizeAnimations: boolean;
   enableCaching: boolean;
 }
@@ -35,6 +35,7 @@ export function usePerformanceOptimization() {
     enableVirtualization: true,
     lazyLoadImages: true,
     enablePrefetch: true,
+    preloadCriticalData: true,
     optimizeAnimations: true,
     enableCaching: true
   });
@@ -159,7 +160,7 @@ export function usePerformanceOptimization() {
   }, []);
 
   const preloadCriticalResources = useCallback(() => {
-    if (settings.enablePrefetch) {
+    if (settings.enablePrefetch || settings.preloadCriticalData) {
       const criticalPaths = ['/api/dashboard-stats', '/api/quick-actions'];
       
       criticalPaths.forEach(path => {
@@ -169,7 +170,7 @@ export function usePerformanceOptimization() {
         document.head.appendChild(link);
       });
     }
-  }, [settings.enablePrefetch]);
+  }, [settings.enablePrefetch, settings.preloadCriticalData]);
 
   const enableGPUAcceleration = useCallback(() => {
     const elements = document.querySelectorAll('.interactive, .animate-fade-in, .dashboard-card');
