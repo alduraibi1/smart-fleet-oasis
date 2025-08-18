@@ -4138,6 +4138,10 @@ export type Database = {
         Args: { maintenance_record_id: string }
         Returns: number
       }
+      check_and_notify_customer_arrears: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       check_profitability_thresholds: {
         Args: Record<PropertyKey, never>
         Returns: {
