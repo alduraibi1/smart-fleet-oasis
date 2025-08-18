@@ -17,7 +17,6 @@ import {
   FileText, 
   Calculator,
   BarChart3,
-  PieChart,
   Settings,
   UserCheck
 } from "lucide-react"
@@ -59,11 +58,6 @@ const menuItems = [
     title: "التقارير",
     url: "/reports",
     icon: BarChart3,
-  },
-  {
-    title: "التقارير المتقدمة",
-    url: "/advanced-reports",
-    icon: PieChart,
   },
   {
     title: "إدارة النظام",
