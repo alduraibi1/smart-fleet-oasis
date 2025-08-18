@@ -7,7 +7,7 @@ import { EnhancedCustomerTable } from '@/components/Customers/EnhancedCustomerTa
 import { AddCustomerDialog } from '@/components/Customers/AddCustomerDialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { Customer } from '@/types/customer';
+import { Customer } from '@/types';
 
 const Customers = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);

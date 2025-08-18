@@ -121,10 +121,7 @@ const Vehicles = () => {
         </div>
 
         {/* Add Vehicle Dialog */}
-        <AddVehicleDialog 
-          open={isAddDialogOpen} 
-          onOpenChange={setIsAddDialogOpen} 
-        />
+        <AddVehicleDialog />
       </div>
     </AppLayout>
   );
