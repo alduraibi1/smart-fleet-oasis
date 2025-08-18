@@ -24,12 +24,17 @@ export default function CustomerArrearsAlerts({ threshold = 1500 }: Props) {
       </CardHeader>
       <CardContent className="space-y-3">
         {data.slice(0, 5).map((row) => (
-          <div key={row.customer_id} className="flex items-center justify-between text-sm">
+          <div key={row.id} className="flex items-center justify-between text-sm">
             <div className="flex flex-col">
-              <span className="font-medium">{row.customer_id}</span>
+              <span className="font-medium">{row.name || row.id}</span>
               <span className="text-muted-foreground">
-                متأخرات: {Number(row.overdue_amount || 0).toLocaleString()} ريال
+                متأخرات: {Number(row.outstanding_balance || 0).toLocaleString()} ريال
               </span>
+              {row.overdue_contracts > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  عقود متأخرة: {row.overdue_contracts}
+                </span>
+              )}
             </div>
             <Badge variant="destructive">
               تجاوز الحد {threshold.toLocaleString()} ريال

@@ -2,22 +2,24 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export interface CustomerAccountSummary {
-  customer_id: string;
-  total_contracts: number;
-  active_contracts: number;
-  total_contract_value: number;
+export interface CustomerArrearsSummary {
+  id: string;
+  name?: string;
+  phone?: string;
+  email?: string;
   total_paid: number;
-  outstanding_amount: number;
-  overdue_amount: number;
-  last_contract_end_date: string | null;
+  total_contracted: number;
+  outstanding_balance: number;
+  active_contracts: number;
+  overdue_contracts: number;
+  oldest_overdue_date: string | null;
+  risk_status: string;
 }
 
 export const useCustomerArrears = (threshold: number = 1500) => {
   return useQuery({
-    queryKey: ['customer-accounts-summary', threshold],
-    queryFn: async (): Promise<CustomerAccountSummary[]> => {
-      // القراءة من الـ View customer_accounts_summary
+    queryKey: ['customer-accounts-summary', 'arrears', threshold],
+    queryFn: async (): Promise<CustomerArrearsSummary[]> => {
       const { data, error } = await supabase
         .from('customer_accounts_summary' as any)
         .select('*');
@@ -25,10 +27,13 @@ export const useCustomerArrears = (threshold: number = 1500) => {
       if (error) throw error;
 
       const rows = (data || []) as any[];
-      // فلترة العملاء المتجاوزين للحد بناءً على مبلغ المتأخرات (بعد مهلة 14 يوم)
-      return rows
-        .filter(row => (row.overdue_amount || 0) > threshold)
-        .sort((a, b) => (b.overdue_amount || 0) - (a.overdue_amount || 0)) as CustomerAccountSummary[];
+
+      // فلترة العملاء الذين تجاوزوا الحد ولديهم عقود متأخرة
+      const filtered = rows
+        .filter((row) => (row.outstanding_balance || 0) > threshold && (row.overdue_contracts || 0) > 0)
+        .sort((a, b) => (b.outstanding_balance || 0) - (a.outstanding_balance || 0));
+
+      return filtered as CustomerArrearsSummary[];
     },
     staleTime: 60 * 1000, // دقيقة
   });
