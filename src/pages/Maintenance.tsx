@@ -12,6 +12,13 @@ import { Plus, Wrench, Calendar, Users } from 'lucide-react';
 const Maintenance = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("records");
+  
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [mechanicFilter, setMechanicFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
 
   return (
     <AppLayout>
@@ -64,8 +71,25 @@ const Maintenance = () => {
               
               <TabsContent value="records" className="mt-0">
                 <div className="space-y-4">
-                  <MaintenanceFilters />
-                  <MaintenanceTable />
+                  <MaintenanceFilters 
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    statusFilter={statusFilter}
+                    onStatusChange={setStatusFilter}
+                    typeFilter={typeFilter}
+                    onTypeChange={setTypeFilter}
+                    mechanicFilter={mechanicFilter}
+                    onMechanicChange={setMechanicFilter}
+                    dateFilter={dateFilter}
+                    onDateChange={setDateFilter}
+                  />
+                  <MaintenanceTable 
+                    searchTerm={searchTerm}
+                    statusFilter={statusFilter}
+                    typeFilter={typeFilter}
+                    mechanicFilter={mechanicFilter}
+                    dateFilter={dateFilter}
+                  />
                 </div>
               </TabsContent>
               

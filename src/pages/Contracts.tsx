@@ -1,8 +1,16 @@
 
+import { useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { ContractsLayout } from '@/components/Contracts/ContractsLayout';
 
 const Contracts = () => {
+  const [contracts] = useState([]);
+  const [stats] = useState({});
+
+  const handleRefresh = () => {
+    // Refresh logic would go here
+  };
+
   return (
     <AppLayout>
       <div className="page-container">
@@ -16,7 +24,11 @@ const Contracts = () => {
           </div>
 
           {/* Main Content */}
-          <ContractsLayout />
+          <ContractsLayout 
+            contracts={contracts}
+            stats={stats}
+            onRefresh={handleRefresh}
+          />
         </div>
       </div>
     </AppLayout>

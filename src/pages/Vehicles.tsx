@@ -1,10 +1,10 @@
 
 import { useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
-import { VehicleStats } from '@/components/Vehicles/VehicleStats';
-import { VehicleFilters } from '@/components/Vehicles/VehicleFilters';
-import { VehicleTable } from '@/components/Vehicles/VehicleTable';
-import { AddVehicleDialog } from '@/components/Vehicles/AddVehicleDialog';
+import VehicleStats from '@/components/Vehicles/VehicleStats';
+import VehicleFilters from '@/components/Vehicles/VehicleFilters';
+import VehicleTable from '@/components/Vehicles/VehicleTable';
+import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Grid, List } from 'lucide-react';

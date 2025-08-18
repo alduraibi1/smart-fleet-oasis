@@ -7,9 +7,43 @@ import { OwnerTable } from '@/components/Owners/OwnerTable';
 import { AddOwnerDialog } from '@/components/Owners/AddOwnerDialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { Owner } from '@/hooks/useOwners';
 
 const Owners = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [owners, setOwners] = useState<Owner[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Mock stats data
+  const mockStats = {
+    total: 45,
+    active: 38,
+    inactive: 7,
+    avg_vehicles_per_owner: 2.3
+  };
+
+  const handleFiltersChange = (filters: any) => {
+    console.log('Filters changed:', filters);
+  };
+
+  const handleUpdate = (id: string, owner: Partial<Owner>) => {
+    setOwners(prev => prev.map(o => o.id === id ? { ...o, ...owner } : o));
+  };
+
+  const handleDelete = (id: string) => {
+    setOwners(prev => prev.filter(o => o.id !== id));
+  };
+
+  const handleAdd = (owner: Omit<Owner, 'id' | 'created_at' | 'updated_at' | 'vehicle_count'>) => {
+    const newOwner: Owner = {
+      ...owner,
+      id: Date.now().toString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      vehicle_count: 0
+    };
+    setOwners(prev => [...prev, newOwner]);
+  };
 
   return (
     <AppLayout>
@@ -35,17 +69,27 @@ const Owners = () => {
 
           {/* Stats Section */}
           <div className="stats-container">
-            <OwnerStats />
+            <OwnerStats 
+              stats={mockStats}
+              loading={loading}
+            />
           </div>
 
           {/* Filters */}
           <div className="dashboard-card mb-4 sm:mb-6">
-            <OwnerFilters />
+            <OwnerFilters 
+              onFiltersChange={handleFiltersChange}
+            />
           </div>
 
           {/* Main Content */}
           <div className="dashboard-card">
-            <OwnerTable />
+            <OwnerTable 
+              owners={owners}
+              loading={loading}
+              onUpdate={handleUpdate}
+              onDelete={handleDelete}
+            />
           </div>
         </div>
 
@@ -53,6 +97,7 @@ const Owners = () => {
         <AddOwnerDialog 
           open={isAddDialogOpen} 
           onOpenChange={setIsAddDialogOpen} 
+          onAdd={handleAdd}
         />
       </div>
     </AppLayout>

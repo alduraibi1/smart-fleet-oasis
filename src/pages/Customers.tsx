@@ -3,13 +3,30 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { CustomerStats } from '@/components/Customers/CustomerStats';
 import { CustomerSearchAndFilter } from '@/components/Customers/CustomerSearchAndFilter';
-import { CustomerTable } from '@/components/Customers/CustomerTable';
+import { EnhancedCustomerTable } from '@/components/Customers/EnhancedCustomerTable';
 import { AddCustomerDialog } from '@/components/Customers/AddCustomerDialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 
 const Customers = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [filters, setFilters] = useState({});
+
+  // Mock stats data
+  const mockStats = {
+    totalCustomers: 245,
+    activeCustomers: 198,
+    newCustomersThisMonth: 23,
+    averageRating: 4.2
+  };
+
+  const handleFiltersChange = (newFilters: any) => {
+    setFilters(newFilters);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
+  };
 
   return (
     <AppLayout>
@@ -35,17 +52,27 @@ const Customers = () => {
 
           {/* Stats Section */}
           <div className="stats-container">
-            <CustomerStats />
+            <CustomerStats 
+              totalCustomers={mockStats.totalCustomers}
+              activeCustomers={mockStats.activeCustomers}
+              newCustomersThisMonth={mockStats.newCustomersThisMonth}
+              averageRating={mockStats.averageRating}
+            />
           </div>
 
           {/* Search and Filters */}
           <div className="dashboard-card mb-4 sm:mb-6">
-            <CustomerSearchAndFilter />
+            <CustomerSearchAndFilter 
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              onClearFilters={handleClearFilters}
+              totalResults={mockStats.totalCustomers}
+            />
           </div>
 
           {/* Main Content */}
           <div className="dashboard-card">
-            <CustomerTable />
+            <EnhancedCustomerTable />
           </div>
         </div>
 
