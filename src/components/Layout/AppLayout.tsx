@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { AppSidebar } from './AppSidebar';
+import AppSidebar from './AppSidebar';
 import Header from './Header';
 import { BreadcrumbNavigation } from '@/components/UI/Navigation/BreadcrumbNavigation';
 import { ErrorBoundary } from '@/components/UI/ErrorStates/ErrorBoundary';
