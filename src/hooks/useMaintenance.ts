@@ -116,7 +116,7 @@ export const useMaintenance = () => {
         const mechanicsData = record.mechanics;
         
         // Check if mechanicsData exists and has the expected structure
-        if (mechanicsData && typeof mechanicsData === 'object' && 'name' in mechanicsData) {
+        if (mechanicsData !== null && mechanicsData !== undefined && typeof mechanicsData === 'object' && 'name' in mechanicsData) {
           const mechanicName = mechanicsData.name;
           if (typeof mechanicName === 'string') {
             return {
