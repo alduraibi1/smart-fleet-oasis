@@ -13,8 +13,9 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   return (
     <ErrorBoundary>
-      <SidebarProvider side="right">
+      <SidebarProvider>
         <div className="min-h-screen flex w-full">
+          <AppSidebar />
           <SidebarInset className="flex-1">
             <Header onMenuClick={() => {}} />
             <BreadcrumbNavigation />
@@ -24,7 +25,6 @@ export function AppLayout({ children }: AppLayoutProps) {
               </ErrorBoundary>
             </main>
           </SidebarInset>
-          <AppSidebar />
         </div>
       </SidebarProvider>
     </ErrorBoundary>
