@@ -37,6 +37,9 @@ const Vehicles = () => {
     chassisNumber: vehicle.chassis_number,
     fuelType: vehicle.fuel_type,
     seatingCapacity: vehicle.seating_capacity,
+    // Ensure created_at and updated_at are always strings
+    created_at: vehicle.created_at || new Date().toISOString(),
+    updated_at: vehicle.updated_at || new Date().toISOString(),
     maintenance: vehicle.maintenance ? 
       (Array.isArray(vehicle.maintenance) ? 
         vehicle.maintenance.map(m => ({

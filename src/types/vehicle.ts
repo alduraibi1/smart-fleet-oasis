@@ -118,9 +118,9 @@ export interface Vehicle {
   purchase?: VehiclePurchase;
   currentRental?: VehicleCurrentRental;
   
-  // Administrative
+  // Administrative - جعل created_at مطلوبة
   notes?: string;
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
   created_by?: string;
 }
