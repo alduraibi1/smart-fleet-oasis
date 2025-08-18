@@ -24,10 +24,10 @@ import { AddInventoryItemDialog } from "@/components/Inventory/AddInventoryItemD
 import { AddCategoryDialog } from "@/components/Inventory/AddCategoryDialog";
 import { InventoryOverview } from "@/components/Inventory/InventoryOverview";
 import { StockManagement } from "@/components/Inventory/StockManagement";
-import { SuppliersManagement } from "@/components/Inventory/SuppliersManagement";
-import { AutoReordering } from "@/components/Inventory/AutoReordering";
-import { QualityControl } from "@/components/Inventory/QualityControl";
-import { InventoryReports } from "@/components/Inventory/InventoryReports";
+import SuppliersManagement from "@/components/Inventory/SuppliersManagement";
+import AutoReordering from "@/components/Inventory/AutoReordering";
+import QualityControl from "@/components/Inventory/QualityControl";
+import InventoryReports from "@/components/Inventory/InventoryReports";
 import { useInventory } from "@/hooks/useInventory";
 
 const Inventory = () => {
@@ -183,15 +183,8 @@ const Inventory = () => {
       </Tabs>
 
       {/* Dialogs */}
-      <AddInventoryItemDialog 
-        open={addItemOpen}
-        onOpenChange={setAddItemOpen}
-      />
-      
-      <AddCategoryDialog
-        open={addCategoryOpen}
-        onOpenChange={setAddCategoryOpen}
-      />
+      <AddInventoryItemDialog />
+      <AddCategoryDialog />
     </div>
   );
 };
