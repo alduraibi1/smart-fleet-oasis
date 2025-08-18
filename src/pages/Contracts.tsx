@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,6 @@ import VehicleReturnDialog from '@/components/Contracts/VehicleReturnDialog';
 const Contracts = () => {
   const { contracts, stats, loading } = useContracts();
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showReturnDialog, setShowReturnDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
 
@@ -80,10 +80,6 @@ const Contracts = () => {
               <Button onClick={() => setShowAddDialog(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 إنشاء عقد جديد
-              </Button>
-              <Button onClick={() => setShowReturnDialog(true)} variant="outline" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                إرجاع مركبة
               </Button>
             </div>
           </div>
@@ -200,7 +196,7 @@ const Contracts = () => {
                                   <Edit className="h-4 w-4" />
                                 </Button>
                                 {contract.status === 'active' && (
-                                  <Button variant="ghost" size="sm" onClick={() => setShowReturnDialog(true)}>
+                                  <Button variant="ghost" size="sm">
                                     <ArrowLeft className="h-4 w-4" />
                                   </Button>
                                 )}
