@@ -13,6 +13,8 @@ import Accounting from './pages/Accounting';
 import Reports from './pages/Reports';
 import SystemManagement from './pages/SystemManagement';
 import EnhancedSystemManagement from './pages/EnhancedSystemManagement';
+import Maintenance from './pages/Maintenance';
+import Inventory from './pages/Inventory';
 import { Toaster } from '@/components/ui/toaster';
 import './App.css';
 
@@ -34,6 +36,8 @@ function App() {
                 <Route path="/contracts" element={<Contracts />} />
                 <Route path="/accounting" element={<Accounting />} />
                 <Route path="/reports" element={<Reports />} />
+                <Route path="/maintenance" element={<Maintenance />} />
+                <Route path="/inventory" element={<Inventory />} />
                 {/* Redirect old advanced reports path to unified reports */}
                 <Route path="/advanced-reports" element={<Navigate to="/reports" replace />} />
                 <Route path="/system-management" element={<SystemManagement />} />
