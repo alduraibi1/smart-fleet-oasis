@@ -114,15 +114,21 @@ export const useMaintenance = () => {
       // Handle the case where mechanics might not exist or join might fail
       const processedData = (data || []).map(record => {
         const mechanicsData = record.mechanics;
+        
+        // Check if mechanicsData is valid and has the required structure
+        if (mechanicsData && 
+            typeof mechanicsData === 'object' && 
+            'name' in mechanicsData && 
+            typeof mechanicsData.name === 'string') {
+          return {
+            ...record,
+            mechanics: { name: mechanicsData.name }
+          };
+        }
+        
         return {
           ...record,
-          mechanics: mechanicsData && 
-                    typeof mechanicsData === 'object' && 
-                    mechanicsData !== null && 
-                    'name' in mechanicsData && 
-                    typeof mechanicsData.name === 'string' 
-            ? { name: mechanicsData.name }
-            : null
+          mechanics: null
         };
       });
       
