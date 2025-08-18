@@ -1,119 +1,157 @@
 
 import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, Building, FileText, TrendingUp } from "lucide-react";
-import { useSuppliers } from "@/hooks/useSuppliers";
+import { 
+  Building2, 
+  ShoppingCart, 
+  BarChart3, 
+  Plus,
+  FileText,
+  Settings
+} from "lucide-react";
+
 import { SuppliersOverview } from "@/components/Suppliers/SuppliersOverview";
 import { SuppliersTable } from "@/components/Suppliers/SuppliersTable";
 import { PurchaseOrdersTable } from "@/components/Suppliers/PurchaseOrdersTable";
-import { SuppliersReports } from "@/components/Suppliers/SuppliersReports";
 import { AddSupplierDialog } from "@/components/Suppliers/AddSupplierDialog";
 import { CreatePurchaseOrderDialog } from "@/components/Suppliers/CreatePurchaseOrderDialog";
-import { AppLayout } from "@/components/Layout/AppLayout";
+import { SuppliersReports } from "@/components/Suppliers/SuppliersReports";
 
-export default function Suppliers() {
-  const [activeTab, setActiveTab] = useState("overview");
-  const [showAddSupplierDialog, setShowAddSupplierDialog] = useState(false);
-  const [showCreateOrderDialog, setShowCreateOrderDialog] = useState(false);
-
-  const { loading } = useSuppliers();
-
-  const handleAddSupplier = () => {
-    setShowAddSupplierDialog(true);
-  };
-
-  const handleCreateOrder = () => {
-    setShowCreateOrderDialog(true);
-  };
-
-  if (loading) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">جاري تحميل بيانات الموردين...</p>
-          </div>
-        </div>
-      </AppLayout>
-    );
-  }
+const Suppliers = () => {
+  const [addSupplierOpen, setAddSupplierOpen] = useState(false);
+  const [createOrderOpen, setCreateOrderOpen] = useState(false);
 
   return (
-    <AppLayout>
-      <div className="space-y-6">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">إدارة الموردين</h1>
-            <p className="text-muted-foreground mt-2">
-              إدارة الموردين وأوامر الشراء ومتابعة الأداء
-            </p>
-          </div>
+    <div className="container mx-auto p-6 space-y-6 max-w-7xl">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">إدارة الموردين المتقدمة</h1>
+          <p className="text-muted-foreground">
+            إدارة شاملة للموردين وأوامر الشراء مع تتبع الأداء والجودة
+          </p>
         </div>
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <TabsList className="grid w-full sm:w-auto grid-cols-4">
-              <TabsTrigger value="overview" className="text-sm">
-                نظرة عامة
-              </TabsTrigger>
-              <TabsTrigger value="suppliers" className="text-sm">
-                الموردين
-              </TabsTrigger>
-              <TabsTrigger value="orders" className="text-sm">
-                أوامر الشراء
-              </TabsTrigger>
-              <TabsTrigger value="reports" className="text-sm">
-                التقارير
-              </TabsTrigger>
-            </TabsList>
-
-            <div className="flex gap-2">
-              {activeTab === "suppliers" && (
-                <Button onClick={handleAddSupplier} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  إضافة مورد
-                </Button>
-              )}
-              {activeTab === "orders" && (
-                <Button onClick={handleCreateOrder} className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  إنشاء أمر شراء
-                </Button>
-              )}
-            </div>
-          </div>
-
-          <TabsContent value="overview" className="space-y-6">
-            <SuppliersOverview />
-          </TabsContent>
-
-          <TabsContent value="suppliers" className="space-y-6">
-            <SuppliersTable />
-          </TabsContent>
-
-          <TabsContent value="orders" className="space-y-6">
-            <PurchaseOrdersTable />
-          </TabsContent>
-
-          <TabsContent value="reports" className="space-y-6">
-            <SuppliersReports />
-          </TabsContent>
-        </Tabs>
-
-        <AddSupplierDialog 
-          open={showAddSupplierDialog} 
-          onOpenChange={setShowAddSupplierDialog}
-        />
-
-        <CreatePurchaseOrderDialog 
-          open={showCreateOrderDialog} 
-          onOpenChange={setShowCreateOrderDialog}
-        />
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => setCreateOrderOpen(true)}
+          >
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            أمر شراء جديد
+          </Button>
+          <Button onClick={() => setAddSupplierOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            مورد جديد
+          </Button>
+        </div>
       </div>
-    </AppLayout>
+
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            نظرة عامة
+          </TabsTrigger>
+          <TabsTrigger value="suppliers" className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            الموردين
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            أوامر الشراء
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            التقارير
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            الإعدادات
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          <SuppliersOverview />
+        </TabsContent>
+
+        {/* Suppliers Tab */}
+        <TabsContent value="suppliers" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                قائمة الموردين
+              </CardTitle>
+              <CardDescription>
+                إدارة معلومات الموردين وتقييم أدائهم
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SuppliersTable />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Purchase Orders Tab */}
+        <TabsContent value="orders" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                أوامر الشراء
+              </CardTitle>
+              <CardDescription>
+                متابعة وإدارة أوامر الشراء من الموردين
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PurchaseOrdersTable />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Reports Tab */}
+        <TabsContent value="reports" className="space-y-6">
+          <SuppliersReports />
+        </TabsContent>
+
+        {/* Settings Tab */}
+        <TabsContent value="settings" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                إعدادات الموردين
+              </CardTitle>
+              <CardDescription>
+                تكوين إعدادات النظام الخاصة بإدارة الموردين
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center py-12 text-muted-foreground">
+                <Settings className="h-12 w-12 mx-auto mb-4" />
+                <p>سيتم إضافة إعدادات الموردين قريباً</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Dialogs */}
+      <AddSupplierDialog 
+        open={addSupplierOpen} 
+        onOpenChange={setAddSupplierOpen} 
+      />
+      <CreatePurchaseOrderDialog 
+        open={createOrderOpen} 
+        onOpenChange={setCreateOrderOpen} 
+      />
+    </div>
   );
-}
+};
+
+export default Suppliers;
