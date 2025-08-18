@@ -4,64 +4,58 @@ import { AppLayout } from '@/components/Layout/AppLayout';
 import VehicleStats from '@/components/Vehicles/VehicleStats';
 import VehicleFilters from '@/components/Vehicles/VehicleFilters';
 import VehicleTable from '@/components/Vehicles/VehicleTable';
+import VehicleGrid from '@/components/Vehicles/VehicleGrid';
 import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Grid, List } from 'lucide-react';
-import { Vehicle, VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
+import { VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
+import { useVehicles } from '@/hooks/useVehicles';
 
 const Vehicles = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [filters, setFilters] = useState<VehicleFiltersType>({});
-  const [loading, setLoading] = useState(false);
 
-  // Mock stats data
-  const mockStats = {
-    total: 150,
-    available: 120,
-    rented: 25,
-    maintenance: 3,
-    out_of_service: 2,
-    total_value: 12500000,
-    avg_daily_rate: 250
-  };
-
-  // Mock brands data
-  const mockBrands = ['تويوتا', 'نيسان', 'هيونداي', 'كيا', 'هوندا', 'مازda', 'شيفروليه'];
+  const {
+    vehicles,
+    loading,
+    stats,
+    fetchVehicles,
+    addVehicle,
+    updateVehicle,
+    deleteVehicle,
+    getBrands,
+  } = useVehicles();
 
   const handleFiltersChange = (newFilters: VehicleFiltersType) => {
     setFilters(newFilters);
+    fetchVehicles(newFilters);
   };
 
-  const handleVehicleAdded = (vehicleData: any) => {
-    // Create a new vehicle object with required fields
-    const newVehicle: Vehicle = {
-      id: Date.now().toString(),
-      plate_number: vehicleData.plate_number,
-      brand: vehicleData.brand,
-      model: vehicleData.model,
-      year: vehicleData.year,
-      color: vehicleData.color,
-      status: vehicleData.status,
-      daily_rate: vehicleData.daily_rate,
-      mileage: vehicleData.mileage,
-      fuel_type: vehicleData.fuel_type,
-      transmission: vehicleData.transmission,
-      seating_capacity: vehicleData.seating_capacity,
-      vin: vehicleData.vin,
-      engine_number: vehicleData.engine_number,
-      chassis_number: vehicleData.chassis_number,
-      owner_id: vehicleData.owner_id,
-      notes: vehicleData.notes,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    
-    // Add the new vehicle to the list
-    setVehicles(prev => [newVehicle, ...prev]);
-    console.log('Vehicle added:', newVehicle);
+  const handleVehicleAdded = async (vehicleData: any) => {
+    try {
+      await addVehicle(vehicleData);
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error('Error adding vehicle:', error);
+    }
+  };
+
+  const handleVehicleUpdated = async (id: string, vehicleData: any) => {
+    try {
+      await updateVehicle(id, vehicleData);
+    } catch (error) {
+      console.error('Error updating vehicle:', error);
+    }
+  };
+
+  const handleVehicleDeleted = async (id: string) => {
+    try {
+      await deleteVehicle(id);
+    } catch (error) {
+      console.error('Error deleting vehicle:', error);
+    }
   };
 
   return (
@@ -108,7 +102,7 @@ const Vehicles = () => {
 
           {/* Stats Section */}
           <div className="stats-container">
-            <VehicleStats stats={mockStats} />
+            <VehicleStats stats={stats} />
           </div>
 
           {/* Filters */}
@@ -116,7 +110,7 @@ const Vehicles = () => {
             <VehicleFilters 
               filters={filters}
               onFiltersChange={handleFiltersChange}
-              brands={mockBrands}
+              brands={getBrands()}
               loading={loading}
             />
           </div>
@@ -134,23 +128,30 @@ const Vehicles = () => {
               </TabsList>
               
               <TabsContent value="table" className="mt-0">
-                <VehicleTable vehicles={vehicles} />
+                <VehicleTable 
+                  vehicles={vehicles}
+                  onUpdateVehicle={handleVehicleUpdated}
+                  onDeleteVehicle={handleVehicleDeleted}
+                />
               </TabsContent>
               
               <TabsContent value="grid" className="mt-0">
-                <div className="adaptive-grid">
-                  {/* VehicleGrid component would go here */}
-                  <div className="text-center text-muted-foreground py-8">
-                    عرض البطاقات قيد التطوير
-                  </div>
-                </div>
+                <VehicleGrid 
+                  vehicles={vehicles}
+                  onUpdateVehicle={handleVehicleUpdated}
+                  onDeleteVehicle={handleVehicleDeleted}
+                />
               </TabsContent>
             </Tabs>
           </div>
         </div>
 
         {/* Add Vehicle Dialog */}
-        <AddVehicleDialog onVehicleAdded={handleVehicleAdded} />
+        <AddVehicleDialog 
+          open={isAddDialogOpen}
+          onOpenChange={setIsAddDialogOpen}
+          onVehicleAdded={handleVehicleAdded}
+        />
       </div>
     </AppLayout>
   );

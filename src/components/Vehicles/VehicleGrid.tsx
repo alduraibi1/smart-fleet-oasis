@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Card,
@@ -24,68 +23,38 @@ import { Vehicle } from '@/types/vehicle';
 import { Button } from '@/components/ui/button';
 import { EditVehicleDialog } from './EditVehicleDialog';
 import { DeleteVehicleDialog } from './DeleteVehicleDialog';
-import { useToast } from '@/hooks/use-toast';
+import EnhancedVehicleDetailsDialog from './EnhancedVehicleDetailsDialog';
 import { VehicleRegistrationExpiry } from './VehicleRegistrationExpiry';
 
 interface VehicleGridProps {
   vehicles: Vehicle[];
-  onUpdateVehicle: (id: string, vehicleData: Partial<Vehicle>) => Promise<void>;
-  onDeleteVehicle: (id: string) => Promise<void>;
+  onUpdateVehicle?: (id: string, vehicleData: Partial<Vehicle>) => Promise<void>;
+  onDeleteVehicle?: (id: string) => Promise<void>;
 }
 
 const VehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleGridProps) => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-  const [dialogAction, setDialogAction] = useState<'edit' | 'delete' | null>(null);
-  const { toast } = useToast();
+  const [dialogAction, setDialogAction] = useState<'edit' | 'delete' | 'details' | null>(null);
 
-  const handleEdit = (vehicle: Vehicle) => {
+  const handleAction = (vehicle: Vehicle, action: 'edit' | 'delete' | 'details') => {
     setSelectedVehicle(vehicle);
-    setDialogAction('edit');
-  };
-
-  const handleDelete = (vehicle: Vehicle) => {
-    setSelectedVehicle(vehicle);
-    setDialogAction('delete');
+    setDialogAction(action);
   };
 
   const handleVehicleUpdate = async (id: string, data: Partial<Vehicle>) => {
-    try {
+    if (onUpdateVehicle) {
       await onUpdateVehicle(id, data);
-      setSelectedVehicle(null);
-      setDialogAction(null);
-      toast({
-        title: "تم بنجاح",
-        description: "تم تحديث بيانات المركبة بنجاح",
-      });
-    } catch (error) {
-      console.error("Failed to update vehicle:", error);
-      toast({
-        title: "خطأ",
-        description: "فشل في تحديث بيانات المركبة",
-        variant: "destructive",
-      });
     }
+    setSelectedVehicle(null);
+    setDialogAction(null);
   };
 
   const handleVehicleDeleted = async () => {
-    if (!selectedVehicle) return;
+    if (!selectedVehicle || !onDeleteVehicle) return;
     
-    try {
-      await onDeleteVehicle(selectedVehicle.id);
-      setSelectedVehicle(null);
-      setDialogAction(null);
-      toast({
-        title: "تم بنجاح",
-        description: "تم حذف المركبة بنجاح",
-      });
-    } catch (error) {
-      console.error("Failed to delete vehicle:", error);
-      toast({
-        title: "خطأ",
-        description: "فشل في حذف المركبة",
-        variant: "destructive",
-      });
-    }
+    await onDeleteVehicle(selectedVehicle.id);
+    setSelectedVehicle(null);
+    setDialogAction(null);
   };
 
   const getStatusBadge = (status: string) => {
@@ -223,14 +192,6 @@ const VehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleGrid
                       {vehicle.brand} {vehicle.model} - {vehicle.year}
                     </CardDescription>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="icon" onClick={() => handleEdit(vehicle)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(vehicle)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
                 </div>
               </CardHeader>
               
@@ -285,16 +246,32 @@ const VehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleGrid
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1 gap-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 gap-1"
+                    onClick={() => handleAction(vehicle, 'details')}
+                  >
                     <Eye className="w-4 h-4" />
                     <span className="hidden sm:inline">عرض</span>
                   </Button>
-                  <Button variant="outline" size="sm" className="flex-1 gap-1" onClick={() => handleEdit(vehicle)}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 gap-1" 
+                    onClick={() => handleAction(vehicle, 'edit')}
+                  >
                     <Edit className="w-4 h-4" />
                     <span className="hidden sm:inline">تعديل</span>
                   </Button>
-                  <Button variant="outline" size="sm" className="gap-1">
-                    <FileText className="w-4 h-4" />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="gap-1"
+                    onClick={() => handleAction(vehicle, 'delete')}
+                    disabled={vehicle.status === 'rented'}
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
 
@@ -310,20 +287,26 @@ const VehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleGrid
         })}
       </div>
 
-      {/* Edit Dialog */}
+      {/* Dialogs */}
       {selectedVehicle && dialogAction === 'edit' && (
         <EditVehicleDialog
           vehicle={selectedVehicle}
-          trigger={<div style={{ display: 'none' }} />}
           onUpdate={handleVehicleUpdate}
+          trigger={<div style={{ display: 'none' }} />}
         />
       )}
 
-      {/* Delete Dialog */}
       {selectedVehicle && dialogAction === 'delete' && (
         <DeleteVehicleDialog
           vehicle={selectedVehicle}
           onDelete={handleVehicleDeleted}
+          trigger={<div style={{ display: 'none' }} />}
+        />
+      )}
+
+      {selectedVehicle && dialogAction === 'details' && (
+        <EnhancedVehicleDetailsDialog
+          vehicle={selectedVehicle}
           trigger={<div style={{ display: 'none' }} />}
         />
       )}

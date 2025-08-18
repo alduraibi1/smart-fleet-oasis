@@ -1,7 +1,5 @@
+
 import { useState } from 'react';
-import { Vehicle } from '@/types/vehicle';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -10,120 +8,244 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Eye, Edit, ArrowUpDown } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Vehicle } from '@/types/vehicle';
+import { MoreHorizontal, Edit, Trash2, Eye, FileText } from 'lucide-react';
+import { EditVehicleDialog } from './EditVehicleDialog';
+import { DeleteVehicleDialog } from './DeleteVehicleDialog';
 import EnhancedVehicleDetailsDialog from './EnhancedVehicleDetailsDialog';
+import { VehicleRegistrationExpiry } from './VehicleRegistrationExpiry';
 
 interface VehicleTableProps {
   vehicles: Vehicle[];
+  onUpdateVehicle?: (id: string, data: Partial<Vehicle>) => Promise<void>;
+  onDeleteVehicle?: (id: string) => Promise<void>;
 }
 
-export default function VehicleTable({ vehicles }: VehicleTableProps) {
-  const [sortField, setSortField] = useState<keyof Vehicle>('plate_number');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+const VehicleTable = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleTableProps) => {
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [dialogType, setDialogType] = useState<'edit' | 'delete' | 'details' | null>(null);
 
-  const getStatusBadge = (status: string) => {
-    const statusMap = {
-      available: { label: 'متاحة', variant: 'default' as const },
-      rented: { label: 'مؤجرة', variant: 'secondary' as const },
-      maintenance: { label: 'صيانة', variant: 'destructive' as const },
-      out_of_service: { label: 'خارج الخدمة', variant: 'outline' as const }
-    };
-    
-    return statusMap[status as keyof typeof statusMap] || statusMap.available;
-  };
-
-  const handleSort = (field: keyof Vehicle) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
+  const getStatusVariant = (status: Vehicle['status']) => {
+    switch (status) {
+      case 'available':
+        return 'default';
+      case 'rented':
+        return 'secondary';
+      case 'maintenance':
+        return 'destructive';
+      case 'out_of_service':
+        return 'outline';
+      default:
+        return 'default';
     }
   };
 
-  const sortedVehicles = [...vehicles].sort((a, b) => {
-    const aValue = a[sortField];
-    const bValue = b[sortField];
-    
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return sortDirection === 'asc' 
-        ? aValue.localeCompare(bValue, 'ar')
-        : bValue.localeCompare(aValue, 'ar');
+  const getStatusLabel = (status: Vehicle['status']) => {
+    switch (status) {
+      case 'available':
+        return 'متاحة';
+      case 'rented':
+        return 'مؤجرة';
+      case 'maintenance':
+        return 'تحت الصيانة';
+      case 'out_of_service':
+        return 'خارج الخدمة';
+      default:
+        return 'غير محدد';
     }
-    
-    if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-    }
-    
-    return 0;
-  });
+  };
 
-  const SortableHeader = ({ field, children }: { field: keyof Vehicle; children: React.ReactNode }) => (
-    <TableHead className="cursor-pointer" onClick={() => handleSort(field)}>
-      <div className="flex items-center gap-1">
-        {children}
-        <ArrowUpDown className="h-4 w-4" />
+  const getFuelTypeLabel = (fuelType: Vehicle['fuel_type']) => {
+    switch (fuelType) {
+      case 'gasoline':
+        return 'بنزين';
+      case 'diesel':
+        return 'ديزل';
+      case 'hybrid':
+        return 'هجين';
+      case 'electric':
+        return 'كهرباء';
+      default:
+        return 'غير محدد';
+    }
+  };
+
+  const getTransmissionLabel = (transmission: Vehicle['transmission']) => {
+    switch (transmission) {
+      case 'manual':
+        return 'يدوي';
+      case 'automatic':
+        return 'تلقائي';
+      default:
+        return 'غير محدد';
+    }
+  };
+
+  const handleAction = (vehicle: Vehicle, action: 'edit' | 'delete' | 'details') => {
+    setSelectedVehicle(vehicle);
+    setDialogType(action);
+  };
+
+  const handleVehicleUpdate = async (id: string, data: Partial<Vehicle>) => {
+    if (onUpdateVehicle) {
+      await onUpdateVehicle(id, data);
+    }
+    setSelectedVehicle(null);
+    setDialogType(null);
+  };
+
+  const handleVehicleDelete = async (id: string) => {
+    if (onDeleteVehicle) {
+      await onDeleteVehicle(id);
+    }
+    setSelectedVehicle(null);
+    setDialogType(null);
+  };
+
+  if (vehicles.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="mx-auto w-24 h-24 bg-muted/30 rounded-full flex items-center justify-center mb-4">
+          <FileText className="h-12 w-12 text-muted-foreground" />
+        </div>
+        <h3 className="text-lg font-semibold text-muted-foreground mb-2">لا توجد مركبات</h3>
+        <p className="text-muted-foreground">ابدأ بإضافة مركبة جديدة لأسطولك</p>
       </div>
-    </TableHead>
-  );
+    );
+  }
 
   return (
-    <div className="border rounded-lg">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <SortableHeader field="plate_number">رقم اللوحة</SortableHeader>
-            <SortableHeader field="brand">الماركة والموديل</SortableHeader>
-            <SortableHeader field="year">السنة</SortableHeader>
-            <SortableHeader field="color">اللون</SortableHeader>
-            <TableHead>الحالة</TableHead>
-            <TableHead>المالك</TableHead>
-            <SortableHeader field="daily_rate">السعر اليومي</SortableHeader>
-            <SortableHeader field="mileage">الكيلومترات</SortableHeader>
-            <TableHead>الإجراءات</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedVehicles.map((vehicle) => {
-            const statusBadge = getStatusBadge(vehicle.status);
-            return (
+    <>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-right">رقم اللوحة</TableHead>
+              <TableHead className="text-right">المركبة</TableHead>
+              <TableHead className="text-right">الحالة</TableHead>
+              <TableHead className="text-right">السعر اليومي</TableHead>
+              <TableHead className="text-right">عدد الكيلومترات</TableHead>
+              <TableHead className="text-right">نوع الوقود</TableHead>
+              <TableHead className="text-right">ناقل الحركة</TableHead>
+              <TableHead className="text-right">صلاحية التسجيل</TableHead>
+              <TableHead className="text-right">المالك</TableHead>
+              <TableHead className="w-[100px]">الإجراءات</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {vehicles.map((vehicle) => (
               <TableRow key={vehicle.id}>
-                <TableCell className="font-medium">{vehicle.plate_number}</TableCell>
+                <TableCell className="font-medium">
+                  {vehicle.plate_number}
+                </TableCell>
                 <TableCell>
                   <div>
                     <div className="font-medium">{vehicle.brand} {vehicle.model}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {vehicle.year} - {vehicle.color}
+                    </div>
                   </div>
                 </TableCell>
-                <TableCell>{vehicle.year}</TableCell>
-                <TableCell>{vehicle.color}</TableCell>
                 <TableCell>
-                  <Badge variant={statusBadge.variant}>
-                    {statusBadge.label}
+                  <Badge variant={getStatusVariant(vehicle.status)}>
+                    {getStatusLabel(vehicle.status)}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm">
-                    <div className="font-medium">{vehicle.owner?.name || 'غير محدد'}</div>
-                    <div className="text-muted-foreground">{vehicle.owner?.phone || ''}</div>
-                  </div>
+                  <span className="font-medium">{vehicle.daily_rate} ريال</span>
                 </TableCell>
-                <TableCell>{vehicle.daily_rate} ريال</TableCell>
-                <TableCell>{vehicle.mileage.toLocaleString()}</TableCell>
                 <TableCell>
-                  <div className="flex gap-1">
-                    <Button size="sm" variant="ghost">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {vehicle.mileage?.toLocaleString() || 0} كم
+                </TableCell>
+                <TableCell>
+                  {getFuelTypeLabel(vehicle.fuel_type)}
+                </TableCell>
+                <TableCell>
+                  {getTransmissionLabel(vehicle.transmission)}
+                </TableCell>
+                <TableCell>
+                  {vehicle.registration_expiry ? (
+                    <VehicleRegistrationExpiry 
+                      expiryDate={vehicle.registration_expiry}
+                      className="text-xs"
+                    />
+                  ) : (
+                    <span className="text-muted-foreground text-sm">غير محدد</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm">
+                    {vehicle.owner?.name || 'غير محدد'}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleAction(vehicle, 'details')}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        عرض التفاصيل
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAction(vehicle, 'edit')}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        تعديل
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => handleAction(vehicle, 'delete')}
+                        className="text-destructive"
+                        disabled={vehicle.status === 'rented'}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        حذف
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Dialogs */}
+      {selectedVehicle && dialogType === 'edit' && (
+        <EditVehicleDialog
+          vehicle={selectedVehicle}
+          onUpdate={handleVehicleUpdate}
+          trigger={<div style={{ display: 'none' }} />}
+        />
+      )}
+
+      {selectedVehicle && dialogType === 'delete' && (
+        <DeleteVehicleDialog
+          vehicle={selectedVehicle}
+          onDelete={() => handleVehicleDelete(selectedVehicle.id)}
+          trigger={<div style={{ display: 'none' }} />}
+        />
+      )}
+
+      {selectedVehicle && dialogType === 'details' && (
+        <EnhancedVehicleDetailsDialog
+          vehicle={selectedVehicle}
+          trigger={<div style={{ display: 'none' }} />}
+        />
+      )}
+    </>
   );
-}
+};
+
+export default VehicleTable;
