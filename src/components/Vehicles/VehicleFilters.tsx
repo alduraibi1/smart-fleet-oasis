@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { VehicleFilters as VehicleFiltersType } from '@/types/vehicles';
+import { VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
 
 interface VehicleFiltersProps {
   filters: VehicleFiltersType;

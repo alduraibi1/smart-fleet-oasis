@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Vehicle, VehicleFilters, VehicleStats } from '@/types/vehicles';
+import { Vehicle, VehicleFilters, VehicleStats } from '@/types/vehicle';
 import { useToast } from '@/hooks/use-toast';
 
 export const useVehicles = () => {
@@ -99,9 +99,31 @@ export const useVehicles = () => {
   // Add new vehicle
   const addVehicle = async (vehicleData: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      // Convert the vehicleData to match database schema
+      const dbVehicleData = {
+        plate_number: vehicleData.plate_number,
+        brand: vehicleData.brand,
+        model: vehicleData.model,
+        year: vehicleData.year,
+        color: vehicleData.color,
+        status: vehicleData.status,
+        daily_rate: vehicleData.daily_rate,
+        mileage: vehicleData.mileage,
+        vin: vehicleData.vin,
+        engine_number: vehicleData.engine_number,
+        chassis_number: vehicleData.chassis_number,
+        fuel_type: vehicleData.fuel_type,
+        transmission: vehicleData.transmission,
+        seating_capacity: vehicleData.seating_capacity,
+        registration_expiry: vehicleData.registration_expiry,
+        owner_id: vehicleData.owner_id,
+        notes: vehicleData.notes,
+        created_by: vehicleData.created_by,
+      };
+
       const { data, error } = await supabase
         .from('vehicles')
-        .insert([vehicleData])
+        .insert([dbVehicleData])
         .select()
         .single();
 

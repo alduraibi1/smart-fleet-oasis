@@ -9,7 +9,7 @@ import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
 import { Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/Layout/AppLayout';
-import { VehicleFilters as VehicleFiltersType } from '@/types/vehicles';
+import { VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
 import { Vehicle } from '@/types/vehicle';
 
 const Vehicles = () => {

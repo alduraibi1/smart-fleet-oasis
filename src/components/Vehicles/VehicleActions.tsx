@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import AddVehicleDialog from './AddVehicleDialog';
-import { Vehicle } from '@/types/vehicles';
+import { Vehicle } from '@/types/vehicle';
 
 interface VehicleActionsProps {
   vehicles: Vehicle[];

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Car, CheckCircle, Clock, Wrench, DollarSign, TrendingUp, Gauge } from 'lucide-react';
-import { VehicleStats as VehicleStatsType } from '@/types/vehicles';
+import { VehicleStats as VehicleStatsType } from '@/types/vehicle';
 
 interface VehicleStatsProps {
   stats: VehicleStatsType;

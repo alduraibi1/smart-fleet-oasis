@@ -61,9 +61,9 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
     setSelectedVehicle(vehicle);
   };
 
-  const handleVehicleUpdated = async (updatedVehicle: Vehicle) => {
+  const handleVehicleUpdate = async (id: string, data: Partial<Vehicle>) => {
     try {
-      await onUpdateVehicle(updatedVehicle.id, updatedVehicle);
+      await onUpdateVehicle(id, data);
       setSelectedVehicle(null);
       toast({
         title: "تم بنجاح",
@@ -247,7 +247,7 @@ const EnhancedVehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: Enh
         <EditVehicleDialog
           vehicle={selectedVehicle}
           trigger={<div style={{ display: 'none' }} />}
-          onVehicleUpdated={handleVehicleUpdated}
+          onUpdate={handleVehicleUpdate}
         />
       )}
 
