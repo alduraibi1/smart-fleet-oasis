@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { useContracts } from '@/hooks/useContracts';
 import { ContractsOverview } from '@/components/Contracts/ContractsOverview';
 import { ContractsTable } from '@/components/Contracts/ContractsTable';
-import { AddContractDialog } from '@/components/Contracts/AddContractDialog';
-import { VehicleReturnDialog } from '@/components/Contracts/VehicleReturnDialog';
+import AddContractDialog from '@/components/Contracts/AddContractDialog';
+import VehicleReturnDialog from '@/components/Contracts/VehicleReturnDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
