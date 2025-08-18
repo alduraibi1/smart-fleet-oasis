@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -113,7 +114,7 @@ export const useMaintenance = () => {
       // Handle the case where mechanics might not exist or join might fail
       const processedData = (data || []).map(record => ({
         ...record,
-        mechanics: record.mechanics && typeof record.mechanics === 'object' && 'name' in record.mechanics 
+        mechanics: record.mechanics && typeof record.mechanics === 'object' && record.mechanics !== null && 'name' in record.mechanics 
           ? record.mechanics 
           : null
       }));
