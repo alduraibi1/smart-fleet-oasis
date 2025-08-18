@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { MaintenanceStats } from "@/components/Maintenance/MaintenanceStats";
 import { MaintenanceTable } from "@/components/Maintenance/MaintenanceTable";
 import { EnhancedAddMaintenanceDialog } from "@/components/Maintenance/EnhancedAddMaintenanceDialog";
@@ -8,6 +9,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Wrench, Calendar, Users, BarChart3 } from "lucide-react";
 
 const Maintenance = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [mechanicFilter, setMechanicFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("");
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -43,7 +50,13 @@ const Maintenance = () => {
         </TabsList>
         
         <TabsContent value="maintenance" className="space-y-4">
-          <MaintenanceTable />
+          <MaintenanceTable 
+            searchTerm={searchTerm}
+            statusFilter={statusFilter}
+            typeFilter={typeFilter}
+            mechanicFilter={mechanicFilter}
+            dateFilter={dateFilter}
+          />
         </TabsContent>
         
         <TabsContent value="schedule" className="space-y-4">

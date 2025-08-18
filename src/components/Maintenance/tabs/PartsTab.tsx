@@ -46,6 +46,7 @@ export function PartsTab({ formData, setFormData, onCalculateCosts }: PartsTabPr
     const newPart = {
       partId: selectedPart.id,
       partName: selectedPart.name,
+      partNumber: selectedPart.part_number || selectedPart.sku || '',
       quantity: quantity,
       unitCost: selectedPart.unit_cost,
       totalCost: quantity * selectedPart.unit_cost,
@@ -216,7 +217,9 @@ export function PartsTab({ formData, setFormData, onCalculateCosts }: PartsTabPr
                       <TableCell>
                         <div>
                           <div className="font-medium">{part.partName}</div>
-                          <div className="text-xs text-muted-foreground">ID: {part.partId}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {part.partNumber && `رقم القطعة: ${part.partNumber}`}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>

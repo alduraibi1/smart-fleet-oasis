@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -36,6 +35,10 @@ export interface MaintenanceFormData {
   warrantyPeriod: number;
   notes: string;
   images: File[];
+  beforeImages: string[];
+  afterImages: string[];
+  vehicleConditionBefore: string;
+  vehicleConditionAfter: string;
   partsUsed: Array<{
     partId: string;
     partName: string;
@@ -87,6 +90,10 @@ export const EnhancedAddMaintenanceDialog = () => {
     warrantyPeriod: 30,
     notes: '',
     images: [],
+    beforeImages: [],
+    afterImages: [],
+    vehicleConditionBefore: '',
+    vehicleConditionAfter: '',
     partsUsed: [],
     oilsUsed: []
   });
@@ -160,6 +167,10 @@ export const EnhancedAddMaintenanceDialog = () => {
         warrantyPeriod: 30,
         notes: '',
         images: [],
+        beforeImages: [],
+        afterImages: [],
+        vehicleConditionBefore: '',
+        vehicleConditionAfter: '',
         partsUsed: [],
         oilsUsed: []
       });
@@ -230,9 +241,9 @@ export const EnhancedAddMaintenanceDialog = () => {
               <TabsTrigger value="images" className="flex items-center gap-1">
                 <Image className="h-3 w-3" />
                 الصور
-                {formData.images.length > 0 && (
+                {(formData.beforeImages.length + formData.afterImages.length) > 0 && (
                   <Badge variant="secondary" className="ml-1 text-xs">
-                    {formData.images.length}
+                    {formData.beforeImages.length + formData.afterImages.length}
                   </Badge>
                 )}
               </TabsTrigger>
