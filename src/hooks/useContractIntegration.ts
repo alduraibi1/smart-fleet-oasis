@@ -137,23 +137,23 @@ export const useContractIntegration = (): ContractIntegration => {
 
   const handlePaymentReceived = async (contractId: string, amount: number, paymentMethod: string) => {
     try {
-      // الحصول على بيانات العقد
+      // الحصول على بيانات العقد + اسم العميل من جدول العملاء
       const { data: contract, error: getError } = await supabase
         .from('rental_contracts')
-        .select('*')
+        .select('id, customer_id, vehicle_id, total_amount, customers(name)')
         .eq('id', contractId)
         .single();
 
       if (getError) throw getError;
 
-      // إنشاء سند قبض
+      // إنشاء سند قبض (التأكد من تمرير customer_id واسم العميل الصحيح)
       const { error: receiptError } = await supabase
         .from('payment_receipts')
         .insert({
           receipt_number: `REC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
           contract_id: contractId,
           customer_id: contract.customer_id,
-          customer_name: contract.customer_name || 'غير محدد',
+          customer_name: contract?.customers?.name || 'غير محدد',
           vehicle_id: contract.vehicle_id,
           amount: amount,
           payment_method: paymentMethod,
@@ -164,12 +164,12 @@ export const useContractIntegration = (): ContractIntegration => {
 
       if (receiptError) throw receiptError;
 
-      // تحديث حالة الفاتورة
+      // تحديث حالة الفاتورة بناءً على إجمالي العقد
       const { error: invoiceError } = await supabase
         .from('invoices')
         .update({ 
           paid_amount: amount,
-          status: amount >= contract.total_amount ? 'paid' : 'partial'
+          status: amount >= (contract.total_amount || 0) ? 'paid' : 'partial'
         })
         .eq('contract_id', contractId);
 
