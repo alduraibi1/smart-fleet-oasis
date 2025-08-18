@@ -112,12 +112,19 @@ export const useMaintenance = () => {
       if (error) throw error;
       
       // Handle the case where mechanics might not exist or join might fail
-      const processedData = (data || []).map(record => ({
-        ...record,
-        mechanics: record.mechanics && typeof record.mechanics === 'object' && record.mechanics !== null && 'name' in record.mechanics 
-          ? record.mechanics 
-          : null
-      }));
+      const processedData = (data || []).map(record => {
+        const mechanicsData = record.mechanics;
+        return {
+          ...record,
+          mechanics: mechanicsData && 
+                    typeof mechanicsData === 'object' && 
+                    mechanicsData !== null && 
+                    'name' in mechanicsData && 
+                    typeof mechanicsData.name === 'string' 
+            ? { name: mechanicsData.name }
+            : null
+        };
+      });
       
       setMaintenanceRecords(processedData);
     } catch (error) {
