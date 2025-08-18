@@ -8,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarHeader,
 } from "@/components/ui/sidebar"
 import { 
   Home, 
@@ -21,6 +22,7 @@ import {
   UserCheck
 } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
+import { Logo } from "@/components/ui/logo"
 
 const menuItems = [
   {
@@ -75,6 +77,9 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
+      <SidebarHeader className="p-6 border-b">
+        <Logo size="md" showText={true} />
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>القائمة الرئيسية</SidebarGroupLabel>
