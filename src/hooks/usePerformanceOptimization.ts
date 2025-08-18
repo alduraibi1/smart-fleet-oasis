@@ -8,6 +8,8 @@ interface PerformanceMetrics {
   networkLatency: number;
   fps: number;
   loadTime: number;
+  errorRate: number;
+  userSatisfactionScore: number;
 }
 
 interface OptimizationSettings {
@@ -24,7 +26,9 @@ export function usePerformanceOptimization() {
     renderTime: 0,
     networkLatency: 0,
     fps: 60,
-    loadTime: 0
+    loadTime: 0,
+    errorRate: 0,
+    userSatisfactionScore: 85
   });
 
   const [settings, setSettings] = useState<OptimizationSettings>({
@@ -52,8 +56,8 @@ export function usePerformanceOptimization() {
       setMetrics(prev => ({
         ...prev,
         networkLatency: navigation.responseStart - navigation.requestStart,
-        loadTime: navigation.loadEventEnd - navigation.navigationStart,
-        renderTime: navigation.domContentLoadedEventEnd - navigation.navigationStart
+        loadTime: navigation.loadEventEnd - navigation.fetchStart,
+        renderTime: navigation.domContentLoadedEventEnd - navigation.fetchStart
       }));
     }
 

@@ -17,7 +17,9 @@ export function useSystemOptimization() {
     updateSettings,
     optimizeImages,
     preloadCriticalResources,
-    enableGPUAcceleration
+    enableGPUAcceleration,
+    monitorPerformance,
+    autoOptimize
   } = usePerformanceOptimization();
 
   const [systemHealth, setSystemHealth] = useState<SystemHealth>({
@@ -111,6 +113,16 @@ export function useSystemOptimization() {
     console.log('تم تحسين استخدام الذاكرة');
   }, []);
 
+  // System optimization (alias for runAutoOptimization)
+  const optimizeSystem = useCallback(() => {
+    runAutoOptimization();
+  }, [runAutoOptimization]);
+
+  // Update optimization settings (alias for updateSettings)
+  const updateOptimization = useCallback((newSettings: Partial<typeof settings>) => {
+    updateSettings(prev => ({ ...prev, ...newSettings }));
+  }, [updateSettings]);
+
   // Run analysis periodically
   useEffect(() => {
     const interval = setInterval(() => {
@@ -127,10 +139,14 @@ export function useSystemOptimization() {
   return {
     metrics,
     settings,
+    optimization: settings, // Alias for backward compatibility
     systemHealth,
     performanceScore,
     optimizeMemory,
     runAutoOptimization,
-    updateSettings
+    optimizeSystem,
+    updateSettings,
+    updateOptimization,
+    monitorPerformance
   };
 }
