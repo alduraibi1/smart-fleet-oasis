@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import Header from './Header';
@@ -13,17 +12,19 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   return (
     <ErrorBoundary>
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={false}>
         <div className="min-h-screen flex w-full">
           <AppSidebar />
-          <SidebarInset className="flex-1">
+          <SidebarInset className="flex-1 flex flex-col">
             <Header onMenuClick={() => {}} />
-            <BreadcrumbNavigation />
-            <main className="flex-1 p-6">
-              <ErrorBoundary>
-                {children}
-              </ErrorBoundary>
-            </main>
+            <div className="flex-1 flex flex-col">
+              <BreadcrumbNavigation />
+              <main className="flex-1 p-3 md:p-6 overflow-auto">
+                <ErrorBoundary>
+                  {children}
+                </ErrorBoundary>
+              </main>
+            </div>
           </SidebarInset>
         </div>
       </SidebarProvider>

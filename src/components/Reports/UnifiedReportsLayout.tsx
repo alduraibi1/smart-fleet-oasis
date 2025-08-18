@@ -94,139 +94,137 @@ export function UnifiedReportsLayout() {
   const CurrentAdvancedComponent = currentAdvancedReport?.component;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 max-w-full overflow-hidden">
+      {/* Compact Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">التقارير</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl font-bold text-foreground">التقارير</h1>
+          <p className="text-sm text-muted-foreground">
             مركز التقارير الشامل لجميع أقسام النظام
           </p>
         </div>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
+            size="sm"
             onClick={handleRefresh}
             disabled={isRefreshing}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? "جاري التحديث..." : "تحديث البيانات"}
+            <span className="hidden sm:inline">{isRefreshing ? "جاري التحديث..." : "تحديث"}</span>
           </Button>
-          <Button onClick={exportAllReports}>
+          <Button size="sm" onClick={exportAllReports}>
             <Download className="h-4 w-4 mr-2" />
-            تصدير التقارير
+            <span className="hidden sm:inline">تصدير</span>
           </Button>
         </div>
       </div>
 
       {/* Main Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            التقارير الأساسية
+        <TabsList className="grid w-full grid-cols-2 h-9">
+          <TabsTrigger value="overview" className="flex items-center gap-2 text-xs">
+            <FileText className="h-3 w-3" />
+            <span className="hidden sm:inline">التقارير الأساسية</span>
+            <span className="sm:hidden">أساسية</span>
           </TabsTrigger>
-          <TabsTrigger value="advanced" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            التحليلات المتقدمة
+          <TabsTrigger value="advanced" className="flex items-center gap-2 text-xs">
+            <BarChart3 className="h-3 w-3" />
+            <span className="hidden sm:inline">التحليلات المتقدمة</span>
+            <span className="sm:hidden">متقدمة</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="mt-6">
+        <TabsContent value="overview" className="mt-4">
           <ReportsOverview />
         </TabsContent>
 
-        <TabsContent value="advanced" className="mt-6">
-          <div className="space-y-6">
-            {/* Quick Stats for Advanced Reports */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">تقارير متقدمة</p>
-                      <p className="text-2xl font-bold">{advancedReportTabs.length}</p>
-                    </div>
-                    <BarChart3 className="h-8 w-8 text-blue-500" />
+        <TabsContent value="advanced" className="mt-4">
+          <div className="space-y-4">
+            {/* Compact Stats for Advanced Reports */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Card className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">تقارير متقدمة</p>
+                    <p className="text-lg font-bold">{advancedReportTabs.length}</p>
                   </div>
-                </CardContent>
+                  <BarChart3 className="h-6 w-6 text-blue-500" />
+                </div>
               </Card>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">آخر تحديث</p>
-                      <p className="text-2xl font-bold">الآن</p>
-                    </div>
-                    <Calendar className="h-8 w-8 text-green-500" />
+              <Card className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">آخر تحديث</p>
+                    <p className="text-lg font-bold">الآن</p>
                   </div>
-                </CardContent>
+                  <Calendar className="h-6 w-6 text-green-500" />
+                </div>
               </Card>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">الفترة</p>
-                      <p className="text-2xl font-bold">30 يوم</p>
-                    </div>
-                    <PieChart className="h-8 w-8 text-purple-500" />
+              <Card className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">الفترة</p>
+                    <p className="text-lg font-bold">30 يوم</p>
                   </div>
-                </CardContent>
+                  <PieChart className="h-6 w-6 text-purple-500" />
+                </div>
               </Card>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">دقة البيانات</p>
-                      <p className="text-2xl font-bold">98%</p>
-                    </div>
-                    <TrendingUp className="h-8 w-8 text-orange-500" />
+              <Card className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">دقة البيانات</p>
+                    <p className="text-lg font-bold">98%</p>
                   </div>
-                </CardContent>
+                  <TrendingUp className="h-6 w-6 text-orange-500" />
+                </div>
               </Card>
             </div>
 
             {/* Current Advanced Report Info */}
             {currentAdvancedReport && (
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <currentAdvancedReport.icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">{currentAdvancedReport.name}</h3>
-                        <p className="text-sm text-muted-foreground">{currentAdvancedReport.description}</p>
-                      </div>
+              <Card className="p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-primary/10 rounded-md">
+                      <currentAdvancedReport.icon className="h-4 w-4 text-primary" />
                     </div>
-                    <Badge variant="outline">
-                      {currentAdvancedReport.category === 'financial' ? 'مالي' :
-                       currentAdvancedReport.category === 'operational' ? 'تشغيلي' :
-                       currentAdvancedReport.category === 'customer' ? 'عملاء' : 'لوحة تحكم'}
-                    </Badge>
+                    <div>
+                      <h3 className="font-semibold text-sm">{currentAdvancedReport.name}</h3>
+                      <p className="text-xs text-muted-foreground hidden sm:block">{currentAdvancedReport.description}</p>
+                    </div>
                   </div>
-                </CardContent>
+                  <Badge variant="outline" className="text-xs">
+                    {currentAdvancedReport.category === 'financial' ? 'مالي' :
+                     currentAdvancedReport.category === 'operational' ? 'تشغيلي' :
+                     currentAdvancedReport.category === 'customer' ? 'عملاء' : 'لوحة تحكم'}
+                  </Badge>
+                </div>
               </Card>
             )}
 
-            {/* Advanced Reports Tabs */}
+            {/* Advanced Reports Tabs - Scrollable on mobile */}
             <Tabs value={activeAdvancedTab} onValueChange={setActiveAdvancedTab}>
-              <TabsList className="grid w-full grid-cols-5">
-                {advancedReportTabs.map((tab) => (
-                  <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
-                    <tab.icon className="h-4 w-4" />
-                    <span className="hidden sm:inline">{tab.name}</span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+              <div className="overflow-x-auto">
+                <TabsList className="inline-flex w-max min-w-full">
+                  {advancedReportTabs.map((tab) => (
+                    <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-1 text-xs whitespace-nowrap">
+                      <tab.icon className="h-3 w-3" />
+                      <span className="hidden sm:inline">{tab.name}</span>
+                      <span className="sm:hidden">{tab.name.split(' ')[0]}</span>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
 
               {advancedReportTabs.map((tab) => (
-                <TabsContent key={tab.id} value={tab.id} className="mt-6">
-                  <CurrentAdvancedComponent />
+                <TabsContent key={tab.id} value={tab.id} className="mt-4">
+                  <div className="min-h-0">
+                    <CurrentAdvancedComponent />
+                  </div>
                 </TabsContent>
               ))}
             </Tabs>

@@ -9,6 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarRail,
 } from "@/components/ui/sidebar"
 import { 
   Home, 
@@ -70,9 +71,9 @@ export function AppSidebar() {
   const location = useLocation()
 
   return (
-    <Sidebar>
-      <SidebarHeader className="p-6 border-b">
-        <Logo size="md" showText={true} />
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="p-4 border-b">
+        <Logo size="sm" showText={true} />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -84,6 +85,7 @@ export function AppSidebar() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={location.pathname === item.url}
+                    tooltip={item.title}
                   >
                     <Link to={item.url}>
                       <item.icon />
@@ -96,6 +98,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarRail />
     </Sidebar>
   )
 }
