@@ -1,236 +1,151 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   BarChart3, 
-  PieChart, 
-  FileText, 
+  TrendingUp, 
+  DollarSign, 
+  Users, 
+  Car,
   Calendar,
   Download,
-  RefreshCw,
-  TrendingUp
+  Filter
 } from "lucide-react";
 import { ReportsOverview } from "./ReportsOverview";
-import { FinancialPerformanceReport } from "./FinancialPerformanceReport";
-import { VehicleUtilizationReport } from "./VehicleUtilizationReport";
-import { CustomerAnalyticsReport } from "./CustomerAnalyticsReport";
-import { ProfitabilityDashboard } from "./ProfitabilityDashboard";
-import { KPIDashboard } from "./KPIDashboard";
-
-interface AdvancedReportTab {
-  id: string;
-  name: string;
-  icon: any;
-  component: any;
-  description: string;
-  category: string;
-}
-
-const advancedReportTabs: AdvancedReportTab[] = [
-  {
-    id: "kpi",
-    name: "مؤشرات الأداء",
-    icon: TrendingUp,
-    component: KPIDashboard,
-    description: "مؤشرات الأداء الرئيسية والمقاييس الهامة",
-    category: "dashboard"
-  },
-  {
-    id: "financial",
-    name: "الأداء المالي",
-    icon: BarChart3,
-    component: FinancialPerformanceReport,
-    description: "تحليل شامل للأداء المالي والإيرادات",
-    category: "financial"
-  },
-  {
-    id: "profitability",
-    name: "تحليل الربحية",
-    icon: PieChart,
-    component: ProfitabilityDashboard,
-    description: "تحليل ربحية المركبات والعملاء",
-    category: "financial"
-  },
-  {
-    id: "vehicles",
-    name: "استخدام المركبات",
-    icon: BarChart3,
-    component: VehicleUtilizationReport,
-    description: "تقرير معدلات الاستخدام وكفاءة المركبات",
-    category: "operational"
-  },
-  {
-    id: "customers",
-    name: "تحليل العملاء",
-    icon: BarChart3,
-    component: CustomerAnalyticsReport,
-    description: "سلوك العملاء وأنماط الاستخدام",
-    category: "customer"
-  }
-];
+import { AdvancedReportsLayout } from "./AdvancedReportsLayout";
 
 export function UnifiedReportsLayout() {
-  const [activeAdvancedTab, setActiveAdvancedTab] = useState("kpi");
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsRefreshing(false);
-  };
-
-  const exportAllReports = () => {
-    console.log("تصدير جميع التقارير...");
-  };
-
-  const getCurrentAdvancedReport = () => {
-    return advancedReportTabs.find(tab => tab.id === activeAdvancedTab);
-  };
-
-  const currentAdvancedReport = getCurrentAdvancedReport();
-  const CurrentAdvancedComponent = currentAdvancedReport?.component;
+  const reportStats = [
+    {
+      title: "إجمالي الإيرادات",
+      value: "524,000 ر.س",
+      change: "+12.5%",
+      trend: "up",
+      icon: DollarSign,
+      color: "text-green-600"
+    },
+    {
+      title: "العملاء النشطين",
+      value: "1,429",
+      change: "+8.2%",
+      trend: "up", 
+      icon: Users,
+      color: "text-blue-600"
+    },
+    {
+      title: "المركبات المؤجرة",
+      value: "256",
+      change: "+15.3%",
+      trend: "up",
+      icon: Car,
+      color: "text-purple-600"
+    },
+    {
+      title: "معدل النمو الشهري",
+      value: "18.4%",
+      change: "+2.1%",
+      trend: "up",
+      icon: TrendingUp,
+      color: "text-orange-600"
+    }
+  ];
 
   return (
-    <div className="space-y-4 max-w-full overflow-hidden">
-      {/* Compact Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="content-spacing">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">التقارير</h1>
-          <p className="text-sm text-muted-foreground">
-            مركز التقارير الشامل لجميع أقسام النظام
+          <h1 className="heading-responsive">التقارير والتحليلات</h1>
+          <p className="subheading-responsive">
+            تحليل شامل لأداء الأعمال والإحصائيات المالية
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isRefreshing ? "جاري التحديث..." : "تحديث"}</span>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="btn-responsive">
+            <Filter className="h-4 w-4 mr-2" />
+            فلترة
           </Button>
-          <Button size="sm" onClick={exportAllReports}>
+          <Button size="sm" className="btn-responsive">
             <Download className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">تصدير</span>
+            تصدير
           </Button>
         </div>
       </div>
 
-      {/* Main Tabs */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 h-9">
-          <TabsTrigger value="overview" className="flex items-center gap-2 text-xs">
-            <FileText className="h-3 w-3" />
-            <span className="hidden sm:inline">التقارير الأساسية</span>
-            <span className="sm:hidden">أساسية</span>
-          </TabsTrigger>
-          <TabsTrigger value="advanced" className="flex items-center gap-2 text-xs">
-            <BarChart3 className="h-3 w-3" />
-            <span className="hidden sm:inline">التحليلات المتقدمة</span>
-            <span className="sm:hidden">متقدمة</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="mt-4">
-          <ReportsOverview />
-        </TabsContent>
-
-        <TabsContent value="advanced" className="mt-4">
-          <div className="space-y-4">
-            {/* Compact Stats for Advanced Reports */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Card className="p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">تقارير متقدمة</p>
-                    <p className="text-lg font-bold">{advancedReportTabs.length}</p>
+      {/* Quick Stats */}
+      <div className="stats-grid mb-8">
+        {reportStats.map((stat, index) => (
+          <Card key={index} className="metric-card border-border/50 hover:border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    {stat.title}
+                  </p>
+                  <p className="text-xl sm:text-2xl font-bold">{stat.value}</p>
+                  <div className="flex items-center gap-1 mt-2">
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-xs ${stat.color} bg-transparent`}
+                    >
+                      {stat.change}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">هذا الشهر</span>
                   </div>
-                  <BarChart3 className="h-6 w-6 text-blue-500" />
                 </div>
-              </Card>
-
-              <Card className="p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">آخر تحديث</p>
-                    <p className="text-lg font-bold">الآن</p>
-                  </div>
-                  <Calendar className="h-6 w-6 text-green-500" />
+                <div className={`p-2 rounded-lg bg-background ${stat.color} opacity-80`}>
+                  <stat.icon className="h-5 w-5" />
                 </div>
-              </Card>
-
-              <Card className="p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">الفترة</p>
-                    <p className="text-lg font-bold">30 يوم</p>
-                  </div>
-                  <PieChart className="h-6 w-6 text-purple-500" />
-                </div>
-              </Card>
-
-              <Card className="p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">دقة البيانات</p>
-                    <p className="text-lg font-bold">98%</p>
-                  </div>
-                  <TrendingUp className="h-6 w-6 text-orange-500" />
-                </div>
-              </Card>
-            </div>
-
-            {/* Current Advanced Report Info */}
-            {currentAdvancedReport && (
-              <Card className="p-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-primary/10 rounded-md">
-                      <currentAdvancedReport.icon className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-sm">{currentAdvancedReport.name}</h3>
-                      <p className="text-xs text-muted-foreground hidden sm:block">{currentAdvancedReport.description}</p>
-                    </div>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    {currentAdvancedReport.category === 'financial' ? 'مالي' :
-                     currentAdvancedReport.category === 'operational' ? 'تشغيلي' :
-                     currentAdvancedReport.category === 'customer' ? 'عملاء' : 'لوحة تحكم'}
-                  </Badge>
-                </div>
-              </Card>
-            )}
-
-            {/* Advanced Reports Tabs - Scrollable on mobile */}
-            <Tabs value={activeAdvancedTab} onValueChange={setActiveAdvancedTab}>
-              <div className="overflow-x-auto">
-                <TabsList className="inline-flex w-max min-w-full">
-                  {advancedReportTabs.map((tab) => (
-                    <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-1 text-xs whitespace-nowrap">
-                      <tab.icon className="h-3 w-3" />
-                      <span className="hidden sm:inline">{tab.name}</span>
-                      <span className="sm:hidden">{tab.name.split(' ')[0]}</span>
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
               </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-              {advancedReportTabs.map((tab) => (
-                <TabsContent key={tab.id} value={tab.id} className="mt-4">
-                  <div className="min-h-0">
-                    <CurrentAdvancedComponent />
-                  </div>
-                </TabsContent>
-              ))}
-            </Tabs>
-          </div>
-        </TabsContent>
-      </Tabs>
+      {/* Main Content */}
+      <Card className="border-border/50">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <BarChart3 className="h-5 w-5" />
+            تفاصيل التقارير
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="px-4 sm:px-6 border-b border-border/50">
+              <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:grid-cols-2 bg-muted/50 h-auto p-1">
+                <TabsTrigger 
+                  value="overview" 
+                  className="text-sm py-2 data-[state=active]:bg-background"
+                >
+                  نظرة عامة
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="advanced" 
+                  className="text-sm py-2 data-[state=active]:bg-background"
+                >
+                  تقارير متقدمة
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <div className="p-4 sm:p-6">
+              <TabsContent value="overview" className="mt-0">
+                <ReportsOverview />
+              </TabsContent>
+              
+              <TabsContent value="advanced" className="mt-0">
+                <AdvancedReportsLayout />
+              </TabsContent>
+            </div>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }

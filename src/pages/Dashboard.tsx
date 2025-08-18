@@ -6,25 +6,35 @@ import { AppLayout } from '@/components/Layout/AppLayout';
 const Dashboard = () => {
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="section-spacing">
         {/* العنوان الرئيسي */}
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold">لوحة التحكم</h1>
-          <p className="text-muted-foreground">
-            نظرة شاملة على حالة النظام والإحصائيات المالية
-          </p>
-        </div>
-
-        {/* الإحصائيات المحسنة */}
-        <EnhancedStats />
-
-        {/* الإجراءات السريعة والتنبيهات */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <QuickActions />
+        <div className="content-spacing max-w-none">
+          <div className="flex flex-col gap-2 mb-6">
+            <h1 className="heading-responsive">لوحة التحكم</h1>
+            <p className="subheading-responsive">
+              نظرة شاملة على حالة النظام والإحصائيات المالية
+            </p>
           </div>
-          <div>
-            {/* يمكن إضافة مكونات إضافية هنا لاحقاً */}
+
+          {/* الإحصائيات المحسنة */}
+          <div className="mb-6">
+            <EnhancedStats />
+          </div>
+
+          {/* الإجراءات السريعة */}
+          <div className="layout-stack">
+            <div className="layout-main">
+              <QuickActions />
+            </div>
+            <div className="layout-sidebar">
+              {/* يمكن إضافة مكونات إضافية هنا لاحقاً */}
+              <div className="dashboard-card">
+                <h3 className="font-semibold text-sm mb-3">التنبيهات السريعة</h3>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>لا توجد تنبيهات جديدة</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

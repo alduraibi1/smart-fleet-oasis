@@ -13,16 +13,20 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <ErrorBoundary>
       <SidebarProvider defaultOpen={false}>
-        <div className="min-h-screen flex w-full">
+        <div className="min-h-screen flex w-full bg-background">
           <AppSidebar />
-          <SidebarInset className="flex-1 flex flex-col">
+          <SidebarInset className="flex-1 flex flex-col min-w-0">
             <Header onMenuClick={() => {}} />
-            <div className="flex-1 flex flex-col">
-              <BreadcrumbNavigation />
-              <main className="flex-1 p-3 md:p-6 overflow-auto">
-                <ErrorBoundary>
-                  {children}
-                </ErrorBoundary>
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="px-3 py-2 md:px-6 md:py-3 border-b border-border/50">
+                <BreadcrumbNavigation />
+              </div>
+              <main className="flex-1 overflow-auto bg-background">
+                <div className="container-responsive">
+                  <ErrorBoundary>
+                    {children}
+                  </ErrorBoundary>
+                </div>
               </main>
             </div>
           </SidebarInset>

@@ -10,6 +10,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { 
   Home, 
@@ -69,27 +70,35 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation()
+  const { state } = useSidebar()
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 border-b">
-        <Logo size="sm" showText={true} />
+    <Sidebar 
+      collapsible="icon" 
+      className="border-r border-border/50 bg-sidebar/95 backdrop-blur supports-[backdrop-filter]:bg-sidebar/60"
+    >
+      <SidebarHeader className="p-3 md:p-4 border-b border-border/30">
+        <Logo size="sm" showText={state === "expanded"} />
       </SidebarHeader>
-      <SidebarContent>
+      
+      <SidebarContent className="px-2">
         <SidebarGroup>
-          <SidebarGroupLabel>القائمة الرئيسية</SidebarGroupLabel>
+          <SidebarGroupLabel className="px-2 text-xs font-medium text-sidebar-foreground/70 mb-2">
+            القائمة الرئيسية
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
                     isActive={location.pathname === item.url}
                     tooltip={item.title}
+                    className="h-10 px-3 rounded-lg hover:bg-sidebar-accent/80 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground transition-colors"
                   >
-                    <Link to={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
+                    <Link to={item.url} className="flex items-center gap-3">
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <span className="truncate font-medium">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
