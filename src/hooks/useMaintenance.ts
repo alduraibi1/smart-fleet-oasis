@@ -115,12 +115,15 @@ export const useMaintenance = () => {
       const processedData = (data || []).map(record => {
         const mechanicsData = record.mechanics;
         
-        // Explicit type guard to properly narrow the type
-        if (mechanicsData !== null && mechanicsData !== undefined && typeof mechanicsData === 'object' && 'name' in mechanicsData && typeof mechanicsData.name === 'string') {
-          return {
-            ...record,
-            mechanics: { name: mechanicsData.name }
-          };
+        // Check if mechanicsData exists and has the expected structure
+        if (mechanicsData && typeof mechanicsData === 'object' && 'name' in mechanicsData) {
+          const mechanicName = mechanicsData.name;
+          if (typeof mechanicName === 'string') {
+            return {
+              ...record,
+              mechanics: { name: mechanicName }
+            };
+          }
         }
         
         // Default case for null, undefined, or invalid structure
