@@ -1,151 +1,179 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Clock, Bell, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, Calendar, Clock, Car } from 'lucide-react';
 import { useContracts } from '@/hooks/useContracts';
 import VehicleReturnDialog from './VehicleReturnDialog';
 
-interface ExpiryAlert {
-  contract: any;
-  daysUntilExpiry: number;
-  isOverdue: boolean;
+interface ExpiringContract {
+  id: string;
+  contract_number: string;
+  end_date: string;
+  customer?: {
+    name: string;
+    phone: string;
+  };
+  vehicle?: {
+    brand: string;
+    model: string;
+    plate_number: string;
+  };
 }
 
 export default function ContractExpiryAlerts() {
-  const { contracts } = useContracts();
-  const [alerts, setAlerts] = useState<ExpiryAlert[]>([]);
+  const { getExpiringContracts, getExpiredContracts } = useContracts();
+  const [expiringContracts, setExpiringContracts] = useState<ExpiringContract[]>([]);
+  const [expiredContracts, setExpiredContracts] = useState<ExpiringContract[]>([]);
+  const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
+  const [showReturnDialog, setShowReturnDialog] = useState(false);
 
   useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const [expiring, expired] = await Promise.all([
+          getExpiringContracts(7), // العقود التي تنتهي خلال 7 أيام
+          getExpiredContracts(),
+        ]);
+        
+        setExpiringContracts(expiring as ExpiringContract[]);
+        setExpiredContracts(expired as ExpiringContract[]);
+      } catch (error) {
+        console.error('Error fetching contract alerts:', error);
+      }
+    };
+
+    fetchAlerts();
+  }, [getExpiringContracts, getExpiredContracts]);
+
+  const handleReturnVehicle = (contractId: string) => {
+    setSelectedContractId(contractId);
+    setShowReturnDialog(true);
+  };
+
+  const getDaysUntilExpiry = (endDate: string) => {
     const today = new Date();
-    const activeContracts = contracts.filter(c => c.status === 'active');
-    
-    const upcomingExpiries = activeContracts.map(contract => {
-      const endDate = new Date(contract.end_date);
-      const diffTime = endDate.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      return {
-        contract,
-        daysUntilExpiry: diffDays,
-        isOverdue: diffDays < 0,
-      };
-    }).filter(alert => alert.daysUntilExpiry <= 7) // إظهار التنبيهات للعقود التي تنتهي خلال 7 أيام أو منتهية
-    .sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
+    const expiry = new Date(endDate);
+    const diffTime = expiry.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
 
-    setAlerts(upcomingExpiries);
-  }, [contracts]);
-
-  if (alerts.length === 0) {
-    return (
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-green-600" />
-            تنبيهات انتهاء العقود
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-4">
-            لا توجد عقود تنتهي قريباً
-          </p>
-        </CardContent>
-      </Card>
-    );
+  if (expiringContracts.length === 0 && expiredContracts.length === 0) {
+    return null;
   }
 
-  const overdueCount = alerts.filter(a => a.isOverdue).length;
-  const upcomingCount = alerts.filter(a => !a.isOverdue).length;
-
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-orange-600" />
-          تنبيهات انتهاء العقود
-          <Badge variant="destructive" className="mr-auto">
-            {alerts.length}
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {overdueCount > 0 && (
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              يوجد {overdueCount} عقد منتهي ولم يتم إرجاع المركبة بعد
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {upcomingCount > 0 && (
-          <Alert>
-            <Clock className="h-4 w-4" />
-            <AlertDescription>
-              يوجد {upcomingCount} عقد سينتهي خلال الأيام القادمة
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <div className="space-y-3">
-          {alerts.slice(0, 5).map((alert) => (
-            <div
-              key={alert.contract.id}
-              className={`flex items-center justify-between p-3 rounded-lg border ${
-                alert.isOverdue 
-                  ? 'bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800' 
-                  : 'bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800'
-              }`}
-            >
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-medium">
-                    {alert.contract.customer?.name || 'عميل غير محدد'}
-                  </h4>
-                  <Badge 
-                    variant={alert.isOverdue ? "destructive" : "secondary"}
-                    className="text-xs"
-                  >
-                    {alert.isOverdue 
-                      ? `متأخر ${Math.abs(alert.daysUntilExpiry)} يوم`
-                      : `${alert.daysUntilExpiry} يوم متبقي`
-                    }
-                  </Badge>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  <span>{alert.contract.vehicle?.brand} {alert.contract.vehicle?.model}</span>
-                  <span className="mx-2">•</span>
-                  <span>{alert.contract.vehicle?.plate_number}</span>
-                  <span className="mx-2">•</span>
-                  <span>انتهاء: {new Date(alert.contract.end_date).toLocaleDateString('ar-SA')}</span>
-                </div>
-              </div>
-              
-              <VehicleReturnDialog 
-                contractId={alert.contract.id}
-                trigger={
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* العقود المنتهية */}
+        {expiredContracts.length > 0 && (
+          <Card className="border-destructive/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+                عقود منتهية ({expiredContracts.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {expiredContracts.slice(0, 3).map((contract) => (
+                <div key={contract.id} className="flex items-center justify-between p-3 bg-destructive/10 rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="destructive" className="text-xs">
+                        منتهي
+                      </Badge>
+                      <span className="font-medium text-sm">
+                        {contract.contract_number}
+                      </span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {contract.customer?.name} - {contract.vehicle?.brand} {contract.vehicle?.model}
+                    </div>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      انتهى في: {new Date(contract.end_date).toLocaleDateString('ar-SA')}
+                    </div>
+                  </div>
                   <Button 
                     size="sm" 
-                    variant={alert.isOverdue ? "destructive" : "outline"}
-                    className="mr-2"
+                    variant="destructive"
+                    onClick={() => handleReturnVehicle(contract.id)}
                   >
-                    <ArrowLeft className="h-4 w-4 ml-1" />
-                    إرجاع المركبة
+                    <Car className="h-4 w-4 ml-1" />
+                    إرجاع فوري
                   </Button>
-                }
-              />
-            </div>
-          ))}
-        </div>
-
-        {alerts.length > 5 && (
-          <p className="text-sm text-muted-foreground text-center">
-            و {alerts.length - 5} تنبيهات أخرى...
-          </p>
+                </div>
+              ))}
+              {expiredContracts.length > 3 && (
+                <div className="text-center text-sm text-muted-foreground">
+                  و {expiredContracts.length - 3} عقود أخرى منتهية
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
-      </CardContent>
-    </Card>
+
+        {/* العقود التي تنتهي قريباً */}
+        {expiringContracts.length > 0 && (
+          <Card className="border-warning/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2 text-warning">
+                <Clock className="h-5 w-5" />
+                عقود تنتهي قريباً ({expiringContracts.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {expiringContracts.slice(0, 3).map((contract) => {
+                const daysLeft = getDaysUntilExpiry(contract.end_date);
+                return (
+                  <div key={contract.id} className="flex items-center justify-between p-3 bg-warning/10 rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="outline" className="text-xs border-warning text-warning">
+                          {daysLeft} {daysLeft === 1 ? 'يوم' : 'أيام'} متبقية
+                        </Badge>
+                        <span className="font-medium text-sm">
+                          {contract.contract_number}
+                        </span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {contract.customer?.name} - {contract.vehicle?.brand} {contract.vehicle?.model}
+                      </div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        ينتهي في: {new Date(contract.end_date).toLocaleDateString('ar-SA')}
+                      </div>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleReturnVehicle(contract.id)}
+                    >
+                      <Car className="h-4 w-4 ml-1" />
+                      إرجاع
+                    </Button>
+                  </div>
+                );
+              })}
+              {expiringContracts.length > 3 && (
+                <div className="text-center text-sm text-muted-foreground">
+                  و {expiringContracts.length - 3} عقود أخرى تنتهي قريباً
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {selectedContractId && (
+        <VehicleReturnDialog
+          contractId={selectedContractId}
+          open={showReturnDialog}
+          onOpenChange={setShowReturnDialog}
+        />
+      )}
+    </>
   );
 }

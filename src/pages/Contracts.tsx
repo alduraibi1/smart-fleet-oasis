@@ -15,7 +15,7 @@ import ContractExpiryAlerts from '@/components/Contracts/ContractExpiryAlerts';
 
 export default function Contracts() {
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const { contracts, loading } = useContracts();
+  const { contracts, loading, stats } = useContracts();
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -39,7 +39,7 @@ export default function Contracts() {
       <ContractExpiryAlerts />
 
       {/* إحصائيات العقود العامة */}
-      <ContractsStats />
+      <ContractsStats stats={stats} />
 
       {/* جدول العقود */}
       <Card>
@@ -51,7 +51,10 @@ export default function Contracts() {
         </CardContent>
       </Card>
 
-      <AddContractDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
+      <AddContractDialog 
+        open={showAddDialog} 
+        onOpenChange={setShowAddDialog} 
+      />
     </div>
   );
 }
