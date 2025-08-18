@@ -1,57 +1,67 @@
 
-import { Home, Users, Car, FileText, Calculator, Settings, Wrench, Package, UserCheck } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
+import { 
+  Car, 
+  Users, 
+  FileText, 
+  Wrench, 
+  Calculator, 
+  Shield,
+  BarChart3, 
+  Building, 
+  Package, 
+  Briefcase,
+  Settings,
+  Zap,
+  Bell
+} from "lucide-react"
+import { Link, useLocation } from "react-router-dom"
 
-const AppSidebar = () => {
-  const location = useLocation();
+const navigationItems = [
+  { title: "الرئيسية", url: "/", icon: BarChart3 },
+  { title: "المركبات", url: "/vehicles", icon: Car },
+  { title: "العملاء", url: "/customers", icon: Users },
+  { title: "العقود", url: "/contracts", icon: FileText },
+  { title: "الصيانة", url: "/maintenance", icon: Wrench },
+  { title: "المحاسبة", url: "/accounting", icon: Calculator },
+  { title: "الرقابة المالية", url: "/financial-control", icon: Shield },
+  { title: "التقارير", url: "/reports", icon: BarChart3 },
+  { title: "الملاك", url: "/owners", icon: Building },
+  { title: "الموردين", url: "/suppliers", icon: Package },
+  { title: "المخزون", url: "/inventory", icon: Package },
+  { title: "الموارد البشرية", url: "/hr", icon: Briefcase },
+  { title: "إدارة النظام", url: "/system-management", icon: Settings },
+  { title: "تحسين النظام", url: "/system-optimization", icon: Zap },
+  { title: "إعدادات الإشعارات", url: "/notification-settings", icon: Bell },
+]
 
-  const navigation = [
-    { name: "الرئيسية", href: "/", icon: Home },
-    { name: "العملاء", href: "/customers", icon: Users },
-    { name: "الملاك", href: "/owners", icon: UserCheck },
-    { name: "المركبات", href: "/vehicles", icon: Car },
-    { name: "العقود", href: "/contracts", icon: FileText },
-    { name: "المحاسبة", href: "/accounting", icon: Calculator },
-    { name: "الصيانة", href: "/maintenance", icon: Wrench },
-    { name: "المخزن", href: "/inventory", icon: Package },
-    { name: "الموارد البشرية", href: "/hr", icon: UserCheck },
-    { name: "إدارة النظام", href: "/system-management", icon: Settings },
-  ];
+export function AppSidebar() {
+  const location = useLocation()
 
   return (
-    <div className="hidden border-r bg-background lg:block lg:w-64">
-      <div className="flex h-full max-h-screen flex-col gap-2">
-        <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-          <Link to="/" className="flex items-center gap-2 font-semibold">
-            <Car className="h-6 w-6" />
-            <span>نظام إدارة المركبات</span>
-          </Link>
-        </div>
-        <div className="flex-1">
-          <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                    location.pathname === item.href &&
-                      "bg-muted text-primary"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default AppSidebar;
+    <Sidebar>
+      <SidebarHeader className="p-4">
+        <h2 className="text-lg font-semibold">نظام إدارة تأجير المركبات</h2>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          {navigationItems.map((item) => {
+            const Icon = item.icon
+            const isActive = location.pathname === item.url
+            
+            return (
+              <SidebarMenuItem key={item.url}>
+                <SidebarMenuButton asChild isActive={isActive}>
+                  <Link to={item.url} className="flex items-center gap-3">
+                    <Icon className="h-4 w-4" />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
+        </SidebarMenu>
+      </SidebarContent>
+    </Sidebar>
+  )
+}
