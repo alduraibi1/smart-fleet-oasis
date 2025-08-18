@@ -1,3 +1,4 @@
+
 import { AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -63,7 +64,7 @@ export default function CustomerArrearsAlerts({ threshold = 1500 }: Props) {
                 <Badge variant="destructive">
                   تجاوز الحد {threshold.toLocaleString()} ريال
                 </Badge>
-                <Button size="xs" variant="outline" onClick={() => handleAction(row.name)}>
+                <Button size="sm" variant="outline" onClick={() => handleAction(row.name)}>
                   اتخاذ إجراء
                 </Button>
               </div>
