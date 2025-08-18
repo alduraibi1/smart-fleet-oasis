@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { Download, Printer, Plus, LayoutGrid, Table, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +24,8 @@ export default function VehicleActions({
   onUpdateVehicle,
   onDeleteVehicle
 }: VehicleActionsProps) {
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
   const handleExport = () => {
     // Create CSV data
     const csvData = vehicles.map(vehicle => ({
@@ -57,6 +60,11 @@ export default function VehicleActions({
     window.print();
   };
 
+  const handleVehicleAdded = async (vehicleData: Partial<Vehicle>) => {
+    await onVehicleAdded(vehicleData);
+    setIsAddDialogOpen(false);
+  };
+
   // Calculate alerts
   const getAlerts = () => {
     const alerts = [];
@@ -83,20 +91,20 @@ export default function VehicleActions({
   const alerts = getAlerts();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Alerts */}
       {alerts.length > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-orange-800">
-              <Bell className="h-5 w-5" />
+        <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="flex items-center gap-2 text-orange-800 dark:text-orange-200 text-sm sm:text-base">
+              <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
               تنبيهات مهمة
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="flex gap-4 flex-wrap">
+            <div className="flex gap-2 sm:gap-4 flex-wrap">
               {alerts.map((alert, index) => (
-                <Badge key={index} variant="destructive" className="gap-1">
+                <Badge key={index} variant="destructive" className="gap-1 text-xs">
                   {alert.count} {alert.text}
                 </Badge>
               ))}
@@ -106,41 +114,54 @@ export default function VehicleActions({
       )}
 
       {/* Actions Bar */}
-      <div className="flex justify-between items-center">
-        <div className="flex gap-2">
-          <AddVehicleDialog onVehicleAdded={onVehicleAdded} />
-          
-          <Button variant="outline" onClick={handleExport} className="gap-2">
-            <Download className="h-4 w-4" />
-            تصدير
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <Button 
+            onClick={() => setIsAddDialogOpen(true)}
+            className="gap-2 flex-1 sm:flex-none btn-responsive"
+            size="sm"
+          >
+            <Plus className="h-4 w-4" />
+            إضافة مركبة
           </Button>
           
-          <Button variant="outline" onClick={handlePrint} className="gap-2">
+          <Button variant="outline" onClick={handleExport} className="gap-2 flex-1 sm:flex-none btn-responsive" size="sm">
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">تصدير</span>
+          </Button>
+          
+          <Button variant="outline" onClick={handlePrint} className="gap-2 flex-1 sm:flex-none btn-responsive" size="sm">
             <Printer className="h-4 w-4" />
-            طباعة
+            <span className="hidden sm:inline">طباعة</span>
           </Button>
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex border rounded-lg">
+        <div className="flex border rounded-lg self-end sm:self-auto">
           <Button
             variant={viewMode === 'grid' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => onViewModeChange('grid')}
-            className="rounded-r-none"
+            className="rounded-r-none h-8 w-8 sm:h-9 sm:w-9 p-0"
           >
-            <LayoutGrid className="h-4 w-4" />
+            <LayoutGrid className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
           <Button
             variant={viewMode === 'table' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => onViewModeChange('table')}
-            className="rounded-l-none"
+            className="rounded-l-none h-8 w-8 sm:h-9 sm:w-9 p-0"
           >
-            <Table className="h-4 w-4" />
+            <Table className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </div>
       </div>
+
+      <AddVehicleDialog 
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onVehicleAdded={handleVehicleAdded}
+      />
     </div>
   );
 }

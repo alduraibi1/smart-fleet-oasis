@@ -5,15 +5,12 @@ import VehicleStats from '@/components/Vehicles/VehicleStats';
 import VehicleFilters from '@/components/Vehicles/VehicleFilters';
 import VehicleTable from '@/components/Vehicles/VehicleTable';
 import VehicleGrid from '@/components/Vehicles/VehicleGrid';
-import AddVehicleDialog from '@/components/Vehicles/AddVehicleDialog';
-import { Button } from '@/components/ui/button';
+import VehicleActions from '@/components/Vehicles/VehicleActions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Grid, List } from 'lucide-react';
 import { VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
 import { useVehicles } from '@/hooks/useVehicles';
 
 const Vehicles = () => {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   const [filters, setFilters] = useState<VehicleFiltersType>({});
 
@@ -36,7 +33,6 @@ const Vehicles = () => {
   const handleVehicleAdded = async (vehicleData: any) => {
     try {
       await addVehicle(vehicleData);
-      setIsAddDialogOpen(false);
     } catch (error) {
       console.error('Error adding vehicle:', error);
     }
@@ -60,53 +56,33 @@ const Vehicles = () => {
 
   return (
     <AppLayout>
-      <div className="page-container">
-        <div className="content-wrapper">
-          {/* Page Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div className="space-y-1">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">المركبات</h1>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                إدارة أسطول المركبات ومعلومات الصيانة
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center border border-border rounded-lg p-1">
-                <Button
-                  variant={viewMode === 'table' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('table')}
-                  className="h-7 px-2"
-                >
-                  <List className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className="h-7 px-2"
-                >
-                  <Grid className="h-3 w-3" />
-                </Button>
-              </div>
-              <Button 
-                onClick={() => setIsAddDialogOpen(true)}
-                className="btn-responsive flex-shrink-0"
-                size="sm"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                إضافة مركبة
-              </Button>
-            </div>
+      <div className="content-spacing">
+        {/* Page Header */}
+        <div className="space-y-3 sm:space-y-4 md:space-y-6">
+          <div className="flex flex-col gap-1 sm:gap-2">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">المركبات</h1>
+            <p className="text-adaptive text-muted-foreground">
+              إدارة أسطول المركبات ومعلومات الصيانة
+            </p>
           </div>
 
           {/* Stats Section */}
-          <div className="stats-container">
+          <div className="adaptive-grid">
             <VehicleStats stats={stats} />
           </div>
 
+          {/* Actions */}
+          <VehicleActions 
+            vehicles={vehicles}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onVehicleAdded={handleVehicleAdded}
+            onUpdateVehicle={handleVehicleUpdated}
+            onDeleteVehicle={handleVehicleDeleted}
+          />
+
           {/* Filters */}
-          <div className="dashboard-card mb-4 sm:mb-6">
+          <div className="dashboard-card">
             <VehicleFilters 
               filters={filters}
               onFiltersChange={handleFiltersChange}
@@ -118,21 +94,23 @@ const Vehicles = () => {
           {/* Main Content */}
           <div className="dashboard-card">
             <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'table' | 'grid')}>
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="table" className="text-xs sm:text-sm">
+              <TabsList className="grid w-full grid-cols-2 mb-4 h-8 sm:h-9">
+                <TabsTrigger value="table" className="text-xs sm:text-sm h-7 sm:h-8">
                   عرض جدولي
                 </TabsTrigger>
-                <TabsTrigger value="grid" className="text-xs sm:text-sm">
+                <TabsTrigger value="grid" className="text-xs sm:text-sm h-7 sm:h-8">
                   عرض بطاقات
                 </TabsTrigger>
               </TabsList>
               
               <TabsContent value="table" className="mt-0">
-                <VehicleTable 
-                  vehicles={vehicles}
-                  onUpdateVehicle={handleVehicleUpdated}
-                  onDeleteVehicle={handleVehicleDeleted}
-                />
+                <div className="table-responsive">
+                  <VehicleTable 
+                    vehicles={vehicles}
+                    onUpdateVehicle={handleVehicleUpdated}
+                    onDeleteVehicle={handleVehicleDeleted}
+                  />
+                </div>
               </TabsContent>
               
               <TabsContent value="grid" className="mt-0">
@@ -145,13 +123,6 @@ const Vehicles = () => {
             </Tabs>
           </div>
         </div>
-
-        {/* Add Vehicle Dialog */}
-        <AddVehicleDialog 
-          open={isAddDialogOpen}
-          onOpenChange={setIsAddDialogOpen}
-          onVehicleAdded={handleVehicleAdded}
-        />
       </div>
     </AppLayout>
   );

@@ -70,35 +70,35 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation()
-  const { state } = useSidebar()
+  const { state, isMobile } = useSidebar()
 
   return (
     <Sidebar 
       collapsible="icon" 
-      className="border-r border-border/50 bg-sidebar/95 backdrop-blur supports-[backdrop-filter]:bg-sidebar/60"
+      className="border-r border-border/50 backdrop-glass transition-all duration-300"
     >
-      <SidebarHeader className="p-3 md:p-4 border-b border-border/30">
+      <SidebarHeader className="spacing-adaptive border-b border-border/30">
         <Logo size="sm" showText={state === "expanded"} />
       </SidebarHeader>
       
-      <SidebarContent className="px-2">
+      <SidebarContent className="px-1 sm:px-2">
         <SidebarGroup>
-          <SidebarGroupLabel className="px-2 text-xs font-medium text-sidebar-foreground/70 mb-2">
+          <SidebarGroupLabel className="px-2 text-xs font-medium text-sidebar-foreground/70 mb-1 sm:mb-2">
             القائمة الرئيسية
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className="space-y-0.5 sm:space-y-1">
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
                     isActive={location.pathname === item.url}
                     tooltip={item.title}
-                    className="h-10 px-3 rounded-lg hover:bg-sidebar-accent/80 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground transition-colors"
+                    className="h-8 sm:h-9 md:h-10 px-2 sm:px-3 rounded-lg hover:bg-sidebar-accent/80 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground transition-all duration-200 interactive"
                   >
-                    <Link to={item.url} className="flex items-center gap-3">
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      <span className="truncate font-medium">{item.title}</span>
+                    <Link to={item.url} className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <item.icon className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+                      <span className="truncate font-medium text-xs sm:text-sm">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
