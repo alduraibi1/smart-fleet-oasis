@@ -3,14 +3,16 @@ import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+type UserRole = 'admin' | 'accountant' | 'employee' | 'manager';
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  userRoles: string[];
+  userRoles: UserRole[];
   userProfile: any;
   signOut: () => Promise<void>;
-  hasRole: (role: string) => boolean;
+  hasRole: (role: UserRole) => boolean;
   hasPermission: (permission: string) => Promise<boolean>;
   hasPermissionSync: (permission: string) => boolean;
 }
@@ -21,7 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userPermissions, setUserPermissions] = useState<string[]>([]);
 
@@ -35,11 +37,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
       
-      const roles = data?.map(r => r.role) || [];
-      setUserRoles(roles);
+      // Filter and cast roles to ensure they match our UserRole type
+      const validRoles: UserRole[] = (data?.map(r => r.role) || [])
+        .filter((role): role is UserRole => 
+          ['admin', 'accountant', 'employee', 'manager'].includes(role)
+        );
+      
+      setUserRoles(validRoles);
       
       // جلب الصلاحيات بناء على الأدوار
-      await fetchUserPermissions(roles);
+      await fetchUserPermissions(validRoles);
     } catch (error) {
       console.error('Error fetching user roles:', error);
       setUserRoles([]);
@@ -48,21 +55,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // جلب صلاحيات المستخدم
-  const fetchUserPermissions = async (roles: string[]) => {
+  const fetchUserPermissions = async (roles: UserRole[]) => {
     if (roles.length === 0) {
       setUserPermissions([]);
       return;
     }
 
     try {
+      // Fix: Use the correct column name based on your database schema
       const { data, error } = await supabase
         .from('role_permissions')
-        .select('permission')
+        .select('permission_name')  // Changed from 'permission' to 'permission_name'
         .in('role', roles);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Role permissions query error:', error);
+        // If the table doesn't exist or column is wrong, fallback to empty permissions
+        setUserPermissions([]);
+        return;
+      }
       
-      const permissions = data?.map(p => p.permission) || [];
+      const permissions = data?.map(p => p.permission_name) || [];
       setUserPermissions([...new Set(permissions)]); // إزالة التكرار
     } catch (error) {
       console.error('Error fetching user permissions:', error);
@@ -89,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // التحقق من وجود دور معين
-  const hasRole = (role: string): boolean => {
+  const hasRole = (role: UserRole): boolean => {
     return userRoles.includes(role);
   };
 
