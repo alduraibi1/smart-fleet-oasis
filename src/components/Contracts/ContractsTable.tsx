@@ -182,7 +182,7 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
       {/* Detailed Return Report Dialog */}
       {selectedContract && (
         <DetailedReturnReport
-          contract={selectedContract}
+          contractId={selectedContract.id}
           open={showDetailedReport}
           onOpenChange={setShowDetailedReport}
         />

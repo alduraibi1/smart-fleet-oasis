@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,7 +39,7 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
     notes: '',
   });
 
-  const { addContract } = useContracts();
+  const { createContract } = useContracts();
   const { customers } = useCustomers();
   const { vehicles } = useVehicles();
   const { toast } = useToast();
@@ -58,7 +57,7 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
     }
 
     try {
-      await addContract({
+      await createContract({
         customer_id: formData.customerId,
         vehicle_id: formData.vehicleId,
         start_date: formData.startDate,
@@ -66,7 +65,6 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
         daily_rate: parseFloat(formData.dailyRate),
         total_amount: parseFloat(formData.totalAmount) || parseFloat(formData.dailyRate),
         notes: formData.notes,
-        status: 'active',
       });
 
       // Reset form

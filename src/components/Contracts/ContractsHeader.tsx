@@ -1,3 +1,5 @@
+
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import AddContractDialog from './AddContractDialog';
 import VehicleReturnDialog from './VehicleReturnDialog';
@@ -11,6 +13,9 @@ export const ContractsHeader = ({
   title = "إدارة العقود المتقدمة",
   description = "نظام شامل لإدارة العقود الذكية والتوقيع الإلكتروني وتتبع دورة الحياة"
 }: ContractsHeaderProps) => {
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showReturnDialog, setShowReturnDialog] = useState(false);
+
   return (
     <div className="flex items-center justify-between">
       <div>
@@ -22,9 +27,23 @@ export const ContractsHeader = ({
         </p>
       </div>
       <div className="flex gap-2">
-        <VehicleReturnDialog />
-        <AddContractDialog />
+        <Button onClick={() => setShowReturnDialog(true)}>
+          إرجاع مركبة
+        </Button>
+        <Button onClick={() => setShowAddDialog(true)}>
+          إضافة عقد جديد
+        </Button>
       </div>
+      
+      <VehicleReturnDialog 
+        contractId=""
+        open={showReturnDialog}
+        onOpenChange={setShowReturnDialog}
+      />
+      <AddContractDialog 
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+      />
     </div>
   );
 };
