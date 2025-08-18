@@ -16,9 +16,11 @@ const Vehicles = () => {
   const { vehicles, loading, stats, fetchVehicles, addVehicle, updateVehicle, deleteVehicle, getBrands } = useVehicles();
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [filters, setFilters] = useState<VehicleFiltersType>({});
 
-  const handleFilterChange = (filters: VehicleFiltersType) => {
-    fetchVehicles(filters);
+  const handleFilterChange = (newFilters: VehicleFiltersType) => {
+    setFilters(newFilters);
+    fetchVehicles(newFilters);
   };
 
   const handleAddVehicle = async (vehicleData: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => {
@@ -69,18 +71,12 @@ const Vehicles = () => {
         <VehicleStats stats={stats} />
 
         {/* Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle>البحث والتصفية</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <VehicleFilters
-              onFiltersChange={handleFilterChange}
-              brands={getBrands()}
-              loading={loading}
-            />
-          </CardContent>
-        </Card>
+        <VehicleFilters
+          filters={filters}
+          onFiltersChange={handleFilterChange}
+          brands={getBrands()}
+          loading={loading}
+        />
 
         {/* Vehicles Content */}
         <Card>
@@ -108,9 +104,13 @@ const Vehicles = () => {
         </Card>
 
         {/* Add Vehicle Dialog */}
-        <AddVehicleDialog
-          onVehicleAdded={handleAddVehicle}
-        />
+        {showAddDialog && (
+          <AddVehicleDialog
+            open={showAddDialog}
+            onOpenChange={setShowAddDialog}
+            onVehicleAdded={handleAddVehicle}
+          />
+        )}
       </div>
     </AppLayout>
   );

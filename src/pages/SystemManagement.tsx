@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +16,7 @@ import UserManagement from '@/components/SystemManagement/UserManagement';
 import ActivityLogs from '@/components/SystemManagement/ActivityLogs';
 import SystemStatus from '@/components/SystemManagement/SystemStatus';
 import RoleManagement from '@/components/SystemManagement/RoleManagement';
-import SampleDataManager from '@/components/SystemManagement/SampleDataManager';
+import { SampleDataManager } from '@/components/SystemManagement/SampleDataManager';
 
 const SystemManagement = () => {
   return (
