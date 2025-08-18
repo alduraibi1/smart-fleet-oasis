@@ -12,7 +12,7 @@ export function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, markAsRead } = useSmartNotifications();
 
-  const unreadCount = notifications?.filter(n => n.status === 'unread').length || 0;
+  const unreadCount = notifications?.filter(n => !n.read).length || 0;
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -30,6 +30,7 @@ export function NotificationCenter() {
 
   const getNotificationColor = (priority: string) => {
     switch (priority) {
+      case 'urgent':
       case 'high':
         return 'border-l-red-500 bg-red-50';
       case 'medium':
@@ -94,7 +95,7 @@ export function NotificationCenter() {
                       className={cn(
                         "flex items-start gap-3 p-3 border-l-4 hover:bg-muted/50 cursor-pointer",
                         getNotificationColor(notification.priority),
-                        notification.status === 'read' && "opacity-60"
+                        notification.read && "opacity-60"
                       )}
                       onClick={() => markAsRead(notification.id)}
                     >
@@ -107,7 +108,7 @@ export function NotificationCenter() {
                           <h4 className="text-sm font-medium leading-tight">
                             {notification.title}
                           </h4>
-                          {notification.status === 'unread' && (
+                          {!notification.read && (
                             <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
                           )}
                         </div>

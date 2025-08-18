@@ -22,14 +22,23 @@ export const useContractIntegration = (): ContractIntegration => {
 
       if (vehicleError) throw vehicleError;
 
+      // الحصول على بيانات العقد والعميل
+      const { data: contract, error: contractError } = await supabase
+        .from('rental_contracts')
+        .select('*, customers(name, email, phone)')
+        .eq('id', contractData.id)
+        .single();
+
+      if (contractError) throw contractError;
+
       // إنشاء فاتورة للعقد
       const { error: invoiceError } = await supabase
         .from('invoices')
         .insert({
           invoice_number: `INV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
-          customer_name: contractData.customer_name,
-          customer_email: contractData.customer_email,
-          customer_phone: contractData.customer_phone,
+          customer_name: contract.customers?.name || 'غير محدد',
+          customer_email: contract.customers?.email,
+          customer_phone: contract.customers?.phone,
           contract_id: contractData.id,
           vehicle_id: contractData.vehicle_id,
           invoice_date: new Date().toISOString().split('T')[0],
@@ -47,7 +56,7 @@ export const useContractIntegration = (): ContractIntegration => {
       await supabase.functions.invoke('create-smart-notification', {
         body: {
           title: 'عقد جديد تم إنشاؤه',
-          message: `تم إنشاء عقد جديد للعميل ${contractData.customer_name} للمركبة ${contractData.vehicle_plate}`,
+          message: `تم إنشاء عقد جديد للعميل ${contract.customers?.name || 'غير محدد'}`,
           type: 'info',
           category: 'contract',
           priority: 'medium',
@@ -128,26 +137,14 @@ export const useContractIntegration = (): ContractIntegration => {
 
   const handlePaymentReceived = async (contractId: string, amount: number, paymentMethod: string) => {
     try {
-      // تحديث مبلغ الدفع في العقد
+      // الحصول على بيانات العقد
       const { data: contract, error: getError } = await supabase
         .from('rental_contracts')
-        .select('paid_amount, total_amount, customer_name')
+        .select('*')
         .eq('id', contractId)
         .single();
 
       if (getError) throw getError;
-
-      const newPaidAmount = (contract.paid_amount || 0) + amount;
-      
-      const { error: updateError } = await supabase
-        .from('rental_contracts')
-        .update({ 
-          paid_amount: newPaidAmount,
-          payment_status: newPaidAmount >= contract.total_amount ? 'paid' : 'partial'
-        })
-        .eq('id', contractId);
-
-      if (updateError) throw updateError;
 
       // إنشاء سند قبض
       const { error: receiptError } = await supabase
@@ -155,7 +152,9 @@ export const useContractIntegration = (): ContractIntegration => {
         .insert({
           receipt_number: `REC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
           contract_id: contractId,
-          customer_name: contract.customer_name,
+          customer_id: contract.customer_id,
+          customer_name: contract.customer_name || 'غير محدد',
+          vehicle_id: contract.vehicle_id,
           amount: amount,
           payment_method: paymentMethod,
           payment_date: new Date().toISOString().split('T')[0],
@@ -169,8 +168,8 @@ export const useContractIntegration = (): ContractIntegration => {
       const { error: invoiceError } = await supabase
         .from('invoices')
         .update({ 
-          paid_amount: newPaidAmount,
-          status: newPaidAmount >= contract.total_amount ? 'paid' : 'partial'
+          paid_amount: amount,
+          status: amount >= contract.total_amount ? 'paid' : 'partial'
         })
         .eq('contract_id', contractId);
 

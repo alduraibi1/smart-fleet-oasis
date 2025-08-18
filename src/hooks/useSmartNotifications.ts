@@ -123,7 +123,20 @@ export const useSmartNotifications = () => {
         .limit(50);
 
       if (error) throw error;
-      setNotifications(data || []);
+
+      // تحويل البيانات لتطابق الواجهة
+      const transformedNotifications: SmartNotification[] = (data || []).map(notification => ({
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+        type: notification.type as 'info' | 'warning' | 'error' | 'success',
+        category: notification.category,
+        priority: notification.priority as 'low' | 'medium' | 'high' | 'urgent',
+        created_at: notification.created_at,
+        read: notification.status === 'read'
+      }));
+
+      setNotifications(transformedNotifications);
     } catch (error) {
       console.error('Error loading notifications:', error);
     } finally {
