@@ -1,11 +1,12 @@
+
 import React, { useState } from 'react';
 import { BarChart3, Users, Shield, Settings, FileText, Lock, Zap, Database, Globe } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { UserManagement } from './UserManagement';
-import { RoleManagement } from './RoleManagement';
-import { SystemSettings } from './SystemSettings';
-import { ActivityLogs } from './ActivityLogs';
-import { SecurityAudit } from './SecurityAudit';
+import UserManagement from './UserManagement';
+import RoleManagement from './RoleManagement';
+import SystemSettings from './SystemSettings';
+import ActivityLogs from './ActivityLogs';
+import SecurityAudit from './SecurityAudit';
 import { SystemOptimizationDashboard } from './SystemOptimizationDashboard';
 import { SampleDataManager } from './SampleDataManager';
 import { NationalitiesManagement } from './NationalitiesManagement';

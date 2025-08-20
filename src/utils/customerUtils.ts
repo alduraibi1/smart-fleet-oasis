@@ -55,6 +55,7 @@ export const convertFormDataToDatabase = (formData: CustomerFormData) => {
     // Emergency Contact
     emergency_contact_name: formData.emergency_contact_name.trim() || null,
     emergency_contact_phone: formData.emergency_contact_phone.trim() || null,
+    emergency_contact_phone_secondary: formData.emergency_contact_phone_secondary.trim() || null,
     emergency_contact_relation: formData.emergency_contact_relation.trim() || null,
     
     // Insurance
@@ -119,6 +120,7 @@ export const convertDatabaseToCustomer = (data: any): Customer => {
     
     emergency_contact_name: data.emergency_contact_name || '',
     emergency_contact_phone: data.emergency_contact_phone || '',
+    emergency_contact_phone_secondary: data.emergency_contact_phone_secondary || '',
     emergency_contact_relation: data.emergency_contact_relation || '',
     
     has_insurance: data.has_insurance || false,
@@ -187,6 +189,7 @@ export const convertCustomerToFormData = (customer: Customer): CustomerFormData 
     preferred_payment_method: customer.preferred_payment_method,
     emergency_contact_name: customer.emergency_contact_name || '',
     emergency_contact_phone: customer.emergency_contact_phone || '',
+    emergency_contact_phone_secondary: customer.emergency_contact_phone_secondary || '',
     emergency_contact_relation: customer.emergency_contact_relation || '',
     has_insurance: customer.has_insurance,
     insurance_company: customer.insurance_company || '',
