@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -77,16 +76,14 @@ export const ContractPaymentManager: React.FC<ContractPaymentManagerProps> = ({
 
     setIsProcessing(true);
     try {
-      // إنشاء إيصال دفع
-      const receiptNumber = `REC-${Date.now()}`;
-      
+      // إنشاء إيصال دفع (بدون تمرير حقول غير معرّفة في الأنواع)
       const { data: receipt, error: receiptError } = await supabase
         .from('payment_receipts')
         .insert({
-          receipt_number: receiptNumber,
+          // تمت إزالة receipt_number لتوافق الأنواع — قاعدة البيانات قد تولده
           contract_id: contractId,
           customer_name: contractData.customer?.name || '',
-          customer_phone: contractData.customer?.phone || '',
+          // تمت إزالة customer_phone لأنه غير موجود في الأنواع المتولدة
           amount: paymentAmount,
           payment_method: paymentMethod,
           payment_date: new Date().toISOString().split('T')[0],
@@ -115,8 +112,9 @@ export const ContractPaymentManager: React.FC<ContractPaymentManagerProps> = ({
 
       if (contractError) throw contractError;
 
-      // إنشاء قيد محاسبي
-      const entryNumber = `JE-${receiptNumber}`;
+      // إنشاء قيد محاسبي باستخدام رقم الإيصال إن توفر
+      const savedReceiptNumber = (receipt as any)?.receipt_number as string | undefined;
+      const entryNumber = savedReceiptNumber ? `JE-${savedReceiptNumber}` : `JE-${Date.now()}`;
       
       const { error: journalError } = await supabase
         .from('journal_entries')
@@ -125,7 +123,7 @@ export const ContractPaymentManager: React.FC<ContractPaymentManagerProps> = ({
           entry_date: new Date().toISOString().split('T')[0],
           description: `استلام دفعة من العقد ${contractData.contract_number}`,
           reference_type: 'payment_receipt',
-          reference_id: receipt.id,
+          reference_id: (receipt as any)?.id,
           total_amount: paymentAmount,
           status: 'posted',
         });
@@ -134,7 +132,9 @@ export const ContractPaymentManager: React.FC<ContractPaymentManagerProps> = ({
 
       toast({
         title: 'تم بنجاح',
-        description: `تم إضافة دفعة بقيمة ${paymentAmount} ريال وإنشاء الإيصال رقم ${receiptNumber}`,
+        description: savedReceiptNumber
+          ? `تم إضافة دفعة بقيمة ${paymentAmount} ريال وإنشاء الإيصال رقم ${savedReceiptNumber}`
+          : `تم إضافة دفعة بقيمة ${paymentAmount} ريال`,
       });
 
       setIsAddingPayment(false);
