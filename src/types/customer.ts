@@ -120,6 +120,15 @@ export interface CustomerFormData {
   emergency_contact_phone_secondary: string;
   emergency_contact_relation: string;
   
+  // Guarantor Info
+  guarantor_name?: string;
+  guarantor_national_id?: string;
+  guarantor_phone?: string;
+  guarantor_relation?: string;
+  guarantor_job_title?: string;
+  guarantor_monthly_income?: number;
+  guarantor_address?: string;
+  
   // Work Info
   customer_source: string;
   job_title: string;
@@ -139,6 +148,14 @@ export interface CustomerFormData {
   insurance_company: string;
   insurance_policy_number: string;
   insurance_expiry: string;
+  
+  // Documents
+  license_document?: string;
+  residence_document?: string;
+  residence_expiry?: string;
+  national_id_document?: string;
+  passport_document?: string;
+  passport_expiry?: string;
   
   // Preferences
   preferred_language: string;
@@ -183,6 +200,15 @@ export const defaultCustomerFormData: CustomerFormData = {
   emergency_contact_phone_secondary: '',
   emergency_contact_relation: '',
   
+  // Guarantor Info
+  guarantor_name: '',
+  guarantor_national_id: '',
+  guarantor_phone: '',
+  guarantor_relation: '',
+  guarantor_job_title: '',
+  guarantor_monthly_income: 0,
+  guarantor_address: '',
+  
   // Work Info
   customer_source: 'website',
   job_title: '',
@@ -202,6 +228,14 @@ export const defaultCustomerFormData: CustomerFormData = {
   insurance_company: '',
   insurance_policy_number: '',
   insurance_expiry: '',
+  
+  // Documents
+  license_document: '',
+  residence_document: '',
+  residence_expiry: '',
+  national_id_document: '',
+  passport_document: '',
+  passport_expiry: '',
   
   // Preferences
   preferred_language: 'ar',

@@ -6,10 +6,14 @@ import { CustomerFormData, defaultCustomerFormData } from '@/types/customer';
 import { BasicInfoSection } from './CustomerFormSections/BasicInfoSection';
 import { AddressInfoSection } from './CustomerFormSections/AddressInfoSection';
 import { LicenseInfoSection } from './CustomerFormSections/LicenseInfoSection';
+import { EmergencyContactSection } from './CustomerFormSections/EmergencyContactSection';
+import { GuarantorSection } from './CustomerFormSections/GuarantorSection';
+import { DocumentsSection } from './CustomerFormSections/DocumentsSection';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, MapPin, FileText } from 'lucide-react';
+import { User, MapPin, FileText, Phone, Shield, FolderOpen } from 'lucide-react';
+import { convertFormDataToDatabase } from '@/utils/customerUtils';
 
 interface AddCustomerDialogProps {
   open: boolean;
@@ -44,30 +48,12 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
     setLoading(true);
     
     try {
+      // Convert form data to database format
+      const customerData = convertFormDataToDatabase(formData);
+
       const { data, error } = await supabase
         .from('customers')
-        .insert([{
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email || null,
-          nationality: formData.nationality,
-          national_id: formData.national_id,
-          gender: formData.gender || null,
-          address: formData.address || null,
-          city: formData.city || null,
-          district: formData.district || null,
-          postal_code: formData.postal_code || null,
-          license_number: formData.license_number || null,
-          license_expiry: formData.license_expiry || null,
-          license_type: formData.license_type || null,
-          emergency_contact_name: formData.emergency_contact_name || null,
-          emergency_contact_phone: formData.emergency_contact_phone || null,
-          notes: formData.notes || null,
-          is_active: true,
-          blacklisted: false,
-          rating: 0,
-          total_rentals: 0
-        }])
+        .insert([customerData])
         .select();
 
       if (error) throw error;
@@ -95,25 +81,37 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">إضافة عميل جديد</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="basic" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                المعلومات الأساسية
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="basic" className="flex items-center gap-1 text-xs">
+                <User className="h-3 w-3" />
+                أساسي
               </TabsTrigger>
-              <TabsTrigger value="address" className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                معلومات العنوان
+              <TabsTrigger value="address" className="flex items-center gap-1 text-xs">
+                <MapPin className="h-3 w-3" />
+                العنوان
               </TabsTrigger>
-              <TabsTrigger value="license" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                معلومات الرخصة
+              <TabsTrigger value="license" className="flex items-center gap-1 text-xs">
+                <FileText className="h-3 w-3" />
+                الرخصة
+              </TabsTrigger>
+              <TabsTrigger value="emergency" className="flex items-center gap-1 text-xs">
+                <Phone className="h-3 w-3" />
+                طوارئ
+              </TabsTrigger>
+              <TabsTrigger value="guarantor" className="flex items-center gap-1 text-xs">
+                <Shield className="h-3 w-3" />
+                كفيل
+              </TabsTrigger>
+              <TabsTrigger value="documents" className="flex items-center gap-1 text-xs">
+                <FolderOpen className="h-3 w-3" />
+                مستندات
               </TabsTrigger>
             </TabsList>
 
@@ -133,6 +131,27 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
 
             <TabsContent value="license" className="space-y-4">
               <LicenseInfoSection 
+                formData={formData}
+                onInputChange={handleInputChange}
+              />
+            </TabsContent>
+
+            <TabsContent value="emergency" className="space-y-4">
+              <EmergencyContactSection 
+                formData={formData}
+                onInputChange={handleInputChange}
+              />
+            </TabsContent>
+
+            <TabsContent value="guarantor" className="space-y-4">
+              <GuarantorSection 
+                formData={formData}
+                onInputChange={handleInputChange}
+              />
+            </TabsContent>
+
+            <TabsContent value="documents" className="space-y-4">
+              <DocumentsSection 
                 formData={formData}
                 onInputChange={handleInputChange}
               />
