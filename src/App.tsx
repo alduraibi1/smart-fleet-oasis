@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
@@ -35,53 +36,53 @@ function App() {
                   </ProtectedRoute>
                 } />
                 <Route path="/customers" element={
-                  <ProtectedRoute requiredRole="employee" requiredPermission="customers.read">
+                  <ProtectedRoute>
                     <Customers />
                   </ProtectedRoute>
                 } />
                 <Route path="/owners" element={
-                  <ProtectedRoute requiredRole="employee" requiredPermission="vehicles.read">
+                  <ProtectedRoute>
                     <Owners />
                   </ProtectedRoute>
                 } />
                 <Route path="/vehicles" element={
-                  <ProtectedRoute requiredRole="employee" requiredPermission="vehicles.read">
+                  <ProtectedRoute>
                     <Vehicles />
                   </ProtectedRoute>
                 } />
                 <Route path="/contracts" element={
-                  <ProtectedRoute requiredRole="employee" requiredPermission="contracts.read">
+                  <ProtectedRoute>
                     <Contracts />
                   </ProtectedRoute>
                 } />
                 <Route path="/accounting" element={
-                  <ProtectedRoute requiredRole="accountant" requiredPermission="accounting.read">
+                  <ProtectedRoute>
                     <Accounting />
                   </ProtectedRoute>
                 } />
                 <Route path="/reports" element={
-                  <ProtectedRoute requiredRole="manager" requiredPermission="reports.read">
+                  <ProtectedRoute>
                     <Reports />
                   </ProtectedRoute>
                 } />
                 <Route path="/maintenance" element={
-                  <ProtectedRoute requiredRole="employee" requiredPermission="maintenance.read">
+                  <ProtectedRoute>
                     <Maintenance />
                   </ProtectedRoute>
                 } />
                 <Route path="/inventory" element={
-                  <ProtectedRoute requiredRole="employee" requiredPermission="inventory.read">
+                  <ProtectedRoute>
                     <Inventory />
                   </ProtectedRoute>
                 } />
                 <Route path="/advanced-reports" element={<Navigate to="/reports" replace />} />
                 <Route path="/system-management" element={
-                  <ProtectedRoute requiredRole="admin" requiredPermission="system.read">
+                  <ProtectedRoute>
                     <SystemManagement />
                   </ProtectedRoute>
                 } />
                 <Route path="/enhanced-system-management" element={
-                  <ProtectedRoute requiredRole="admin" requiredPermission="system.write">
+                  <ProtectedRoute>
                     <EnhancedSystemManagement />
                   </ProtectedRoute>
                 } />

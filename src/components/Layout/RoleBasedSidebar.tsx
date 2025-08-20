@@ -11,80 +11,67 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-
-type UserRole = 'admin' | 'accountant' | 'employee' | 'manager';
 
 const menuItems = [
   {
     title: "الرئيسية",
     icon: Home,
     url: "/",
-    category: "main",
-    requiredRole: null as UserRole | null
+    category: "main"
   },
   {
     title: "العملاء",
     icon: Users,
     url: "/customers",
-    category: "operations",
-    requiredRole: "employee" as UserRole
+    category: "operations"
   },
   {
     title: "ملاك المركبات",
     icon: Building2,
     url: "/owners",
-    category: "operations",
-    requiredRole: "employee" as UserRole
+    category: "operations"
   },
   {
     title: "المركبات",
     icon: Car,
     url: "/vehicles",
-    category: "operations",
-    requiredRole: "employee" as UserRole
+    category: "operations"
   },
   {
     title: "العقود",
     icon: FileText,
     url: "/contracts",
-    category: "operations",
-    requiredRole: "employee" as UserRole
+    category: "operations"
   },
   {
     title: "الصيانة",
     icon: Wrench,
     url: "/maintenance",
-    category: "maintenance",
-    requiredRole: "employee" as UserRole
+    category: "maintenance"
   },
   {
     title: "المخزون",
     icon: Package,
     url: "/inventory",
-    category: "maintenance",
-    requiredRole: "employee" as UserRole
+    category: "maintenance"
   },
   {
     title: "المحاسبة",
     icon: Calculator,
     url: "/accounting",
-    category: "financial",
-    requiredRole: "accountant" as UserRole
+    category: "financial"
   },
   {
     title: "التقارير",
     icon: BarChart3,
     url: "/reports",
-    category: "financial",
-    requiredRole: "manager" as UserRole
+    category: "financial"
   },
   {
     title: "إدارة النظام",
     icon: Settings,
     url: "/system-management",
-    category: "admin",
-    requiredRole: "admin" as UserRole
+    category: "admin"
   },
 ];
 
@@ -98,15 +85,9 @@ const categoryLabels = {
 
 export function RoleBasedSidebar() {
   const location = useLocation();
-  const { hasRole } = useAuth();
 
-  // Filter menu items based on user roles
-  const filteredItems = menuItems.filter(item => {
-    if (!item.requiredRole) return true;
-    return hasRole(item.requiredRole) || hasRole('admin'); // Admins can access everything
-  });
-
-  const groupedItems = filteredItems.reduce((acc, item) => {
+  // إظهار جميع عناصر القائمة لأي مستخدم مسجل
+  const groupedItems = menuItems.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
