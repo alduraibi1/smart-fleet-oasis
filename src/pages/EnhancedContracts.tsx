@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EnhancedContractsPage } from '@/components/Contracts/EnhancedContractsPage';
 import { VehicleReturnProcess } from '@/components/Contracts/VehicleReturnProcess';
 import { SmartContractNotifications } from '@/components/Contracts/SmartContractNotifications';
-import { ContractFinancialIntegration } from '@/components/Contracts/ContractFinancialIntegration';
+import { ContractAccountingIntegration } from '@/components/Contracts/ContractAccountingIntegration';
 import { Card } from '@/components/ui/card';
 import { useContracts } from '@/hooks/useContracts';
 
@@ -74,7 +74,7 @@ export default function EnhancedContracts() {
         <TabsContent value="financial" className="mt-6">
           <Card className="p-6">
             {selectedContract ? (
-              <ContractFinancialIntegration
+              <ContractAccountingIntegration
                 contractId={selectedContract.id}
                 contractData={selectedContract}
               />
