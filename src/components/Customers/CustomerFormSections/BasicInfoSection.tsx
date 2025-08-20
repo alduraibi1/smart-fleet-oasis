@@ -2,12 +2,12 @@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { IdentityVerificationInput } from '@/components/ui/identity-verification-input';
 import { SmartInput } from '@/components/ui/smart-input';
 import { CustomerFormData } from '@/types/customer';
 import { useNationalities } from '@/hooks/useNationalities';
 import { useCustomerDuplicateCheck } from '@/hooks/useCustomerDuplicateCheck';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle } from 'lucide-react';
 import * as React from 'react';
 
 interface BasicInfoSectionProps {
@@ -79,6 +79,10 @@ export function BasicInfoSection({ formData, onInputChange }: BasicInfoSectionPr
     }
   }, [idDuplicate.isDuplicate, idDuplicate.customer, formData.national_id, toast]);
 
+  const handleSuggestionClick = (field: keyof CustomerFormData, value: string) => {
+    onInputChange(field, value);
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">المعلومات الأساسية</h3>
@@ -96,7 +100,7 @@ export function BasicInfoSection({ formData, onInputChange }: BasicInfoSectionPr
 
         <div>
           <Label htmlFor="phone">رقم الهاتف *</Label>
-          <SmartInput
+          <IdentityVerificationInput
             id="phone"
             validationType="mobileNumber"
             value={formData.phone}
@@ -106,16 +110,11 @@ export function BasicInfoSection({ formData, onInputChange }: BasicInfoSectionPr
             showValidationIcon
             showSuggestions
             onValidationChange={(valid) => setIsPhoneValid(!!valid)}
+            isDuplicate={phoneDuplicate.isDuplicate}
+            isChecking={phoneDuplicate.checking}
+            duplicateCustomer={phoneDuplicate.customer}
+            onSuggestionClick={(value) => handleSuggestionClick('phone', value)}
           />
-          {phoneDuplicate.isDuplicate && (
-            <div className="mt-1 flex items-center gap-2 text-sm text-destructive">
-              <AlertCircle className="h-4 w-4" />
-              <span>
-                هذا الرقم مستخدم من قبل
-                {phoneDuplicate.customer?.name ? `: ${phoneDuplicate.customer.name}` : ''}
-              </span>
-            </div>
-          )}
         </div>
 
         <div>
@@ -153,7 +152,7 @@ export function BasicInfoSection({ formData, onInputChange }: BasicInfoSectionPr
 
         <div>
           <Label htmlFor="national_id">رقم الهوية *</Label>
-          <SmartInput
+          <IdentityVerificationInput
             id="national_id"
             validationType="nationalId"
             nationality={formData.nationality}
@@ -163,16 +162,11 @@ export function BasicInfoSection({ formData, onInputChange }: BasicInfoSectionPr
             showValidationIcon
             showSuggestions
             onValidationChange={(valid) => setIsIdValid(!!valid)}
+            isDuplicate={idDuplicate.isDuplicate}
+            isChecking={idDuplicate.checking}
+            duplicateCustomer={idDuplicate.customer}
+            onSuggestionClick={(value) => handleSuggestionClick('national_id', value)}
           />
-          {idDuplicate.isDuplicate && (
-            <div className="mt-1 flex items-center gap-2 text-sm text-destructive">
-              <AlertCircle className="h-4 w-4" />
-              <span>
-                رقم الهوية مستخدم من قبل
-                {idDuplicate.customer?.name ? `: ${idDuplicate.customer.name}` : ''}
-              </span>
-            </div>
-          )}
         </div>
 
         <div>
