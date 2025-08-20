@@ -11,127 +11,38 @@ import {
   Star, 
   Calendar,
   DollarSign,
-  CreditCard,
   UserCheck,
-  AlertTriangle
+  Loader2
 } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, LineChart, Line } from "recharts";
-
-interface CustomerAnalytics {
-  customerId: string;
-  name: string;
-  email: string;
-  totalContracts: number;
-  totalRevenue: number;
-  averageContractValue: number;
-  averageRentalDuration: number;
-  lastRentalDate: string;
-  customerSince: string;
-  paymentReliability: number;
-  preferredVehicleType: string;
-  loyaltyScore: number;
-  riskLevel: 'low' | 'medium' | 'high';
-  status: 'active' | 'inactive' | 'vip';
-}
+import { useCustomerAnalytics, CustomerAnalyticsData } from "@/hooks/useCustomerAnalytics";
+import { useCustomerReportsData } from "@/hooks/useCustomerReportsData";
 
 export function CustomerAnalyticsReport() {
   const [sortBy, setSortBy] = useState('revenue');
   const [customerSegment, setCustomerSegment] = useState('all');
   const [timePeriod, setTimePeriod] = useState('year');
 
-  // بيانات وهمية للعملاء
-  const customerData: CustomerAnalytics[] = [
-    {
-      customerId: "1",
-      name: "أحمد محمد العلي",
-      email: "ahmed@example.com",
-      totalContracts: 12,
-      totalRevenue: 86000,
-      averageContractValue: 7167,
-      averageRentalDuration: 25,
-      lastRentalDate: "2024-01-15",
-      customerSince: "2022-03-10",
-      paymentReliability: 98,
-      preferredVehicleType: "سيدان",
-      loyaltyScore: 92,
-      riskLevel: 'low',
-      status: 'vip'
-    },
-    {
-      customerId: "2",
-      name: "فاطمة سعد الغامدي",
-      email: "fatima@example.com",
-      totalContracts: 8,
-      totalRevenue: 54000,
-      averageContractValue: 6750,
-      averageRentalDuration: 22,
-      lastRentalDate: "2024-01-08",
-      customerSince: "2022-08-15",
-      paymentReliability: 95,
-      preferredVehicleType: "SUV",
-      loyaltyScore: 85,
-      riskLevel: 'low',
-      status: 'active'
-    },
-    {
-      customerId: "3",
-      name: "محمد عبدالله النجار",
-      email: "mohammed@example.com",
-      totalContracts: 15,
-      totalRevenue: 92000,
-      averageContractValue: 6133,
-      averageRentalDuration: 18,
-      lastRentalDate: "2024-01-20",
-      customerSince: "2021-11-22",
-      paymentReliability: 88,
-      preferredVehicleType: "هاتشباك",
-      loyaltyScore: 78,
-      riskLevel: 'medium',
-      status: 'active'
-    },
-    {
-      customerId: "4",
-      name: "خالد أحمد السالم",
-      email: "khalid@example.com",
-      totalContracts: 6,
-      totalRevenue: 28000,
-      averageContractValue: 4667,
-      averageRentalDuration: 15,
-      lastRentalDate: "2023-11-30",
-      customerSince: "2023-02-14",
-      paymentReliability: 75,
-      preferredVehicleType: "سيدان",
-      loyaltyScore: 65,
-      riskLevel: 'high',
-      status: 'inactive'
-    }
-  ];
+  const { data: customerData = [], isLoading: isLoadingCustomers } = useCustomerAnalytics();
+  const { data: reportsData, isLoading: isLoadingReports } = useCustomerReportsData();
 
-  // إحصائيات العملاء حسب الفئات
-  const customerSegments = [
-    { name: 'VIP', value: 1, color: '#10B981' },
-    { name: 'نشط', value: 2, color: '#3B82F6' },
-    { name: 'غير نشط', value: 1, color: '#F59E0B' }
-  ];
+  if (isLoadingCustomers || isLoadingReports) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="mr-2">جاري تحميل تحليلات العملاء...</span>
+      </div>
+    );
+  }
 
-  // أنماط السلوك
-  const behaviorPatterns = [
-    { pattern: 'إيجار طويل المدى', count: 8, percentage: 32 },
-    { pattern: 'إيجار قصير المدى', count: 12, percentage: 48 },
-    { pattern: 'إيجار موسمي', count: 5, percentage: 20 }
-  ];
+  // تطبيق الفلاتر
+  let filteredCustomers = [...customerData];
+  if (customerSegment !== 'all') {
+    filteredCustomers = customerData.filter(customer => customer.status === customerSegment);
+  }
 
-  // بيانات الإيرادات الشهرية من العملاء
-  const monthlyCustomerRevenue = [
-    { month: 'يناير', newCustomers: 5, returningCustomers: 18, revenue: 145000 },
-    { month: 'فبراير', newCustomers: 7, returningCustomers: 22, revenue: 168000 },
-    { month: 'مارس', newCustomers: 4, returningCustomers: 25, revenue: 185000 },
-    { month: 'أبريل', newCustomers: 6, returningCustomers: 20, revenue: 172000 },
-    { month: 'مايو', newCustomers: 8, returningCustomers: 28, revenue: 198000 },
-    { month: 'يونيو', newCustomers: 3, returningCustomers: 24, revenue: 176000 }
-  ];
-
-  const sortedCustomers = [...customerData].sort((a, b) => {
+  // ترتيب البيانات
+  const sortedCustomers = filteredCustomers.sort((a, b) => {
     switch (sortBy) {
       case 'revenue':
         return b.totalRevenue - a.totalRevenue;
@@ -144,10 +55,24 @@ export function CustomerAnalyticsReport() {
     }
   });
 
+  // حساب الإحصائيات العامة
+  const totalCustomers = customerData.length;
+  const vipCustomers = customerData.filter(c => c.status === 'vip').length;
+  const activeCustomers = customerData.filter(c => c.status === 'active').length;
+  const avgRevenue = totalCustomers > 0 ? customerData.reduce((sum, c) => sum + c.totalRevenue, 0) / totalCustomers : 0;
+  const avgLoyalty = totalCustomers > 0 ? customerData.reduce((sum, c) => sum + c.loyaltyScore, 0) / totalCustomers : 0;
+
+  // بيانات الرسم البياني الدائري
+  const customerSegments = [
+    { name: 'VIP', value: vipCustomers, color: '#10B981' },
+    { name: 'نشط', value: activeCustomers, color: '#3B82F6' },
+    { name: 'غير نشط', value: totalCustomers - vipCustomers - activeCustomers, color: '#F59E0B' }
+  ];
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'vip':
-        return <Badge className="bg-gold-100 text-gold-800">VIP</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800">VIP</Badge>;
       case 'active':
         return <Badge className="bg-green-100 text-green-800">نشط</Badge>;
       case 'inactive':
@@ -169,12 +94,6 @@ export function CustomerAnalyticsReport() {
         return <Badge variant="outline">غير محدد</Badge>;
     }
   };
-
-  // حساب الإحصائيات العامة
-  const totalCustomers = customerData.length;
-  const vipCustomers = customerData.filter(c => c.status === 'vip').length;
-  const avgRevenue = customerData.reduce((sum, c) => sum + c.totalRevenue, 0) / totalCustomers;
-  const avgLoyalty = customerData.reduce((sum, c) => sum + c.loyaltyScore, 0) / totalCustomers;
 
   return (
     <div className="space-y-6">
@@ -241,9 +160,9 @@ export function CustomerAnalyticsReport() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">عملاء VIP</p>
-                <p className="text-2xl font-bold text-gold-600">{vipCustomers}</p>
+                <p className="text-2xl font-bold text-yellow-600">{vipCustomers}</p>
               </div>
-              <Star className="h-8 w-8 text-gold-500" />
+              <Star className="h-8 w-8 text-yellow-500" />
             </div>
           </CardContent>
         </Card>
@@ -311,31 +230,33 @@ export function CustomerAnalyticsReport() {
         </Card>
 
         {/* Monthly Revenue Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              اتجاه إيرادات العملاء
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={monthlyCustomerRevenue}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value: number) => `${value.toLocaleString()} ريال`} />
-                <Line 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="#10B981" 
-                  strokeWidth={3}
-                  name="الإيرادات"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        {reportsData?.monthlyRevenue && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                اتجاه إيرادات العملاء
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={reportsData.monthlyRevenue}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value: number) => `${value.toLocaleString()} ريال`} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="#10B981" 
+                    strokeWidth={3}
+                    name="الإيرادات"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Customer Details Table */}
@@ -359,7 +280,7 @@ export function CustomerAnalyticsReport() {
                 </tr>
               </thead>
               <tbody>
-                {sortedCustomers.map((customer) => (
+                {sortedCustomers.slice(0, 10).map((customer) => (
                   <tr key={customer.customerId} className="border-b hover:bg-muted/50 transition-colors">
                     <td className="p-3">
                       <div>
@@ -380,7 +301,7 @@ export function CustomerAnalyticsReport() {
                     <td className="p-3">
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">{customer.paymentReliability}%</span>
+                          <span className="text-sm font-medium">{customer.paymentReliability.toFixed(0)}%</span>
                         </div>
                         <Progress value={customer.paymentReliability} className="h-2" />
                       </div>
@@ -388,7 +309,7 @@ export function CustomerAnalyticsReport() {
                     <td className="p-3">
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">{customer.loyaltyScore}%</span>
+                          <span className="text-sm font-medium">{customer.loyaltyScore.toFixed(0)}%</span>
                         </div>
                         <Progress value={customer.loyaltyScore} className="h-2" />
                       </div>
@@ -405,36 +326,38 @@ export function CustomerAnalyticsReport() {
       </Card>
 
       {/* Behavior Patterns */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            أنماط سلوك العملاء
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {behaviorPatterns.map((pattern, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium">{pattern.pattern}</span>
-                  <span className="text-muted-foreground">{pattern.count} عميل</span>
+      {reportsData?.behaviorPatterns && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              أنماط سلوك العملاء
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {reportsData.behaviorPatterns.map((pattern, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">{pattern.pattern}</span>
+                    <span className="text-muted-foreground">{pattern.count} عقد</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${pattern.percentage}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>{pattern.percentage.toFixed(1)}%</span>
+                    <span>من إجمالي العقود</span>
+                  </div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${pattern.percentage}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{pattern.percentage}%</span>
-                  <span>من إجمالي العملاء</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
