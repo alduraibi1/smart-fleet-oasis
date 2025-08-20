@@ -54,7 +54,7 @@ export const useCustomerAnalytics = () => {
             start_date,
             end_date,
             status,
-            vehicle:vehicles(brand, model, type)
+            vehicle:vehicles(brand, model, fuel_type)
           `)
           .eq('customer_id', customer.id);
 
@@ -82,15 +82,17 @@ export const useCustomerAnalytics = () => {
         const confirmedPayments = payments?.filter(p => p.status === 'confirmed').length || 0;
         const paymentReliability = totalPayments > 0 ? (confirmedPayments / totalPayments) * 100 : 100;
 
-        // تحديد نوع المركبة المفضل
-        const vehicleTypes = contracts?.map(c => c.vehicle?.type || 'غير محدد') || [];
-        const preferredVehicleType = vehicleTypes.reduce((a, b, i, arr) =>
-          arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
-        ) || 'غير محدد';
+        // تحديد نوع المركبة المفضل (باستخدام fuel_type بدل type)
+        const vehicleTypes = contracts?.map(c => (c as any).vehicle?.fuel_type || 'غير محدد') || [];
+        const preferredVehicleType = vehicleTypes.length
+          ? vehicleTypes.reduce((a, b, i, arr) =>
+              arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
+            )
+          : 'غير محدد';
 
         // حساب درجة الولاء
         const loyaltyScore = Math.min(
-          (customer.rating * 10) + 
+          ((customer as any).rating * 10) + 
           (totalContracts * 5) + 
           (paymentReliability * 0.5), 
           100
@@ -98,7 +100,7 @@ export const useCustomerAnalytics = () => {
 
         // تحديد مستوى المخاطر
         let riskLevel: 'low' | 'medium' | 'high' = 'low';
-        if (customer.blacklisted || paymentReliability < 70) {
+        if ((customer as any).blacklisted || paymentReliability < 70) {
           riskLevel = 'high';
         } else if (paymentReliability < 90 || totalContracts < 3) {
           riskLevel = 'medium';
@@ -106,7 +108,7 @@ export const useCustomerAnalytics = () => {
 
         // تحديد حالة العميل
         let status: 'active' | 'inactive' | 'vip' = 'inactive';
-        if (customer.is_active) {
+        if ((customer as any).is_active) {
           if (loyaltyScore >= 80 && totalRevenue >= 50000) {
             status = 'vip';
           } else {
@@ -115,16 +117,16 @@ export const useCustomerAnalytics = () => {
         }
 
         customerAnalytics.push({
-          customerId: customer.id,
-          name: customer.name || '',
-          email: customer.email || '',
-          phone: customer.phone || '',
+          customerId: (customer as any).id,
+          name: (customer as any).name || '',
+          email: (customer as any).email || '',
+          phone: (customer as any).phone || '',
           totalContracts,
           totalRevenue,
           averageContractValue,
           averageRentalDuration,
-          lastRentalDate: customer.last_rental_date,
-          customerSince: customer.created_at,
+          lastRentalDate: (customer as any).last_rental_date,
+          customerSince: (customer as any).created_at,
           paymentReliability,
           preferredVehicleType,
           loyaltyScore,

@@ -46,7 +46,7 @@ export const useCustomerReportsData = () => {
           end_date,
           created_at,
           customer:customers(name, created_at),
-          vehicle:vehicles(type, brand, model)
+          vehicle:vehicles(fuel_type, brand, model)
         `)
         .gte('start_date', sixMonthsAgo.toISOString());
 
@@ -66,17 +66,17 @@ export const useCustomerReportsData = () => {
         monthEnd.setDate(0);
 
         const monthContracts = contracts?.filter(c => 
-          new Date(c.start_date) >= monthStart && new Date(c.start_date) <= monthEnd
+          new Date((c as any).start_date) >= monthStart && new Date((c as any).start_date) <= monthEnd
         ) || [];
 
         const newCustomers = new Set(
           monthContracts
-            .filter(c => new Date(c.customer?.created_at || '') >= monthStart)
-            .map(c => c.customer_id)
+            .filter(c => new Date(((c as any).customer?.created_at || '')) >= monthStart)
+            .map(c => (c as any).customer_id)
         ).size;
 
         const returningCustomers = monthContracts.length - newCustomers;
-        const revenue = monthContracts.reduce((sum, c) => sum + (c.total_amount || 0), 0);
+        const revenue = monthContracts.reduce((sum, c) => sum + (((c as any).total_amount || 0) as number), 0);
 
         monthlyRevenue.push({
           month: months[i] || `شهر ${i + 1}`,
@@ -90,9 +90,9 @@ export const useCustomerReportsData = () => {
       const customerRevenue = new Map<string, { name: string; revenue: number; contracts: number }>();
       
       contracts?.forEach(contract => {
-        const customerName = contract.customer?.name || 'غير محدد';
+        const customerName = (contract as any).customer?.name || 'غير محدد';
         const existing = customerRevenue.get(customerName) || { name: customerName, revenue: 0, contracts: 0 };
-        existing.revenue += contract.total_amount || 0;
+        existing.revenue += ((contract as any).total_amount || 0) as number;
         existing.contracts += 1;
         customerRevenue.set(customerName, existing);
       });
@@ -101,13 +101,13 @@ export const useCustomerReportsData = () => {
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 5);
 
-      // حساب أداء أنواع المركبات
+      // حساب أداء أنواع المركبات (باستخدام fuel_type بدل type)
       const vehicleTypeRevenue = new Map<string, { revenue: number; count: number }>();
       
       contracts?.forEach(contract => {
-        const vehicleType = contract.vehicle?.type || 'غير محدد';
+        const vehicleType = (contract as any).vehicle?.fuel_type || 'غير محدد';
         const existing = vehicleTypeRevenue.get(vehicleType) || { revenue: 0, count: 0 };
-        existing.revenue += contract.total_amount || 0;
+        existing.revenue += ((contract as any).total_amount || 0) as number;
         existing.count += 1;
         vehicleTypeRevenue.set(vehicleType, existing);
       });
@@ -124,16 +124,16 @@ export const useCustomerReportsData = () => {
 
       // حساب أنماط السلوك
       const longTermRentals = contracts?.filter(c => {
-        if (c.start_date && c.end_date) {
-          const days = Math.ceil((new Date(c.end_date).getTime() - new Date(c.start_date).getTime()) / (1000 * 60 * 60 * 24));
+        if ((c as any).start_date && (c as any).end_date) {
+          const days = Math.ceil((new Date((c as any).end_date).getTime() - new Date((c as any).start_date).getTime()) / (1000 * 60 * 60 * 24));
           return days > 30;
         }
         return false;
       }).length || 0;
 
       const shortTermRentals = contracts?.filter(c => {
-        if (c.start_date && c.end_date) {
-          const days = Math.ceil((new Date(c.end_date).getTime() - new Date(c.start_date).getTime()) / (1000 * 60 * 60 * 24));
+        if ((c as any).start_date && (c as any).end_date) {
+          const days = Math.ceil((new Date((c as any).end_date).getTime() - new Date((c as any).start_date).getTime()) / (1000 * 60 * 60 * 24));
           return days <= 7;
         }
         return false;

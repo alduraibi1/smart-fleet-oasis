@@ -99,26 +99,35 @@ export const useVehicles = () => {
   // Add new vehicle
   const addVehicle = async (vehicleData: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      // Convert the vehicleData to match database schema
+      // الحصول على معرف المستخدم الحالي لاستخدامه في created_by
+      const { data: userData } = await supabase.auth.getUser();
+      const currentUserId = userData?.user?.id;
+
+      // تنظيف owner_id إذا كانت قيمة غير صالحة
+      const cleanOwnerId = (vehicleData as any).owner_id && (vehicleData as any).owner_id !== 'current-user'
+        ? (vehicleData as any).owner_id
+        : undefined;
+
+      // تحويل البيانات لتتوافق مع مخطط قاعدة البيانات
       const dbVehicleData = {
-        plate_number: vehicleData.plate_number,
-        brand: vehicleData.brand,
-        model: vehicleData.model,
-        year: vehicleData.year,
-        color: vehicleData.color,
-        status: vehicleData.status,
-        daily_rate: vehicleData.daily_rate,
-        mileage: vehicleData.mileage,
-        vin: vehicleData.vin,
-        engine_number: vehicleData.engine_number,
-        chassis_number: vehicleData.chassis_number,
-        fuel_type: vehicleData.fuel_type,
-        transmission: vehicleData.transmission,
-        seating_capacity: vehicleData.seating_capacity,
-        registration_expiry: vehicleData.registration_expiry,
-        owner_id: vehicleData.owner_id,
-        notes: vehicleData.notes,
-        created_by: vehicleData.created_by,
+        plate_number: (vehicleData as any).plate_number,
+        brand: (vehicleData as any).brand,
+        model: (vehicleData as any).model,
+        year: (vehicleData as any).year,
+        color: (vehicleData as any).color,
+        status: (vehicleData as any).status,
+        daily_rate: (vehicleData as any).daily_rate,
+        mileage: (vehicleData as any).mileage,
+        vin: (vehicleData as any).vin,
+        engine_number: (vehicleData as any).engine_number,
+        chassis_number: (vehicleData as any).chassis_number,
+        fuel_type: (vehicleData as any).fuel_type,
+        transmission: (vehicleData as any).transmission,
+        seating_capacity: (vehicleData as any).seating_capacity,
+        registration_expiry: (vehicleData as any).registration_expiry,
+        owner_id: cleanOwnerId,
+        notes: (vehicleData as any).notes,
+        created_by: currentUserId || undefined,
       };
 
       const { data, error } = await supabase
@@ -215,6 +224,7 @@ export const useVehicles = () => {
     return [...new Set(vehicles.map(v => v.brand))].sort();
   };
 
+  // Fetch on mount
   useEffect(() => {
     fetchVehicles();
   }, []);
