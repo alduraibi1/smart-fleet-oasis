@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,18 +77,38 @@ export const ContractPaymentManager: React.FC<ContractPaymentManagerProps> = ({
 
     setIsProcessing(true);
     try {
-      // إنشاء إيصال دفع (بدون تمرير حقول غير معرّفة في الأنواع)
+      // احصل على بيانات العقد للحصول على customer_id و vehicle_id المطلوبة للإيصال
+      const { data: contractRow, error: contractFetchError } = await supabase
+        .from('rental_contracts')
+        .select('customer_id, vehicle_id')
+        .eq('id', contractId)
+        .maybeSingle();
+
+      if (contractFetchError || !contractRow?.customer_id) {
+        throw new Error('تعذر الحصول على بيانات العميل لهذا العقد');
+      }
+
+      // توليد رقم إيصال صحيح من قاعدة البيانات
+      const { data: generatedNumber, error: genErr } = await supabase.rpc('generate_receipt_number');
+      const receiptNumber = generatedNumber || `REC-${Date.now()}`;
+      if (genErr) {
+        console.warn('generate_receipt_number RPC failed, fallback to timestamp-based number', genErr);
+      }
+
+      // إنشاء إيصال دفع مع الحقول المطلوبة حسب الأنواع
       const { data: receipt, error: receiptError } = await supabase
         .from('payment_receipts')
         .insert({
-          // تمت إزالة receipt_number لتوافق الأنواع — قاعدة البيانات قد تولده
+          receipt_number: receiptNumber,
           contract_id: contractId,
+          customer_id: contractRow.customer_id,
           customer_name: contractData.customer?.name || '',
-          // تمت إزالة customer_phone لأنه غير موجود في الأنواع المتولدة
+          vehicle_id: contractRow.vehicle_id ?? undefined,
           amount: paymentAmount,
           payment_method: paymentMethod,
           payment_date: new Date().toISOString().split('T')[0],
-          receipt_type: 'contract_payment',
+          // استخدم نوع متوافق مع الأنواع
+          receipt_type: 'rental_payment',
           status: 'confirmed',
           notes: paymentNotes || `دفعة إضافية للعقد ${contractData.contract_number}`,
         })
@@ -112,9 +133,8 @@ export const ContractPaymentManager: React.FC<ContractPaymentManagerProps> = ({
 
       if (contractError) throw contractError;
 
-      // إنشاء قيد محاسبي باستخدام رقم الإيصال إن توفر
-      const savedReceiptNumber = (receipt as any)?.receipt_number as string | undefined;
-      const entryNumber = savedReceiptNumber ? `JE-${savedReceiptNumber}` : `JE-${Date.now()}`;
+      // إنشاء قيد محاسبي باستخدام رقم الإيصال الذي تم توليده
+      const entryNumber = `JE-${receiptNumber}`;
       
       const { error: journalError } = await supabase
         .from('journal_entries')
@@ -132,9 +152,7 @@ export const ContractPaymentManager: React.FC<ContractPaymentManagerProps> = ({
 
       toast({
         title: 'تم بنجاح',
-        description: savedReceiptNumber
-          ? `تم إضافة دفعة بقيمة ${paymentAmount} ريال وإنشاء الإيصال رقم ${savedReceiptNumber}`
-          : `تم إضافة دفعة بقيمة ${paymentAmount} ريال`,
+        description: `تم إضافة دفعة بقيمة ${paymentAmount} ريال وإنشاء الإيصال رقم ${receiptNumber}`,
       });
 
       setIsAddingPayment(false);
