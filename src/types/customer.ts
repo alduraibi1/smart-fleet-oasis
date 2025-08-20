@@ -50,6 +50,7 @@ export interface Customer {
   // Emergency Contact
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
+  emergency_contact_phone_secondary?: string;
   emergency_contact_relation?: string;
   
   // Insurance Info
