@@ -1,241 +1,83 @@
+import React, { useState } from 'react';
+import { BarChart3, Users, Shield, Settings, FileText, Lock, Zap, Database, Globe } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { UserManagement } from './UserManagement';
+import { RoleManagement } from './RoleManagement';
+import { SystemSettings } from './SystemSettings';
+import { ActivityLogs } from './ActivityLogs';
+import { SecurityAudit } from './SecurityAudit';
+import { SystemOptimizationDashboard } from './SystemOptimizationDashboard';
+import { SampleDataManager } from './SampleDataManager';
+import { NationalitiesManagement } from './NationalitiesManagement';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Settings, 
-  Users, 
-  Shield, 
-  Activity, 
-  Database,
-  Lock,
-  AlertTriangle,
-  CheckCircle
-} from 'lucide-react';
+export const SystemManagementOverview = () => {
+  const [activeTab, setActiveTab] = useState('overview');
 
-const SystemManagementOverview = () => {
-  const systemStats = [
-    {
-      title: "المستخدمين النشطين",
-      value: "12",
-      icon: Users,
-      description: "مستخدم متصل حالياً",
-      status: "normal"
-    },
-    {
-      title: "حالة الأمان",
-      value: "جيد",
-      icon: Shield,
-      description: "3 تحذيرات أمنية",
-      status: "warning"
-    },
-    {
-      title: "أداء النظام",
-      value: "ممتاز",
-      icon: Activity,
-      description: "استجابة سريعة",
-      status: "good"
-    },
-    {
-      title: "قاعدة البيانات",
-      value: "متصلة",
-      icon: Database,
-      description: "جميع الاتصالات تعمل",
-      status: "good"
-    }
+  const tabsData = [
+    { id: 'overview', label: 'نظرة عامة', content: 'محتوى النظرة العامة' },
+    { id: 'users', label: 'إدارة المستخدمين', content: 'محتوى إدارة المستخدمين' },
+    { id: 'roles', label: 'إدارة الأدوار', content: 'محتوى إدارة الأدوار' },
+    { id: 'nationalities', label: 'إدارة الجنسيات', content: 'محتوى إدارة الجنسيات' },
+    { id: 'settings', label: 'إعدادات النظام', content: 'محتوى إعدادات النظام' },
+    { id: 'logs', label: 'سجلات النشاط', content: 'محتوى سجلات النشاط' },
+    { id: 'security', label: 'الأمان والمراجعة', content: 'محتوى الأمان والمراجعة' },
+    { id: 'optimization', label: 'تحسين الأداء', content: 'محتوى تحسين الأداء' },
+    { id: 'sample-data', label: 'البيانات التجريبية', content: 'محتوى البيانات التجريبية' }
   ];
-
-  const securityAlerts = [
-    {
-      id: 1,
-      type: "warning",
-      message: "بعض سياسات RLS تحتاج للمراجعة",
-      timestamp: "منذ ساعتين"
-    },
-    {
-      id: 2,
-      type: "info",
-      message: "تم تحديث صلاحيات المستخدمين بنجاح",
-      timestamp: "منذ 4 ساعات"
-    },
-    {
-      id: 3,
-      type: "success",
-      message: "تم تطبيق التحديثات الأمنية الجديدة",
-      timestamp: "أمس"
-    }
+  
+  const tabs = [
+    { id: 'overview', label: 'نظرة عامة', icon: BarChart3 },
+    { id: 'users', label: 'إدارة المستخدمين', icon: Users },
+    { id: 'roles', label: 'إدارة الأدوار', icon: Shield },
+    { id: 'nationalities', label: 'إدارة الجنسيات', icon: Globe },
+    { id: 'settings', label: 'إعدادات النظام', icon: Settings },
+    { id: 'logs', label: 'سجلات النشاط', icon: FileText },
+    { id: 'security', label: 'الأمان والمراجعة', icon: Lock },
+    { id: 'optimization', label: 'تحسين الأداء', icon: Zap },
+    { id: 'sample-data', label: 'البيانات التجريبية', icon: Database }
   ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'good':
-        return 'text-green-600';
-      case 'warning':
-        return 'text-amber-600';
-      case 'error':
-        return 'text-red-600';
-      default:
-        return 'text-muted-foreground';
-    }
-  };
-
-  const getAlertIcon = (type: string) => {
-    switch (type) {
-      case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-amber-500" />;
-      case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      default:
-        return <Shield className="h-4 w-4 text-blue-500" />;
-    }
-  };
-
-  const getAlertBadge = (type: string) => {
-    switch (type) {
-      case 'warning':
-        return <Badge className="bg-amber-100 text-amber-800 border-amber-200">تحذير</Badge>;
-      case 'success':
-        return <Badge className="bg-green-100 text-green-800 border-green-200">نجح</Badge>;
-      default:
-        return <Badge variant="outline">معلومات</Badge>;
-    }
-  };
 
   return (
     <div className="space-y-6">
-      {/* إحصائيات النظام */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {systemStats.map((stat, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${getStatusColor(stat.status)}`}>
-                {stat.value}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stat.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-semibold tracking-tight">إدارة النظام</h2>
+          <p className="text-sm text-muted-foreground">
+            إدارة المستخدمين والأدوار وإعدادات النظام
+          </p>
+        </div>
       </div>
 
-      {/* التنبيهات الأمنية */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
-            التنبيهات الأمنية الأخيرة
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {securityAlerts.map((alert) => (
-              <div key={alert.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                {getAlertIcon(alert.type)}
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{alert.message}</p>
-                  <p className="text-xs text-muted-foreground">{alert.timestamp}</p>
-                </div>
-                {getAlertBadge(alert.type)}
-              </div>
-            ))}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList>
+          {tabs.map((tab) => (
+            <TabsTrigger value={tab.id} key={tab.id} className="flex items-center gap-2">
+              {tab.icon && <tab.icon className="w-4 h-4" />}
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+
+      <div className="mt-6">
+        {activeTab === 'overview' && (
+          <div>
+            <h3 className="text-lg font-semibold">نظرة عامة</h3>
+            <p className="text-sm text-muted-foreground">
+              هذه الصفحة تعرض نظرة عامة على حالة النظام.
+            </p>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* نظرة عامة على الوحدات */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              إدارة المستخدمين
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              إدارة حسابات المستخدمين والأدوار والصلاحيات
-            </p>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>إجمالي المستخدمين:</span>
-                <span className="font-medium">28</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>المستخدمين النشطين:</span>
-                <span className="font-medium text-green-600">24</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>الأدوار المُعرَّفة:</span>
-                <span className="font-medium">6</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              الأمان والصلاحيات
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              مراقبة الأمان وإدارة الصلاحيات والسياسات
-            </p>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>الفحوصات الأمنية:</span>
-                <span className="font-medium">5/5</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>السياسات النشطة:</span>
-                <span className="font-medium text-green-600">12</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>التحذيرات:</span>
-                <span className="font-medium text-amber-600">3</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              إعدادات النظام
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              التحكم في إعدادات النظام العامة والتكوينات
-            </p>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>آخر نسخة احتياطية:</span>
-                <span className="font-medium">أمس</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>حالة النظام:</span>
-                <span className="font-medium text-green-600">مستقر</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>الإصدار:</span>
-                <span className="font-medium">v2.1.0</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        )}
+        
+        {activeTab === 'users' && <UserManagement />}
+        {activeTab === 'roles' && <RoleManagement />}
+        {activeTab === 'nationalities' && <NationalitiesManagement />}
+        {activeTab === 'settings' && <SystemSettings />}
+        {activeTab === 'logs' && <ActivityLogs />}
+        {activeTab === 'security' && <SecurityAudit />}
+        {activeTab === 'optimization' && <SystemOptimizationDashboard />}
+        {activeTab === 'sample-data' && <SampleDataManager />}
       </div>
     </div>
   );
 };
-
-export default SystemManagementOverview;

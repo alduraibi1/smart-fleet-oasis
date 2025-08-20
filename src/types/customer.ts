@@ -1,4 +1,3 @@
-
 // Clean and unified Customer types
 export interface Customer {
   // Basic Info
@@ -88,93 +87,128 @@ export interface Customer {
 
 // Form data type for the dialog
 export interface CustomerFormData {
+  // Basic Info
   name: string;
   phone: string;
   email: string;
   national_id: string;
   nationality: string;
-  city: string;
-  address: string;
-  license_number: string;
-  license_expiry: string;
-  license_type: string;
-  license_issue_date: string;
   gender: string;
   marital_status: string;
   date_of_birth: string;
+  
+  // Address
+  city: string;
+  address: string;
   country: string;
   district: string;
   postal_code: string;
   address_type: string;
-  preferred_language: string;
-  marketing_consent: boolean;
-  sms_notifications: boolean;
-  email_notifications: boolean;
+  
+  // License
+  license_number: string;
+  license_expiry: string;
+  license_type: string;
+  license_issue_date: string;
+  international_license: boolean;
+  international_license_expiry: string;
+  
+  // Emergency Contact
+  emergency_contact_name: string;
+  emergency_contact_phone: string;
+  emergency_contact_phone_secondary: string;
+  emergency_contact_relation: string;
+  
+  // Work Info
   customer_source: string;
   job_title: string;
   company: string;
   work_phone: string;
   monthly_income: number;
+  
+  // Banking
   bank_name: string;
   bank_account_number: string;
   credit_limit: number;
   payment_terms: string;
   preferred_payment_method: string;
-  emergency_contact_name: string;
-  emergency_contact_phone: string;
-  emergency_contact_relation: string;
+  
+  // Insurance
   has_insurance: boolean;
   insurance_company: string;
   insurance_policy_number: string;
   insurance_expiry: string;
-  international_license: boolean;
-  international_license_expiry: string;
+  
+  // Preferences
+  preferred_language: string;
+  marketing_consent: boolean;
+  sms_notifications: boolean;
+  email_notifications: boolean;
+  
+  // Notes
   notes: string;
 }
 
-// Default form values
 export const defaultCustomerFormData: CustomerFormData = {
+  // Basic Info
   name: '',
   phone: '',
   email: '',
   national_id: '',
   nationality: 'سعودي',
-  city: '',
-  address: '',
-  license_number: '',
-  license_expiry: '',
-  license_type: 'private',
-  license_issue_date: '',
   gender: 'male',
   marital_status: 'single',
   date_of_birth: '',
+  
+  // Address
+  city: '',
+  address: '',
   country: 'السعودية',
   district: '',
   postal_code: '',
   address_type: 'residential',
-  preferred_language: 'ar',
-  marketing_consent: false,
-  sms_notifications: true,
-  email_notifications: true,
+  
+  // License
+  license_number: '',
+  license_expiry: '',
+  license_type: 'private',
+  license_issue_date: '',
+  international_license: false,
+  international_license_expiry: '',
+  
+  // Emergency Contact
+  emergency_contact_name: '',
+  emergency_contact_phone: '',
+  emergency_contact_phone_secondary: '',
+  emergency_contact_relation: '',
+  
+  // Work Info
   customer_source: 'website',
   job_title: '',
   company: '',
   work_phone: '',
   monthly_income: 0,
+  
+  // Banking
   bank_name: '',
   bank_account_number: '',
   credit_limit: 0,
   payment_terms: 'immediate',
   preferred_payment_method: 'cash',
-  emergency_contact_name: '',
-  emergency_contact_phone: '',
-  emergency_contact_relation: '',
+  
+  // Insurance
   has_insurance: false,
   insurance_company: '',
   insurance_policy_number: '',
   insurance_expiry: '',
-  international_license: false,
-  international_license_expiry: '',
+  
+  // Preferences
+  preferred_language: 'ar',
+  marketing_consent: false,
+  sms_notifications: true,
+  email_notifications: true,
+  
+  // Notes
   notes: ''
 };
 

@@ -11,6 +11,7 @@ import { AddressInfoSection } from './CustomerFormSections/AddressInfoSection';
 import { CreditInfoSection } from './CustomerFormSections/CreditInfoSection';
 import { BankingInfoSection } from './CustomerFormSections/BankingInfoSection';
 import { PreferencesSection } from './CustomerFormSections/PreferencesSection';
+import { EmergencyContactSection } from './CustomerFormSections/EmergencyContactSection';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { useToast } from '@/hooks/use-toast';
 
@@ -38,13 +39,13 @@ export function NewAddCustomerDialog({
 
   // تطبيق الحد الائتماني الافتراضي من الإعدادات
   useEffect(() => {
-    if (settings.defaultCreditLimit && !editingCustomer) {
+    if (settings?.defaultCreditLimit && !editingCustomer) {
       setFormData(prev => ({
         ...prev,
         credit_limit: settings.defaultCreditLimit
       }));
     }
-  }, [settings.defaultCreditLimit, editingCustomer]);
+  }, [settings?.defaultCreditLimit, editingCustomer]);
 
   const handleInputChange = (field: keyof CustomerFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -111,10 +112,11 @@ export function NewAddCustomerDialog({
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="basic" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="basic">أساسي</TabsTrigger>
               <TabsTrigger value="license">الرخصة</TabsTrigger>
               <TabsTrigger value="address">العنوان</TabsTrigger>
+              <TabsTrigger value="emergency">الطوارئ</TabsTrigger>
               <TabsTrigger value="credit">الائتمان</TabsTrigger>
               <TabsTrigger value="banking">البنكية</TabsTrigger>
               <TabsTrigger value="preferences">التفضيلات</TabsTrigger>
@@ -136,6 +138,13 @@ export function NewAddCustomerDialog({
 
             <TabsContent value="address">
               <AddressInfoSection 
+                formData={formData} 
+                onInputChange={handleInputChange} 
+              />
+            </TabsContent>
+
+            <TabsContent value="emergency">
+              <EmergencyContactSection 
                 formData={formData} 
                 onInputChange={handleInputChange} 
               />

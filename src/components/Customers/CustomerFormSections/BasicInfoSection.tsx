@@ -2,7 +2,9 @@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SmartInput } from '@/components/ui/smart-input';
 import { CustomerFormData } from '@/types/customer';
+import { useNationalities } from '@/hooks/useNationalities';
 
 interface BasicInfoSectionProps {
   formData: CustomerFormData;
@@ -10,6 +12,9 @@ interface BasicInfoSectionProps {
 }
 
 export function BasicInfoSection({ formData, onInputChange }: BasicInfoSectionProps) {
+  const { getActiveNationalities, loading } = useNationalities();
+  const activeNationalities = getActiveNationalities();
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">المعلومات الأساسية</h3>
@@ -27,55 +32,63 @@ export function BasicInfoSection({ formData, onInputChange }: BasicInfoSectionPr
 
         <div>
           <Label htmlFor="phone">رقم الهاتف *</Label>
-          <Input
+          <SmartInput
             id="phone"
+            validationType="mobileNumber"
             value={formData.phone}
             onChange={(e) => onInputChange('phone', e.target.value)}
             required
             placeholder="05xxxxxxxx"
+            showValidationIcon
+            showSuggestions
           />
         </div>
 
         <div>
           <Label htmlFor="email">البريد الإلكتروني</Label>
-          <Input
+          <SmartInput
             id="email"
             type="email"
+            validationType="email"
             value={formData.email}
             onChange={(e) => onInputChange('email', e.target.value)}
             placeholder="example@email.com"
+            showValidationIcon
           />
+        </div>
+
+        <div>
+          <Label htmlFor="nationality">الجنسية *</Label>
+          <Select 
+            value={formData.nationality} 
+            onValueChange={(value) => onInputChange('nationality', value)}
+            disabled={loading}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={loading ? "جاري التحميل..." : "اختر الجنسية"} />
+            </SelectTrigger>
+            <SelectContent>
+              {activeNationalities.map((nationality) => (
+                <SelectItem key={nationality.id} value={nationality.name_ar}>
+                  {nationality.name_ar}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
           <Label htmlFor="national_id">رقم الهوية *</Label>
-          <Input
+          <SmartInput
             id="national_id"
+            validationType="nationalId"
+            nationality={formData.nationality}
             value={formData.national_id}
             onChange={(e) => onInputChange('national_id', e.target.value)}
             required
-            placeholder="1xxxxxxxxx"
+            showValidationIcon
+            showSuggestions
           />
-        </div>
-
-        <div>
-          <Label htmlFor="nationality">الجنسية</Label>
-          <Select 
-            value={formData.nationality} 
-            onValueChange={(value) => onInputChange('nationality', value)}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="سعودي">سعودي</SelectItem>
-              <SelectItem value="مصري">مصري</SelectItem>
-              <SelectItem value="يمني">يمني</SelectItem>
-              <SelectItem value="سوري">سوري</SelectItem>
-              <SelectItem value="أردني">أردني</SelectItem>
-              <SelectItem value="أخرى">أخرى</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         <div>
