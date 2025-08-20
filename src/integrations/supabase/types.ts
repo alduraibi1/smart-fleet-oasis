@@ -1935,6 +1935,48 @@ export type Database = {
         }
         Relationships: []
       }
+      nationalities: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          id_length: number | null
+          id_prefix: string | null
+          id_validation_regex: string | null
+          is_active: boolean
+          name_ar: string
+          name_en: string | null
+          priority: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          id_length?: number | null
+          id_prefix?: string | null
+          id_validation_regex?: string | null
+          is_active?: boolean
+          name_ar: string
+          name_en?: string | null
+          priority?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          id_length?: number | null
+          id_prefix?: string | null
+          id_validation_regex?: string | null
+          is_active?: boolean
+          name_ar?: string
+          name_en?: string | null
+          priority?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_history: {
         Row: {
           delivery_method: string
