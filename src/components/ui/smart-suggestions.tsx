@@ -70,4 +70,4 @@ const SmartSuggestions = React.forwardRef<HTMLDivElement, SmartSuggestionsProps>
 
 SmartSuggestions.displayName = "SmartSuggestions"
 
-export { SmartSuggestions, type Suggestion }
+export { SmartSuggestions }
