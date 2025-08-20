@@ -21,7 +21,9 @@ import {
   Star,
   Phone,
   Mail,
-  Calendar
+  Calendar,
+  CheckCircle,
+  AlertTriangle
 } from "lucide-react";
 import { memo } from "react";
 import { format } from "date-fns";
@@ -55,6 +57,10 @@ export const CustomerRow = memo(({
     }
   };
 
+  // Check if customer data looks validated (has proper format)
+  const isPhoneValidated = customer.phone?.match(/^5\d{8}$/);
+  const isIdValidated = customer.national_id?.match(/^[12]\d{9}$/);
+
   return (
     <TableRow className="hover:bg-muted/50">
       <TableCell>
@@ -72,7 +78,15 @@ export const CustomerRow = memo(({
           </div>
           <div>
             <p className="font-medium">{customer.name}</p>
-            <p className="text-sm text-muted-foreground">{customer.nationalId || customer.national_id}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">{customer.nationalId || customer.national_id}</p>
+              {isIdValidated && (
+                <CheckCircle className="h-3 w-3 text-green-500" title="رقم هوية صحيح" />
+              )}
+              {customer.national_id && !isIdValidated && (
+                <AlertTriangle className="h-3 w-3 text-yellow-500" title="تحقق من صحة رقم الهوية" />
+              )}
+            </div>
           </div>
         </div>
       </TableCell>
@@ -81,7 +95,13 @@ export const CustomerRow = memo(({
         <div className="space-y-1">
           <div className="flex items-center gap-1 text-sm">
             <Phone className="h-3 w-3 text-muted-foreground" />
-            {customer.phone}
+            <span dir="ltr">{customer.phone}</span>
+            {isPhoneValidated && (
+              <CheckCircle className="h-3 w-3 text-green-500" title="رقم جوال صحيح" />
+            )}
+            {customer.phone && !isPhoneValidated && (
+              <AlertTriangle className="h-3 w-3 text-yellow-500" title="تحقق من صحة رقم الجوال" />
+            )}
           </div>
           {customer.email && (
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -127,6 +147,17 @@ export const CustomerRow = memo(({
               قائمة سوداء
             </Badge>
           )}
+        </div>
+      </TableCell>
+
+      <TableCell>
+        <span className="text-sm">{customer.total_rentals || 0}</span>
+      </TableCell>
+
+      <TableCell>
+        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+          <Calendar className="h-3 w-3" />
+          {formatDate(customer.licenseExpiry || customer.license_expiry)}
         </div>
       </TableCell>
 
