@@ -1012,6 +1012,51 @@ export type Database = {
         }
         Relationships: []
       }
+      external_tracking_config: {
+        Row: {
+          api_endpoint: string | null
+          api_key_encrypted: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          last_sync: string | null
+          password_encrypted: string | null
+          provider_name: string
+          settings: Json | null
+          sync_interval_minutes: number | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          api_endpoint?: string | null
+          api_key_encrypted?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_sync?: string | null
+          password_encrypted?: string | null
+          provider_name: string
+          settings?: Json | null
+          sync_interval_minutes?: number | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          api_endpoint?: string | null
+          api_key_encrypted?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_sync?: string | null
+          password_encrypted?: string | null
+          provider_name?: string
+          settings?: Json | null
+          sync_interval_minutes?: number | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       failed_login_attempts: {
         Row: {
           attempt_time: string | null
@@ -1203,6 +1248,108 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      geofence_alerts: {
+        Row: {
+          alert_time: string
+          alert_type: string
+          geofence_id: string
+          id: string
+          is_resolved: boolean | null
+          location_latitude: number | null
+          location_longitude: number | null
+          notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          alert_time?: string
+          alert_type: string
+          geofence_id: string
+          id?: string
+          is_resolved?: boolean | null
+          location_latitude?: number | null
+          location_longitude?: number | null
+          notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          alert_time?: string
+          alert_type?: string
+          geofence_id?: string
+          id?: string
+          is_resolved?: boolean | null
+          location_latitude?: number | null
+          location_longitude?: number | null
+          notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geofence_alerts_geofence_id_fkey"
+            columns: ["geofence_id"]
+            isOneToOne: false
+            referencedRelation: "geofences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_alerts_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      geofences: {
+        Row: {
+          center_latitude: number
+          center_longitude: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          geofence_type: string | null
+          id: string
+          is_active: boolean
+          name: string
+          polygon_coordinates: Json | null
+          radius_meters: number
+          updated_at: string
+        }
+        Insert: {
+          center_latitude: number
+          center_longitude: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          geofence_type?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          polygon_coordinates?: Json | null
+          radius_meters: number
+          updated_at?: string
+        }
+        Update: {
+          center_latitude?: number
+          center_longitude?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          geofence_type?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          polygon_coordinates?: Json | null
+          radius_meters?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       inventory_categories: {
         Row: {
@@ -3474,6 +3621,51 @@ export type Database = {
           },
         ]
       }
+      vehicle_geofences: {
+        Row: {
+          alert_on_entry: boolean | null
+          alert_on_exit: boolean | null
+          created_at: string
+          geofence_id: string
+          id: string
+          is_active: boolean
+          vehicle_id: string
+        }
+        Insert: {
+          alert_on_entry?: boolean | null
+          alert_on_exit?: boolean | null
+          created_at?: string
+          geofence_id: string
+          id?: string
+          is_active?: boolean
+          vehicle_id: string
+        }
+        Update: {
+          alert_on_entry?: boolean | null
+          alert_on_exit?: boolean | null
+          created_at?: string
+          geofence_id?: string
+          id?: string
+          is_active?: boolean
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_geofences_geofence_id_fkey"
+            columns: ["geofence_id"]
+            isOneToOne: false
+            referencedRelation: "geofences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_geofences_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_images: {
         Row: {
           description: string | null
@@ -3512,6 +3704,71 @@ export type Database = {
           },
         ]
       }
+      vehicle_insurance: {
+        Row: {
+          contact_email: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          coverage_amount: number | null
+          created_at: string
+          end_date: string
+          id: string
+          insurance_company: string
+          insurance_type: string
+          is_active: boolean
+          notes: string | null
+          policy_number: string
+          premium_amount: number | null
+          start_date: string
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          coverage_amount?: number | null
+          created_at?: string
+          end_date: string
+          id?: string
+          insurance_company: string
+          insurance_type?: string
+          is_active?: boolean
+          notes?: string | null
+          policy_number: string
+          premium_amount?: number | null
+          start_date: string
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          coverage_amount?: number | null
+          created_at?: string
+          end_date?: string
+          id?: string
+          insurance_company?: string
+          insurance_type?: string
+          is_active?: boolean
+          notes?: string | null
+          policy_number?: string
+          premium_amount?: number | null
+          start_date?: string
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_insurance_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_location: {
         Row: {
           address: string | null
@@ -3543,6 +3800,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "vehicle_location_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_location_history: {
+        Row: {
+          address: string | null
+          direction: number | null
+          engine_status: string | null
+          fuel_level: number | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          raw_data: Json | null
+          recorded_at: string
+          source: string | null
+          speed: number | null
+          vehicle_id: string
+        }
+        Insert: {
+          address?: string | null
+          direction?: number | null
+          engine_status?: string | null
+          fuel_level?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          raw_data?: Json | null
+          recorded_at?: string
+          source?: string | null
+          speed?: number | null
+          vehicle_id: string
+        }
+        Update: {
+          address?: string | null
+          direction?: number | null
+          engine_status?: string | null
+          fuel_level?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          raw_data?: Json | null
+          recorded_at?: string
+          source?: string | null
+          speed?: number | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_location_history_vehicle_id_fkey"
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "vehicles"
@@ -3745,6 +4055,65 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_trackers: {
+        Row: {
+          battery_level: number | null
+          created_at: string
+          id: string
+          installation_date: string | null
+          is_active: boolean
+          last_communication: string | null
+          provider: string | null
+          settings: Json | null
+          signal_strength: number | null
+          sim_number: string | null
+          tracker_id: string
+          tracker_type: string | null
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          battery_level?: number | null
+          created_at?: string
+          id?: string
+          installation_date?: string | null
+          is_active?: boolean
+          last_communication?: string | null
+          provider?: string | null
+          settings?: Json | null
+          signal_strength?: number | null
+          sim_number?: string | null
+          tracker_id: string
+          tracker_type?: string | null
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          battery_level?: number | null
+          created_at?: string
+          id?: string
+          installation_date?: string | null
+          is_active?: boolean
+          last_communication?: string | null
+          provider?: string | null
+          settings?: Json | null
+          signal_strength?: number | null
+          sim_number?: string | null
+          tracker_id?: string
+          tracker_type?: string | null
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_trackers_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
             referencedColumns: ["id"]
           },
         ]
@@ -4181,6 +4550,10 @@ export type Database = {
         Returns: number
       }
       check_and_notify_customer_arrears: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      check_insurance_expiry: {
         Args: Record<PropertyKey, never>
         Returns: number
       }
