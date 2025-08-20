@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CustomerFormData } from '@/types/customer';
+import { CustomerFormData, defaultCustomerFormData } from '@/types/customer';
 import { BasicInfoSection } from './CustomerFormSections/BasicInfoSection';
 import { AddressInfoSection } from './CustomerFormSections/AddressInfoSection';
 import { LicenseInfoSection } from './CustomerFormSections/LicenseInfoSection';
@@ -19,24 +19,7 @@ interface AddCustomerDialogProps {
 export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<CustomerFormData>({
-    name: '',
-    phone: '',
-    email: '',
-    nationality: '',
-    national_id: '',
-    gender: '',
-    address: '',
-    city: '',
-    district: '',
-    postal_code: '',
-    license_number: '',
-    license_expiry: '',
-    license_type: '',
-    emergency_contact_name: '',
-    emergency_contact_phone: '',
-    notes: ''
-  });
+  const [formData, setFormData] = useState<CustomerFormData>(defaultCustomerFormData);
 
   const handleInputChange = (field: keyof CustomerFormData, value: any) => {
     setFormData(prev => ({
@@ -94,25 +77,8 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
         description: `تم إضافة العميل ${formData.name} بنجاح`,
       });
 
-      // Reset form
-      setFormData({
-        name: '',
-        phone: '',
-        email: '',
-        nationality: '',
-        national_id: '',
-        gender: '',
-        address: '',
-        city: '',
-        district: '',
-        postal_code: '',
-        license_number: '',
-        license_expiry: '',
-        license_type: '',
-        emergency_contact_name: '',
-        emergency_contact_phone: '',
-        notes: ''
-      });
+      // Reset form to default values
+      setFormData(defaultCustomerFormData);
 
       onOpenChange(false);
     } catch (error: any) {
