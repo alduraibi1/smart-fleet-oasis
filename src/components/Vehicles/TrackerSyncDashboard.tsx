@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -12,10 +13,17 @@ import {
   CheckCircle, 
   AlertTriangle, 
   RefreshCcw,
-  MapPin
+  MapPin,
+  FileText,
+  Wrench,
+  Users
 } from "lucide-react";
 import TrackerHealthMonitor from "./TrackerHealthMonitor";
 import TrackerSyncSettings from "./TrackerSyncSettings";
+import TrackerIntegrationService from "./TrackerIntegrationService";
+import ExecutiveTrackerDashboard from "./ExecutiveTrackerDashboard";
+import SmartMaintenanceAlerts from "./SmartMaintenanceAlerts";
+import ContractTrackerIntegration from "./ContractTrackerIntegration";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,7 +62,6 @@ const TrackerSyncDashboard: React.FC = () => {
   
   const [deviceStatuses, setDeviceStatuses] = useState<DeviceStatus[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [autoSyncEnabled, setAutoSyncEnabled] = useState(false);
   const [lastSyncResult, setLastSyncResult] = useState<any>(null);
   
   const { syncAuto } = useTrackerSync();
@@ -85,13 +92,11 @@ const TrackerSyncDashboard: React.FC = () => {
   ];
 
   useEffect(() => {
-    // تحميل البيانات الأولية
     loadSyncStats();
     setDeviceStatuses(mockDeviceStatuses);
   }, []);
 
   const loadSyncStats = async () => {
-    // في التطبيق الحقيقي، ستأتي هذه البيانات من API
     setSyncStats({
       totalDevices: 15,
       connectedDevices: 12,
@@ -180,22 +185,34 @@ const TrackerSyncDashboard: React.FC = () => {
 
       {/* الشريط المتقدم */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview" className="gap-2">
             <BarChart3 className="h-4 w-4" />
             نظرة عامة
           </TabsTrigger>
           <TabsTrigger value="health" className="gap-2">
             <Activity className="h-4 w-4" />
-            المراقبة الفورية
+            الصحة والمراقبة
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="gap-2">
+          <TabsTrigger value="integration" className="gap-2">
             <TrendingUp className="h-4 w-4" />
-            التحليلات
+            التكامل المتقدم
+          </TabsTrigger>
+          <TabsTrigger value="contracts" className="gap-2">
+            <FileText className="h-4 w-4" />
+            ربط العقود
+          </TabsTrigger>
+          <TabsTrigger value="maintenance" className="gap-2">
+            <Wrench className="h-4 w-4" />
+            الصيانة الذكية
+          </TabsTrigger>
+          <TabsTrigger value="executive" className="gap-2">
+            <Users className="h-4 w-4" />
+            التنفيذية
           </TabsTrigger>
           <TabsTrigger value="settings" className="gap-2">
             <Settings className="h-4 w-4" />
-            الإعدادات المتقدمة
+            الإعدادات
           </TabsTrigger>
         </TabsList>
 
@@ -391,14 +408,20 @@ const TrackerSyncDashboard: React.FC = () => {
           <TrackerHealthMonitor />
         </TabsContent>
 
-        <TabsContent value="analytics" className="mt-6">
-          <div className="text-center py-12">
-            <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">تحليلات متقدمة</h3>
-            <p className="text-muted-foreground">
-              قريباً: تحليلات مفصلة وتقارير شاملة عن أداء أجهزة التتبع
-            </p>
-          </div>
+        <TabsContent value="integration" className="mt-6">
+          <TrackerIntegrationService />
+        </TabsContent>
+
+        <TabsContent value="contracts" className="mt-6">
+          <ContractTrackerIntegration />
+        </TabsContent>
+
+        <TabsContent value="maintenance" className="mt-6">
+          <SmartMaintenanceAlerts />
+        </TabsContent>
+
+        <TabsContent value="executive" className="mt-6">
+          <ExecutiveTrackerDashboard />
         </TabsContent>
 
         <TabsContent value="settings" className="mt-6">
