@@ -90,7 +90,26 @@ const SmartNotificationCenter: React.FC = () => {
 
       if (error) throw error;
 
-      setNotifications(data || []);
+      // تحويل البيانات من قاعدة البيانات إلى الواجهة المطلوبة
+      const transformedNotifications: SmartNotification[] = (data || []).map(notification => ({
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+        type: notification.type,
+        category: notification.category,
+        severity: notification.severity as 'info' | 'warning' | 'error',
+        priority: notification.priority as 'low' | 'medium' | 'high' | 'urgent',
+        status: notification.status as 'unread' | 'read' | 'dismissed',
+        reference_type: notification.reference_type,
+        reference_id: notification.reference_id,
+        reference_data: notification.reference_data,
+        action_required: notification.action_required,
+        created_at: notification.created_at,
+        target_roles: notification.target_roles,
+        delivery_channels: notification.delivery_channels
+      }));
+
+      setNotifications(transformedNotifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast({

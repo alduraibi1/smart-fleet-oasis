@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Car,
@@ -38,17 +39,11 @@ const AppSidebar = () => {
   const [profile, setProfile] = useState<any>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-    }
-    fetchUser()
-  }, [])
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user) return
+  const fetchUserAndProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    setUser(user)
+    
+    if (user) {
       const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
@@ -66,10 +61,11 @@ const AppSidebar = () => {
         setProfile(profileData)
       }
     }
+  }
 
-    fetchUser()
-    fetchProfile()
-  }, [user, toast])
+  useEffect(() => {
+    fetchUserAndProfile()
+  }, [])
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut()

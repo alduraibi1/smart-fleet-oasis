@@ -1,10 +1,11 @@
+
 import React from 'react'
 import {
   BrowserRouter as Router,
   Routes,
   Route,
 } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/components/theme/ThemeProvider"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from "@/components/ui/toaster"
 
@@ -31,7 +32,7 @@ import EnhancedSystemManagement from './pages/EnhancedSystemManagement';
 import SystemOptimization from './pages/SystemOptimization';
 import NotFound from './pages/NotFound';
 import ButtonTest from './pages/ButtonTest';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
 import NotificationsPage from './pages/NotificationsPage';
 import NotificationSettings from './components/Notifications/NotificationSettings';
 
