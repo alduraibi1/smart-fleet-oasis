@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { AutoSyncSettings } from './useAutoSync';
 
 export interface SystemSettingsData {
   companyName: string;
@@ -26,6 +27,7 @@ export interface SystemSettingsData {
   defaultCreditLimit: number;
   requireDeposit: boolean;
   defaultDepositAmount: number;
+  autoSync?: AutoSyncSettings;
 }
 
 const defaultSettings: SystemSettingsData = {
