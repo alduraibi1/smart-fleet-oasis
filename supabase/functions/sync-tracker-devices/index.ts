@@ -392,7 +392,7 @@ Deno.serve(async (req) => {
   if (!username || !password) {
     summary.errors.push("Tracking credentials not configured: TRACKING_USERNAME / TRACKING_PASSWORD");
     return new Response(JSON.stringify({ success: false, summary }), {
-      status: 400,
+      status: 200,
       headers: { "content-type": "application/json", ...corsHeaders },
     });
   }
@@ -452,14 +452,14 @@ Deno.serve(async (req) => {
       if (text.includes("Invalid") || text.includes("error") || text.match(/Password|UserName|اسم المستخدم|كلمة المرور/i)) {
         summary.errors.push("Login failed. Please verify credentials.");
         return new Response(JSON.stringify({ success: false, summary }), {
-          status: 401,
+          status: 200,
           headers: { "content-type": "application/json", ...corsHeaders },
         });
       }
     } else {
       summary.errors.push(`Unexpected login status: ${loginStatus}`);
       return new Response(JSON.stringify({ success: false, summary }), {
-        status: 500,
+        status: 200,
         headers: { "content-type": "application/json", ...corsHeaders },
       });
     }
@@ -584,6 +584,9 @@ Deno.serve(async (req) => {
       headers: { "content-type": "application/json", ...corsHeaders },
     });
   }
+
+  // Before returning the final response, print a summary for debugging
+  console.log("[sync-tracker] Final summary:", JSON.stringify(summary));
 
   return new Response(JSON.stringify({ success: true, summary }), {
     headers: { "content-type": "application/json", ...corsHeaders },
