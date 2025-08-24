@@ -77,7 +77,7 @@ const TrackerSyncButton: React.FC = () => {
       </DropdownMenu>
 
       <Button onClick={() => handleAutoSync(false)} disabled={loading} variant="default" className="gap-2">
-        <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+        <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
         {loading ? "جاري المزامنة..." : "مزامنة تلقائية"}
       </Button>
 
