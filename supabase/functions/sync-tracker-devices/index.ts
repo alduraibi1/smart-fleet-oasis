@@ -1,9 +1,7 @@
 
 /* eslint-disable */
 // Deno Edge Function: sync-tracker-devices
-// Modes:
-// - auto   : Login to tracking site and fetch devices (with improved discovery & parsing)
-// - manual : Accept payload.devices = [{ plate, trackerId, latitude?, longitude?, address? }]
+// Enhanced version with configurable paths and improved discovery
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
@@ -19,6 +17,7 @@ type DeviceInput = {
 type SyncRequest = {
   mode?: "auto" | "manual";
   devices?: DeviceInput[];
+  dryRun?: boolean;
 };
 
 type Summary = {
@@ -29,6 +28,8 @@ type Summary = {
   skipped: number;
   errors: string[];
   mode: "auto" | "manual";
+  dryRun?: boolean;
+  discoveredDevices?: DeviceInput[];
 };
 
 const corsHeaders = {
@@ -63,6 +64,7 @@ Deno.serve(async (req) => {
 
   const body: SyncRequest = await req.json().catch(() => ({} as SyncRequest));
   const mode: "auto" | "manual" = body.mode ?? "auto";
+  const dryRun = body.dryRun ?? false;
 
   const summary: Summary = {
     matched: 0,
@@ -72,6 +74,8 @@ Deno.serve(async (req) => {
     skipped: 0,
     errors: [],
     mode,
+    dryRun,
+    discoveredDevices: [],
   };
 
   // Fetch all vehicles once for matching
@@ -88,22 +92,10 @@ Deno.serve(async (req) => {
 
   const normalizePlate = (plate?: string) => {
     if (!plate) return "";
-    // Mirror of DB normalize function (basic transliteration)
     const map: Record<string, string> = {
-      "أ": "ا",
-      "إ": "ا",
-      "آ": "ا",
-      "ئ": "ي",
-      "٠": "0",
-      "١": "1",
-      "٢": "2",
-      "٣": "3",
-      "٤": "4",
-      "٥": "5",
-      "٦": "6",
-      "٧": "7",
-      "٨": "8",
-      "٩": "9",
+      "أ": "ا", "إ": "ا", "آ": "ا", "ئ": "ي",
+      "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4",
+      "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9",
     };
     let s = plate.trim();
     s = s.replace(/[أإآ]/g, "ا").replace(/ئ/g, "ي");
@@ -129,6 +121,11 @@ Deno.serve(async (req) => {
     }
 
     summary.matched += 1;
+
+    if (dryRun) {
+      console.log(`[DRY RUN] Would process device: ${d.plate} -> ${d.trackerId}`);
+      return;
+    }
 
     // 1) Update vehicles.tracker_id if needed
     const { error: updErr } = await supabase
@@ -161,7 +158,6 @@ Deno.serve(async (req) => {
 
     // 3) Upsert vehicle_location if lat/lon provided
     if (typeof d.latitude === "number" && typeof d.longitude === "number") {
-      // Check if a location row exists
       const { data: locRows, error: locSelErr } = await supabase
         .from("vehicle_location")
         .select("id")
@@ -225,10 +221,14 @@ Deno.serve(async (req) => {
   }
 
   // =========================
-  // AUTO MODE (improved)
+  // AUTO MODE (Enhanced with configurable paths)
   // =========================
-  const TRACKING_BASE = "http://194.165.139.226";
-  const LOGIN_PATH = "/Login.aspx";
+
+  // Get tracking configuration from Supabase secrets
+  const TRACKING_BASE = Deno.env.get("TRACKING_BASE_URL") || "http://194.165.139.226";
+  const LOGIN_PATH = Deno.env.get("TRACKING_LOGIN_PATH") || "/Login.aspx";
+  const DEVICES_PATH = Deno.env.get("TRACKING_DEVICES_PATH");
+  
   const username = Deno.env.get("TRACKING_USERNAME");
   const password = Deno.env.get("TRACKING_PASSWORD");
 
@@ -240,140 +240,197 @@ Deno.serve(async (req) => {
     });
   }
 
+  console.log(`[sync-tracker] Using base URL: ${TRACKING_BASE}`);
+  console.log(`[sync-tracker] Using login path: ${LOGIN_PATH}`);
+  if (DEVICES_PATH) {
+    console.log(`[sync-tracker] Using configured devices path: ${DEVICES_PATH}`);
+  }
+
   // Basic cookie jar
   let cookie = "";
 
-  // 1) Load login page to fetch ASP.NET hidden fields
-  console.log("[sync-tracker] Fetching login page...");
-  const loginPageResp = await fetch(`${TRACKING_BASE}${LOGIN_PATH}`);
-  cookie = mergeCookies(cookie, loginPageResp.headers.get("set-cookie"));
-  const loginHtml = await loginPageResp.text();
-  const hiddenFields = extractAspNetHiddenFields(loginHtml);
-  const userFieldName = findInputName(loginHtml, ["UserName", "username", "txtUserName", "Login1$UserName", "ctl00$ContentPlaceHolder1$txtUserName"]);
-  const passFieldName = findInputName(loginHtml, ["Password", "password", "txtPassword", "Login1$Password", "ctl00$ContentPlaceHolder1$txtPassword"]);
-  const submitFieldName = findInputName(loginHtml, ["btnLogin", "LoginButton", "ctl00$ContentPlaceHolder1$btnLogin"], true) || "btnLogin";
+  try {
+    // 1) Load login page to fetch ASP.NET hidden fields
+    console.log("[sync-tracker] Fetching login page...");
+    const loginPageResp = await fetch(`${TRACKING_BASE}${LOGIN_PATH}`);
+    cookie = mergeCookies(cookie, loginPageResp.headers.get("set-cookie"));
+    const loginHtml = await loginPageResp.text();
+    
+    const hiddenFields = extractAspNetHiddenFields(loginHtml);
+    const userFieldName = findInputName(loginHtml, ["UserName", "username", "txtUserName", "Login1$UserName", "ctl00$ContentPlaceHolder1$txtUserName"]);
+    const passFieldName = findInputName(loginHtml, ["Password", "password", "txtPassword", "Login1$Password", "ctl00$ContentPlaceHolder1$txtPassword"]);
+    const submitFieldName = findInputName(loginHtml, ["btnLogin", "LoginButton", "ctl00$ContentPlaceHolder1$btnLogin"], true) || "btnLogin";
 
-  // 2) Post login form
-  const form = new URLSearchParams();
-  // Hidden ASP.NET fields
-  Object.entries(hiddenFields).forEach(([k, v]) => {
-    if (v !== undefined && v !== null) form.set(k, v);
-  });
+    // 2) Post login form
+    const form = new URLSearchParams();
+    Object.entries(hiddenFields).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) form.set(k, v);
+    });
 
-  // Credentials: try detected names then common fallbacks
-  form.set(userFieldName || "txtUserName", username);
-  form.set(passFieldName || "txtPassword", password);
-  form.set(submitFieldName, "Login");
+    form.set(userFieldName || "txtUserName", username);
+    form.set(passFieldName || "txtPassword", password);
+    form.set(submitFieldName, "Login");
 
-  console.log("[sync-tracker] Posting login...");
-  const loginResp = await fetch(`${TRACKING_BASE}${LOGIN_PATH}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Cookie": cookie,
-    },
-    body: form.toString(),
-    redirect: "manual",
-  });
-  cookie = mergeCookies(cookie, loginResp.headers.get("set-cookie"));
-  const loginStatus = loginResp.status;
-  console.log("[sync-tracker] Login status:", loginStatus);
+    console.log("[sync-tracker] Posting login...");
+    const loginResp = await fetch(`${TRACKING_BASE}${LOGIN_PATH}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Cookie": cookie,
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      },
+      body: form.toString(),
+      redirect: "manual",
+    });
+    
+    cookie = mergeCookies(cookie, loginResp.headers.get("set-cookie"));
+    const loginStatus = loginResp.status;
+    console.log("[sync-tracker] Login status:", loginStatus);
 
-  if (loginStatus >= 300 && loginStatus < 400) {
-    // redirected after successful login: continue
-    console.log("[sync-tracker] Login likely successful (redirect).");
-  } else if (loginStatus === 200) {
-    // Possibly remained on login page due to invalid auth
-    const text = await loginResp.text();
-    if (text.includes("Invalid") || text.includes("error") || text.match(/Password|UserName|اسم المستخدم|كلمة المرور/i)) {
-      summary.errors.push("Login might have failed. Please verify credentials or CAPTCHA.");
+    if (loginStatus >= 300 && loginStatus < 400) {
+      console.log("[sync-tracker] Login successful (redirect detected).");
+    } else if (loginStatus === 200) {
+      const text = await loginResp.text();
+      if (text.includes("Invalid") || text.includes("error") || text.match(/Password|UserName|اسم المستخدم|كلمة المرور/i)) {
+        summary.errors.push("Login failed. Please verify credentials.");
+        return new Response(JSON.stringify({ success: false, summary }), {
+          status: 401,
+          headers: { "content-type": "application/json", ...corsHeaders },
+        });
+      }
+    } else {
+      summary.errors.push(`Unexpected login status: ${loginStatus}`);
       return new Response(JSON.stringify({ success: false, summary }), {
-        status: 401,
+        status: 500,
         headers: { "content-type": "application/json", ...corsHeaders },
       });
     }
-  } else {
-    summary.errors.push(`Unexpected login status: ${loginStatus}`);
+
+    // 3) Get devices page
+    let devicesHtml = "";
+    
+    if (DEVICES_PATH) {
+      // Use configured devices path
+      console.log(`[sync-tracker] Using configured devices path: ${DEVICES_PATH}`);
+      const devicesResp = await fetch(`${TRACKING_BASE}${DEVICES_PATH}`, {
+        headers: { 
+          "Cookie": cookie,
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        }
+      });
+      
+      if (devicesResp.ok) {
+        devicesHtml = await devicesResp.text();
+      } else {
+        summary.errors.push(`Failed to fetch configured devices page: ${devicesResp.status}`);
+      }
+    }
+    
+    // If no devices HTML yet, try auto-discovery
+    if (!devicesHtml) {
+      console.log("[sync-tracker] Auto-discovering devices page...");
+      
+      // Try common home pages first
+      const homeCandidates = ["/Default.aspx", "/", "/Home.aspx", "/Dashboard.aspx"];
+      let homeHtml = "";
+      
+      for (const path of homeCandidates) {
+        try {
+          const r = await fetch(`${TRACKING_BASE}${path}`, { 
+            headers: { 
+              "Cookie": cookie,
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            }
+          });
+          if (r.ok) {
+            const t = await r.text();
+            if (t && t.length > 100) {
+              homeHtml = t;
+              console.log(`[sync-tracker] Found home page: ${path}`);
+              break;
+            }
+          }
+        } catch (e) {
+          console.log(`[sync-tracker] Home fetch error for ${path}:`, e);
+        }
+      }
+
+      // Build candidates list
+      let candidates = [
+        "/Devices.aspx",
+        "/Default.aspx", 
+        "/Fleet/Devices.aspx",
+        "/VehicleList.aspx",
+        "/Tracking/Devices.aspx",
+        "/Assets.aspx",
+        "/Reports/Devices.aspx",
+        "/Admin/Devices.aspx"
+      ];
+
+      // Discover additional candidates from homepage links
+      if (homeHtml) {
+        const discovered = discoverDevicesLinks(homeHtml)
+          .map((href) => normalizeHref(href))
+          .filter(Boolean) as string[];
+        candidates = Array.from(new Set([...discovered, ...candidates]));
+        console.log("[sync-tracker] Discovered device page candidates:", discovered);
+      }
+
+      // Try each candidate
+      for (const path of candidates) {
+        try {
+          const url = path.startsWith("http") ? path : `${TRACKING_BASE}${path}`;
+          const r = await fetch(url, { 
+            headers: { 
+              "Cookie": cookie,
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            }
+          });
+          
+          if (r.ok) {
+            const t = await r.text();
+            if (t && t.length > 200 && /plate|imei|device|tracker|لوحة|رقم|جهاز|تتبع/i.test(t)) {
+              devicesHtml = t;
+              console.log(`[sync-tracker] Using devices page: ${url}`);
+              break;
+            }
+          }
+        } catch (e) {
+          console.log(`[sync-tracker] Devices fetch error for ${path}:`, e);
+        }
+      }
+    }
+
+    if (!devicesHtml) {
+      summary.errors.push("Could not fetch devices page. Please configure TRACKING_DEVICES_PATH secret with the correct path.");
+      return new Response(JSON.stringify({ success: false, summary }), {
+        headers: { "content-type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // 4) Parse devices from HTML
+    const parsedDevices = parseDevicesFromHtml(devicesHtml);
+    console.log(`[sync-tracker] Parsed ${parsedDevices.length} devices`);
+    
+    summary.discoveredDevices = parsedDevices;
+
+    if (parsedDevices.length === 0) {
+      summary.errors.push("No devices parsed from the page. The page structure may have changed.");
+    } else if (dryRun) {
+      console.log("[DRY RUN] Would process devices:", parsedDevices);
+    } else {
+      for (const d of parsedDevices) {
+        await processDevice(d);
+      }
+    }
+
+  } catch (error) {
+    console.error("[sync-tracker] Error during auto sync:", error);
+    summary.errors.push(`Auto sync failed: ${error.message}`);
     return new Response(JSON.stringify({ success: false, summary }), {
       status: 500,
       headers: { "content-type": "application/json", ...corsHeaders },
     });
-  }
-
-  // 3) Discover a devices list page
-  // Try common landings first
-  const homeCandidates = ["/Default.aspx", "/", "/Home.aspx", "/Dashboard.aspx"];
-  let homeHtml = "";
-  for (const path of homeCandidates) {
-    try {
-      const r = await fetch(`${TRACKING_BASE}${path}`, { headers: { "Cookie": cookie } });
-      if (r.ok) {
-        const t = await r.text();
-        if (t && t.length > 100) {
-          homeHtml = t;
-          break;
-        }
-      }
-    } catch (e) {
-      console.log("[sync-tracker] Home fetch error for", path, e);
-    }
-  }
-
-  let candidates = [
-    "/Devices.aspx",
-    "/Default.aspx",
-    "/Fleet/Devices.aspx",
-    "/VehicleList.aspx",
-    "/Tracking/Devices.aspx",
-    "/Assets.aspx",
-  ];
-
-  // Discover additional candidates from homepage links (English/Arabic hints)
-  if (homeHtml) {
-    const discovered = discoverDevicesLinks(homeHtml)
-      .map((href) => normalizeHref(href))
-      .filter(Boolean) as string[];
-    candidates = Array.from(new Set([...discovered, ...candidates]));
-    console.log("[sync-tracker] Discovered device page candidates:", candidates);
-  }
-
-  // 4) Fetch devices page by trying candidates
-  let devicesHtml = "";
-  for (const path of candidates) {
-    try {
-      const url = path.startsWith("http") ? path : `${TRACKING_BASE}${path}`;
-      const r = await fetch(url, { headers: { "Cookie": cookie } });
-      if (r.ok) {
-        const t = await r.text();
-        // Heuristic: look for plate/IMEI/device patterns to accept this page
-        if (t && t.length > 200 && /plate|imei|device|tracker|لوحة|رقم|جهاز|تتبع/i.test(t)) {
-          devicesHtml = t;
-          console.log("[sync-tracker] Using devices page:", url);
-          break;
-        }
-      }
-    } catch (e) {
-      console.log("[sync-tracker] Devices fetch error for", path, e);
-    }
-  }
-
-  if (!devicesHtml) {
-    summary.errors.push("Could not fetch devices page. Please provide the exact devices list URL.");
-    return new Response(JSON.stringify({ success: false, summary }), {
-      headers: { "content-type": "application/json", ...corsHeaders },
-    });
-  }
-
-  // 5) Parse devices from HTML using improved parser
-  const parsedDevices = parseDevicesFromHtml(devicesHtml);
-  console.log("[sync-tracker] Parsed devices count:", parsedDevices.length);
-
-  if (parsedDevices.length === 0) {
-    summary.errors.push("No devices parsed. Please adjust parser to page structure.");
-  } else {
-    for (const d of parsedDevices) {
-      await processDevice(d);
-    }
   }
 
   return new Response(JSON.stringify({ success: true, summary }), {
@@ -382,11 +439,10 @@ Deno.serve(async (req) => {
 });
 
 // =========================
-// Helpers
+// Helper Functions
 // =========================
 function mergeCookies(existing: string, incoming: string | null): string {
   if (!incoming) return existing;
-  // More tolerant merging: split by comma only when a new cookie starts (key=value;...)
   const incomingParts = incoming
     .split(/,(?=\s*[A-Za-z0-9_\-]+=)/g)
     .map((p) => p.split(";")[0].trim())
@@ -394,14 +450,12 @@ function mergeCookies(existing: string, incoming: string | null): string {
 
   const jar = new Map<string, string>();
 
-  // Load existing
   existing.split(";").forEach((c) => {
     const [k, v] = c.trim().split("=");
     if (!k) return;
     jar.set(k.trim(), v ?? "");
   });
 
-  // Add incoming
   incomingParts.forEach((c) => {
     const [k, v] = c.split("=");
     if (!k) return;
@@ -423,31 +477,26 @@ function decodeHtml(s: string): string {
 }
 
 function extractAspNetHiddenFields(html: string): Record<string, string> {
-  const names = ["__VIEWSTATE", "__EVENTVALIDATION", "__VIEWSTATEGENERATOR"];
+  const names = ["__VIEWSTATE", "__EVENTVALIDATION", "__VIEWSTATEGENERATOR", "__EVENTTARGET", "__EVENTARGUMENT"];
   const out: Record<string, string> = {};
+  
   for (const n of names) {
     const re = new RegExp(`name="${n}"[^>]*value="([^"]*)"`, "i");
     const m = html.match(re);
     if (m) out[n] = decodeHtml(m[1]);
   }
-  // Also include any __EVENTTARGET/ARGUMENT if preset
-  const et = html.match(/name="__EVENTTARGET"[^>]*value="([^"]*)"/i)?.[1];
-  const ea = html.match(/name="__EVENTARGUMENT"[^>]*value="([^"]*)"/i)?.[1];
-  if (et) out["__EVENTTARGET"] = decodeHtml(et);
-  if (ea) out["__EVENTARGUMENT"] = decodeHtml(ea);
+  
   return out;
 }
 
 function findInputName(html: string, candidates: string[], exact = false): string | null {
-  // Try to detect input names (name or id) present in page that match any candidate
   for (const cand of candidates) {
     const re = exact
       ? new RegExp(`name="${escapeRegex(cand)}"|id="${escapeRegex(cand)}"`, "i")
       : new RegExp(`name="([^"]*${escapeRegex(cand)}[^"]*)"|id="([^"]*${escapeRegex(cand)}[^"]*)"`, "i");
     const m = html.match(re);
     if (m) {
-      const full = m[1] || m[2];
-      return full || cand;
+      return m[1] || m[2] || cand;
     }
   }
   return null;
@@ -459,12 +508,8 @@ function escapeRegex(s: string): string {
 
 function normalizeHref(href: string): string {
   try {
-    if (!href) return "";
-    // Ignore javascript:void
-    if (/^javascript:/i.test(href)) return "";
-    // Return as-is if absolute
+    if (!href || /^javascript:/i.test(href)) return "";
     if (/^https?:\/\//i.test(href)) return href;
-    // Ensure starts with slash
     if (!href.startsWith("/")) return `/${href}`;
     return href;
   } catch {
@@ -476,13 +521,11 @@ function discoverDevicesLinks(html: string): string[] {
   const out = new Set<string>();
   const re = /<a\s+[^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/gis;
   let m: RegExpExecArray | null;
+  
   while ((m = re.exec(html)) !== null) {
     const href = m[1] || "";
     const text = stripTags(m[2] || "");
-    // Heuristics in both EN/AR
-    if (
-      /device|devices|tracker|vehicle|fleet|asset|IMEI|GPS|تتبع|جهاز|أجهزة|مركبة|المركبات|الأسطول/i.test(href + " " + text)
-    ) {
+    if (/device|devices|tracker|vehicle|fleet|asset|IMEI|GPS|تتبع|جهاز|أجهزة|مركبة|المركبات|الأسطول/i.test(href + " " + text)) {
       out.add(href);
     }
   }
@@ -497,13 +540,11 @@ function cellText(html: string): string {
   return stripTags(decodeHtml(html)).trim();
 }
 
-// Improved parser: combine attribute-based and table-based parsing
 function parseDevicesFromHtml(html: string): DeviceInput[] {
   const results: DeviceInput[] = [];
 
-  // A) Attribute-based rows
-  const attrRe =
-    /<tr[^>]*data-plate="([^"]+)"[^>]*data-tracker="([^"]+)"[^>]*?(?:data-lat="([^"]+)")?[^>]*?(?:data-lon="([^"]+)")?[^>]*?(?:data-addr="([^"]*)")?[^>]*>/gi;
+  // A) Attribute-based rows (data-plate, data-tracker attributes)
+  const attrRe = /<tr[^>]*data-plate="([^"]+)"[^>]*data-tracker="([^"]+)"[^>]*?(?:data-lat="([^"]+)")?[^>]*?(?:data-lon="([^"]+)")?[^>]*?(?:data-addr="([^"]*)")?[^>]*>/gi;
   let a: RegExpExecArray | null;
   while ((a = attrRe.exec(html)) !== null) {
     const plate = a[1];
@@ -516,43 +557,40 @@ function parseDevicesFromHtml(html: string): DeviceInput[] {
     }
   }
 
-  // B) Table-based parsing with header detection (EN/AR)
-  // Find first table that looks like a devices list (has plate/tracker headers)
+  // B) Table-based parsing with header detection
   const tableRe = /<table[^>]*>([\s\S]*?)<\/table>/gi;
   let t: RegExpExecArray | null;
+  
   while ((t = tableRe.exec(html)) !== null) {
     const table = t[1];
-
-    // Find header row
     const headerRowMatch = table.match(/<tr[^>]*>([\s\S]*?)<\/tr>/i);
     if (!headerRowMatch) continue;
+    
     const headerRow = headerRowMatch[1];
-
-    const headers = Array.from(headerRow.matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi)).map((m) =>
-      cellText(m[1])
-    );
+    const headers = Array.from(headerRow.matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi))
+      .map((m) => cellText(m[1]));
+    
     if (headers.length === 0) continue;
 
-    // Identify columns
     const colIndex = {
       plate: findHeaderIndex(headers, ["plate", "لوحة", "رقم اللوحة", "plate number", "vehicle", "المركبة"]),
-      tracker: findHeaderIndex(headers, ["tracker", "imei", "device", "جهاز", "المتتبع"]),
+      tracker: findHeaderIndex(headers, ["tracker", "imei", "device", "جهاز", "المتتبع", "رقم الجهاز"]),
       lat: findHeaderIndex(headers, ["lat", "latitude", "خط العرض", "إحداثيات"]),
       lon: findHeaderIndex(headers, ["lon", "lng", "longitude", "خط الطول"]),
       addr: findHeaderIndex(headers, ["address", "العنوان", "location", "الموقع"]),
     };
 
-    // Need at least plate + tracker columns
     if (colIndex.plate === -1 || colIndex.tracker === -1) continue;
 
-    // Iterate data rows (all rows after header)
     const rowRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
     let rr: RegExpExecArray | null;
-    // Skip first match (header) by advancing once
-    rowRe.exec(table);
+    rowRe.exec(table); // Skip header row
+    
     while ((rr = rowRe.exec(table)) !== null) {
       const rowHtml = rr[1];
-      const cells = Array.from(rowHtml.matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi)).map((m) => cellText(m[1]));
+      const cells = Array.from(rowHtml.matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi))
+        .map((m) => cellText(m[1]));
+      
       if (cells.length < Math.max(colIndex.plate, colIndex.tracker) + 1) continue;
 
       const plate = cells[colIndex.plate]?.trim();
@@ -566,16 +604,16 @@ function parseDevicesFromHtml(html: string): DeviceInput[] {
       }
     }
 
-    // If we found any in this table, accept and stop scanning more tables to avoid duplicates
-    if (results.length > 0) break;
+    if (results.length > 0) break; // Found devices in this table
   }
 
-  // Deduplicate by plate+trackerId
+  // Deduplicate
   const uniq = new Map<string, DeviceInput>();
   for (const d of results) {
     const key = `${d.plate}::${d.trackerId}`;
     if (!uniq.has(key)) uniq.set(key, d);
   }
+  
   return Array.from(uniq.values());
 }
 
@@ -589,7 +627,6 @@ function findHeaderIndex(headers: string[], keys: string[]): number {
   const normalized = headers.map((h) => h.toLowerCase());
   for (const k of keys) {
     const kk = k.toLowerCase();
-    // Exact or contains
     let i = normalized.findIndex((h) => h === kk);
     if (i !== -1) return i;
     i = normalized.findIndex((h) => h.includes(kk));

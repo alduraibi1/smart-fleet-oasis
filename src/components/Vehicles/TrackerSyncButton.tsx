@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { RefreshCcw, Settings } from "lucide-react";
+import { RefreshCcw, Settings, TestTube } from "lucide-react";
 import { useTrackerSync } from "@/hooks/useTrackerSync";
 import {
   DropdownMenu,
@@ -18,25 +18,36 @@ const TrackerSyncButton: React.FC = () => {
   const { toast } = useToast();
   const { syncAuto } = useTrackerSync();
 
-  const handleAutoSync = async () => {
+  const handleAutoSync = async (dryRun = false) => {
     setLoading(true);
-    const res = await syncAuto();
+    const res = await syncAuto(dryRun);
     setLoading(false);
 
     if (!res.success) {
       toast({
-        title: "فشل المزامنة التلقائية",
-        description: res.error || "تعذر تنفيذ المزامنة التلقائية. يمكن تخصيص المسارات أو استخدام الإدخال اليدوي.",
+        title: dryRun ? "فشل الاختبار" : "فشل المزامنة التلقائية",
+        description: res.error || "تعذر تنفيذ العملية. تحقق من الإعدادات.",
         variant: "destructive",
       });
       return;
     }
 
     const s = res.summary!;
-    const msg = `تمت مطابقة ${s.matched} مركبة، تحديث المركبات: ${s.updatedVehicles}، ربط الأجهزة: ${s.upsertedMappings}، تحديث المواقع: ${s.updatedLocations}، تخطي: ${s.skipped}`;
+    let msg = "";
+    
+    if (dryRun) {
+      msg = `تم اكتشاف ${s.discoveredDevices?.length || 0} جهاز، مطابقة ${s.matched} مركبة، تخطي ${s.skipped}`;
+      if (s.errors.length > 0) {
+        msg += `\nتحذيرات: ${s.errors.slice(0, 3).join(", ")}`;
+      }
+    } else {
+      msg = `تمت مطابقة ${s.matched} مركبة، تحديث المركبات: ${s.updatedVehicles}، ربط الأجهزة: ${s.upsertedMappings}، تحديث المواقع: ${s.updatedLocations}، تخطي: ${s.skipped}`;
+    }
+    
     toast({ 
-      title: "مزامنة أجهزة التتبع", 
-      description: msg 
+      title: dryRun ? "نتيجة الاختبار" : "مزامنة أجهزة التتبع", 
+      description: msg,
+      variant: s.errors.length > 0 ? "destructive" : "default"
     });
   };
 
@@ -50,9 +61,13 @@ const TrackerSyncButton: React.FC = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleAutoSync} disabled={loading}>
+          <DropdownMenuItem onClick={() => handleAutoSync(false)} disabled={loading}>
             <RefreshCcw className={`h-4 w-4 ml-2 ${loading ? "animate-spin" : ""}`} />
             مزامنة تلقائية
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAutoSync(true)} disabled={loading}>
+            <TestTube className="h-4 w-4 ml-2" />
+            اختبار الاتصال
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setShowManualDialog(true)}>
             <Settings className="h-4 w-4 ml-2" />
@@ -61,8 +76,8 @@ const TrackerSyncButton: React.FC = () => {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Button onClick={handleAutoSync} disabled={loading} variant="default" className="gap-2">
-        <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+      <Button onClick={() => handleAutoSync(false)} disabled={loading} variant="default" className="gap-2">
+        <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
         {loading ? "جاري المزامنة..." : "مزامنة تلقائية"}
       </Button>
 

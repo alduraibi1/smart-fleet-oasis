@@ -11,15 +11,17 @@ export type TrackerSyncSummary = {
     skipped: number;
     errors: string[];
     mode: "auto" | "manual";
+    dryRun?: boolean;
+    discoveredDevices?: Array<{ plate: string; trackerId: string; latitude?: number; longitude?: number; address?: string; }>;
   };
   error?: string;
 };
 
 export const useTrackerSync = () => {
-  const syncAuto = async (): Promise<TrackerSyncSummary> => {
-    console.log("[TrackerSync] Starting auto sync...");
+  const syncAuto = async (dryRun = false): Promise<TrackerSyncSummary> => {
+    console.log(`[TrackerSync] Starting auto sync${dryRun ? ' (dry run)' : ''}...`);
     const { data, error } = await supabase.functions.invoke("sync-tracker-devices", {
-      body: { mode: "auto" },
+      body: { mode: "auto", dryRun },
     });
     if (error) {
       console.error("[TrackerSync] Auto sync error:", error);
