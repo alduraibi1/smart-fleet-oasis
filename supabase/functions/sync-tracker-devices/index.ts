@@ -1,3 +1,4 @@
+
 /* eslint-disable */
 // Deno Edge Function: sync-tracker-devices
 // Enhanced version with improved Arabic normalization and fuzzy matching
@@ -378,10 +379,10 @@ Deno.serve(async (req) => {
   }
 
   // =========================
-  // AUTO MODE (Enhanced with configurable paths)
+  // AUTO MODE (Enhanced with proper URL handling)
   // =========================
 
-  // Get tracking configuration from Supabase secrets
+  // Get tracking configuration from Supabase secrets - Fixed URL handling
   const TRACKING_BASE = Deno.env.get("TRACKING_BASE_URL") || "http://194.165.139.226";
   const LOGIN_PATH = Deno.env.get("TRACKING_LOGIN_PATH") || "/Login.aspx";
   const DEVICES_PATH = Deno.env.get("TRACKING_DEVICES_PATH");
@@ -408,7 +409,8 @@ Deno.serve(async (req) => {
 
   try {
     console.log("[sync-tracker] Fetching login page...");
-    const loginPageResp = await fetch(`${TRACKING_BASE}${LOGIN_PATH}`);
+    const loginUrl = `${TRACKING_BASE}${LOGIN_PATH}`;
+    const loginPageResp = await fetch(loginUrl);
     cookie = mergeCookies(cookie, loginPageResp.headers.get("set-cookie"));
     const loginHtml = await loginPageResp.text();
     
@@ -427,7 +429,7 @@ Deno.serve(async (req) => {
     form.set(submitFieldName, "Login");
 
     console.log("[sync-tracker] Posting login...");
-    const loginResp = await fetch(`${TRACKING_BASE}${LOGIN_PATH}`, {
+    const loginResp = await fetch(loginUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -465,7 +467,8 @@ Deno.serve(async (req) => {
     
     if (DEVICES_PATH) {
       console.log(`[sync-tracker] Using configured devices path: ${DEVICES_PATH}`);
-      const devicesResp = await fetch(`${TRACKING_BASE}${DEVICES_PATH}`, {
+      const devicesUrl = DEVICES_PATH.startsWith("http") ? DEVICES_PATH : `${TRACKING_BASE}${DEVICES_PATH}`;
+      const devicesResp = await fetch(devicesUrl, {
         headers: { 
           "Cookie": cookie,
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
