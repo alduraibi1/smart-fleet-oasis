@@ -1,4 +1,3 @@
-
 /* eslint-disable */
 // Deno Edge Function: sync-tracker-devices
 // Enhanced version with improved Arabic normalization and fuzzy matching
@@ -409,7 +408,9 @@ Deno.serve(async (req) => {
 
   try {
     console.log("[sync-tracker] Fetching login page...");
-    const loginUrl = `${TRACKING_BASE}${LOGIN_PATH}`;
+    // Build login URL robustly (supports absolute LOGIN_PATH and base with path)
+    const loginUrl = buildUrl(TRACKING_BASE, LOGIN_PATH);
+    console.log(`[sync-tracker] Computed login URL: ${loginUrl}`);
     const loginPageResp = await fetch(loginUrl);
     cookie = mergeCookies(cookie, loginPageResp.headers.get("set-cookie"));
     const loginHtml = await loginPageResp.text();
@@ -467,7 +468,8 @@ Deno.serve(async (req) => {
     
     if (DEVICES_PATH) {
       console.log(`[sync-tracker] Using configured devices path: ${DEVICES_PATH}`);
-      const devicesUrl = DEVICES_PATH.startsWith("http") ? DEVICES_PATH : `${TRACKING_BASE}${DEVICES_PATH}`;
+      const devicesUrl = /^https?:\/\//i.test(DEVICES_PATH) ? DEVICES_PATH : buildUrl(TRACKING_BASE, DEVICES_PATH);
+      console.log(`[sync-tracker] Computed devices URL: ${devicesUrl}`);
       const devicesResp = await fetch(devicesUrl, {
         headers: { 
           "Cookie": cookie,
@@ -490,7 +492,7 @@ Deno.serve(async (req) => {
       
       for (const path of homeCandidates) {
         try {
-          const r = await fetch(`${TRACKING_BASE}${path}`, { 
+          const r = await fetch(buildUrl(TRACKING_BASE, path), { 
             headers: { 
               "Cookie": cookie,
               "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -530,7 +532,7 @@ Deno.serve(async (req) => {
 
       for (const path of candidates) {
         try {
-          const url = path.startsWith("http") ? path : `${TRACKING_BASE}${path}`;
+          const url = /^https?:\/\//i.test(path) ? path : buildUrl(TRACKING_BASE, path);
           const r = await fetch(url, { 
             headers: { 
               "Cookie": cookie,
@@ -574,11 +576,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Process devices for testing
-    for (const d of parsedDevices) {
-      await processDevice(d);
-    }
-
   } catch (error) {
     console.error("[sync-tracker] Error during auto sync:", error);
     summary.errors.push(`Auto sync failed: ${error.message}`);
@@ -596,6 +593,24 @@ Deno.serve(async (req) => {
 // =========================
 // Helper Functions
 // =========================
+
+// Safely build URLs from base + path, handling absolute paths and bases that include paths.
+function buildUrl(base: string, path: string): string {
+  try {
+    if (!path) return base;
+    if (/^https?:\/\//i.test(path)) return path;
+
+    const baseUrl = new URL(base);
+    const origin = `${baseUrl.protocol}//${baseUrl.host}`;
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return origin + normalizedPath;
+  } catch {
+    // Fallback concatenation if URL parsing fails
+    const sep = base.endsWith("/") || path.startsWith("/") ? "" : "/";
+    return `${base}${sep}${path}`;
+  }
+}
+
 function mergeCookies(existing: string, incoming: string | null): string {
   if (!incoming) return existing;
   const incomingParts = incoming
