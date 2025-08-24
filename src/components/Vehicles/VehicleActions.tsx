@@ -1,10 +1,12 @@
 
 import { useState } from 'react';
-import { Download, Printer, Plus, LayoutGrid, Table, Bell } from 'lucide-react';
+import { Download, Printer, Plus, LayoutGrid, Table, Bell, Upload, Satellite } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import AddVehicleDialog from './AddVehicleDialog';
+import ImportVehiclesDialog from './ImportVehiclesDialog';
+import ManualTrackerSyncDialog from './ManualTrackerSyncDialog';
 import { Vehicle } from '@/types/vehicle';
 
 interface VehicleActionsProps {
@@ -25,6 +27,8 @@ export default function VehicleActions({
   onDeleteVehicle
 }: VehicleActionsProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [isManualSyncDialogOpen, setIsManualSyncDialogOpen] = useState(false);
 
   const handleExport = () => {
     // Create CSV data
@@ -63,6 +67,11 @@ export default function VehicleActions({
   const handleVehicleAdded = async (vehicleData: Partial<Vehicle>) => {
     await onVehicleAdded(vehicleData);
     setIsAddDialogOpen(false);
+  };
+
+  const handleVehiclesImported = () => {
+    // إعادة تحميل البيانات بعد الاستيراد
+    window.location.reload();
   };
 
   // Calculate alerts
@@ -124,6 +133,28 @@ export default function VehicleActions({
             <Plus className="h-4 w-4" />
             إضافة مركبة
           </Button>
+
+          <Button 
+            onClick={() => setIsImportDialogOpen(true)}
+            variant="outline" 
+            className="gap-2 flex-1 sm:flex-none btn-responsive" 
+            size="sm"
+          >
+            <Upload className="h-4 w-4" />
+            <span className="hidden sm:inline">استيراد Excel</span>
+            <span className="sm:hidden">استيراد</span>
+          </Button>
+
+          <Button 
+            onClick={() => setIsManualSyncDialogOpen(true)}
+            variant="outline" 
+            className="gap-2 flex-1 sm:flex-none btn-responsive" 
+            size="sm"
+          >
+            <Satellite className="h-4 w-4" />
+            <span className="hidden sm:inline">مزامنة يدوية</span>
+            <span className="sm:hidden">مزامنة</span>
+          </Button>
           
           <Button variant="outline" onClick={handleExport} className="gap-2 flex-1 sm:flex-none btn-responsive" size="sm">
             <Download className="h-4 w-4" />
@@ -161,6 +192,17 @@ export default function VehicleActions({
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         onVehicleAdded={handleVehicleAdded}
+      />
+
+      <ImportVehiclesDialog
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        onVehiclesImported={handleVehiclesImported}
+      />
+
+      <ManualTrackerSyncDialog
+        open={isManualSyncDialogOpen}
+        onOpenChange={setIsManualSyncDialogOpen}
       />
     </div>
   );
