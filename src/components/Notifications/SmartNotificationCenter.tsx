@@ -32,7 +32,6 @@ interface SmartNotification {
   message: string;
   type: string;
   category: string;
-  severity: 'info' | 'warning' | 'error';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   status: 'unread' | 'read' | 'dismissed';
   reference_type?: string;
@@ -72,12 +71,6 @@ const SmartNotificationCenter: React.FC = () => {
     low: 'blue'
   };
 
-  const severityColors = {
-    error: 'destructive',
-    warning: 'warning',
-    info: 'info'
-  };
-
   // جلب التنبيهات
   const fetchNotifications = async () => {
     setLoading(true);
@@ -97,7 +90,6 @@ const SmartNotificationCenter: React.FC = () => {
         message: notification.message,
         type: notification.type,
         category: notification.category,
-        severity: notification.severity as 'info' | 'warning' | 'error',
         priority: notification.priority as 'low' | 'medium' | 'high' | 'urgent',
         status: notification.status as 'unread' | 'read' | 'dismissed',
         reference_type: notification.reference_type,
@@ -419,8 +411,8 @@ const SmartNotificationCenter: React.FC = () => {
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-start gap-3 flex-1">
                             <div className={`p-2 rounded-full ${
-                              notification.severity === 'error' ? 'bg-red-100 text-red-600' :
-                              notification.severity === 'warning' ? 'bg-orange-100 text-orange-600' :
+                              notification.type === 'error' ? 'bg-red-100 text-red-600' :
+                              notification.type === 'warning' ? 'bg-orange-100 text-orange-600' :
                               'bg-blue-100 text-blue-600'
                             }`}>
                               <CategoryIcon className="h-4 w-4" />
