@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { RefreshCcw, Settings, TestTube } from "lucide-react";
+import { RefreshCcw, Settings, TestTube, Eye } from "lucide-react";
 import { useTrackerSync } from "@/hooks/useTrackerSync";
 import {
   DropdownMenu,
@@ -11,10 +11,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import ManualTrackerSyncDialog from "./ManualTrackerSyncDialog";
+import SyncSuggestionsDialog from "./SyncSuggestionsDialog";
 
 const TrackerSyncButton: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showManualDialog, setShowManualDialog] = useState(false);
+  const [showSuggestionsDialog, setShowSuggestionsDialog] = useState(false);
+  const [lastSyncResult, setLastSyncResult] = useState<any>(null);
   const { toast } = useToast();
   const { syncAuto } = useTrackerSync();
 
@@ -22,6 +25,7 @@ const TrackerSyncButton: React.FC = () => {
     setLoading(true);
     const res = await syncAuto(dryRun);
     setLoading(false);
+    setLastSyncResult(res);
 
     if (!res.success) {
       toast({
@@ -36,12 +40,30 @@ const TrackerSyncButton: React.FC = () => {
     let msg = "";
     
     if (dryRun) {
-      msg = `تم اكتشاف ${s.discoveredDevices?.length || 0} جهاز، مطابقة ${s.matched} مركبة، تخطي ${s.skipped}`;
+      const suggestionsCount = s.unmatchedSuggestions?.length || 0;
+      msg = `تم اكتشاف ${s.discoveredDevices?.length || 0} جهاز، مطابقة دقيقة ${s.matched} مركبة`;
+      
+      if (suggestionsCount > 0) {
+        msg += `، ${suggestionsCount} اقتراح للمطابقة`;
+      }
+      
+      msg += `، تخطي ${s.skipped}`;
+      
       if (s.errors.length > 0) {
-        msg += `\nتحذيرات: ${s.errors.slice(0, 3).join(", ")}`;
+        msg += `\nتحذيرات: ${s.errors.slice(0, 2).join(", ")}`;
+      }
+      
+      // Show suggestions dialog if we have suggestions
+      if (suggestionsCount > 0) {
+        setTimeout(() => setShowSuggestionsDialog(true), 500);
       }
     } else {
       msg = `تمت مطابقة ${s.matched} مركبة، تحديث المركبات: ${s.updatedVehicles}، ربط الأجهزة: ${s.upsertedMappings}، تحديث المواقع: ${s.updatedLocations}، تخطي: ${s.skipped}`;
+      
+      const suggestionsCount = s.unmatchedSuggestions?.length || 0;
+      if (suggestionsCount > 0) {
+        msg += `\n${suggestionsCount} اقتراح متاح للأجهزة غير المطابقة`;
+      }
     }
     
     toast({ 
@@ -50,6 +72,8 @@ const TrackerSyncButton: React.FC = () => {
       variant: s.errors.length > 0 ? "destructive" : "default"
     });
   };
+
+  const hasSuggestions = lastSyncResult?.summary?.unmatchedSuggestions?.length > 0;
 
   return (
     <div className="flex items-center justify-end gap-2">
@@ -73,6 +97,12 @@ const TrackerSyncButton: React.FC = () => {
             <Settings className="h-4 w-4 ml-2" />
             مزامنة يدوية
           </DropdownMenuItem>
+          {hasSuggestions && (
+            <DropdownMenuItem onClick={() => setShowSuggestionsDialog(true)}>
+              <Eye className="h-4 w-4 ml-2" />
+              عرض الاقتراحات ({lastSyncResult.summary.unmatchedSuggestions.length})
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -84,6 +114,12 @@ const TrackerSyncButton: React.FC = () => {
       <ManualTrackerSyncDialog
         open={showManualDialog}
         onOpenChange={setShowManualDialog}
+      />
+
+      <SyncSuggestionsDialog
+        open={showSuggestionsDialog}
+        onOpenChange={setShowSuggestionsDialog}
+        suggestions={lastSyncResult?.summary?.unmatchedSuggestions || []}
       />
     </div>
   );

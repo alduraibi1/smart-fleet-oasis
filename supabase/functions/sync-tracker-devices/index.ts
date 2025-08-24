@@ -1,7 +1,6 @@
-
 /* eslint-disable */
 // Deno Edge Function: sync-tracker-devices
-// Enhanced version with configurable paths and improved discovery
+// Enhanced version with improved Arabic normalization and fuzzy matching
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
@@ -20,6 +19,19 @@ type SyncRequest = {
   dryRun?: boolean;
 };
 
+type MatchSuggestion = {
+  vehicleId: string;
+  plate: string;
+  score: number;
+  reason: string;
+};
+
+type UnmatchedSuggestion = {
+  devicePlate: string;
+  normalizedPlate: string;
+  topCandidates: MatchSuggestion[];
+};
+
 type Summary = {
   matched: number;
   updatedVehicles: number;
@@ -30,6 +42,7 @@ type Summary = {
   mode: "auto" | "manual";
   dryRun?: boolean;
   discoveredDevices?: DeviceInput[];
+  unmatchedSuggestions?: UnmatchedSuggestion[];
 };
 
 const corsHeaders = {
@@ -76,6 +89,7 @@ Deno.serve(async (req) => {
     mode,
     dryRun,
     discoveredDevices: [],
+    unmatchedSuggestions: [],
   };
 
   // Fetch all vehicles once for matching
@@ -90,117 +104,260 @@ Deno.serve(async (req) => {
     });
   }
 
-  const normalizePlate = (plate?: string) => {
+  // Enhanced Arabic normalization function
+  const normalizePlate = (plate?: string): string => {
     if (!plate) return "";
-    const map: Record<string, string> = {
-      "أ": "ا", "إ": "ا", "آ": "ا", "ئ": "ي",
-      "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4",
-      "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9",
+    
+    let normalized = plate.trim();
+    
+    // Remove diacritics and tatweel
+    normalized = normalized.replace(/[\u064B-\u0652\u0640]/g, "");
+    
+    // Normalize Arabic letters (comprehensive mapping)
+    const arabicMap: Record<string, string> = {
+      // Alef variations
+      "أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا",
+      // Yeh variations
+      "ى": "ي", "ئ": "ي",
+      // Waw variations
+      "ؤ": "و",
+      // Teh marbuta (careful mapping)
+      "ة": "ه"
     };
-    let s = plate.trim();
-    s = s.replace(/[أإآ]/g, "ا").replace(/ئ/g, "ي");
-    s = s.replace(/[٠١٢٣٤٥٦٧٨٩]/g, (d) => map[d] ?? d);
-    s = s.replace(/[^ا-ي0-9]/g, "");
-    return s;
+    
+    // Apply Arabic character normalization
+    for (const [variant, standard] of Object.entries(arabicMap)) {
+      normalized = normalized.replace(new RegExp(variant, 'g'), standard);
+    }
+    
+    // Convert Arabic digits to Western
+    const digitMap: Record<string, string> = {
+      "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4",
+      "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9"
+    };
+    
+    for (const [arabic, western] of Object.entries(digitMap)) {
+      normalized = normalized.replace(new RegExp(arabic, 'g'), western);
+    }
+    
+    // Latin to Arabic conversion (common mistyping fixes)
+    const latinToArabicMap: Record<string, string> = {
+      "A": "ا", "B": "ب", "J": "ج", "D": "د", "R": "ر",
+      "S": "س", "T": "ط", "H": "ح", "W": "و", "Y": "ي"
+    };
+    
+    for (const [latin, arabic] of Object.entries(latinToArabicMap)) {
+      normalized = normalized.replace(new RegExp(latin, 'gi'), arabic);
+    }
+    
+    // Keep only Arabic letters and digits
+    normalized = normalized.replace(/[^ا-ي0-9]/g, "");
+    
+    return normalized;
   };
 
+  // Levenshtein distance calculation
+  const levenshteinDistance = (str1: string, str2: string): number => {
+    const matrix: number[][] = [];
+    const len1 = str1.length;
+    const len2 = str2.length;
+
+    if (len1 === 0) return len2;
+    if (len2 === 0) return len1;
+
+    // Initialize matrix
+    for (let i = 0; i <= len1; i++) {
+      matrix[i] = [i];
+    }
+    for (let j = 0; j <= len2; j++) {
+      matrix[0][j] = j;
+    }
+
+    // Fill matrix
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,     // deletion
+          matrix[i][j - 1] + 1,     // insertion
+          matrix[i - 1][j - 1] + cost // substitution
+        );
+      }
+    }
+
+    return matrix[len1][len2];
+  };
+
+  // Fuzzy matching function
+  const findFuzzyMatches = (devicePlate: string, normalizedDevicePlate: string, vehicles: any[]): MatchSuggestion[] => {
+    const candidates: MatchSuggestion[] = [];
+    
+    for (const vehicle of vehicles) {
+      const normalizedVehiclePlate = normalizePlate(vehicle.plate_number);
+      
+      if (normalizedVehiclePlate.length === 0) continue;
+      
+      const distance = levenshteinDistance(normalizedDevicePlate, normalizedVehiclePlate);
+      const maxLen = Math.max(normalizedDevicePlate.length, normalizedVehiclePlate.length);
+      
+      if (maxLen === 0) continue;
+      
+      let score = 1 - (distance / maxLen);
+      let reason = "";
+      
+      // Boost score for digit matches
+      const deviceDigits = normalizedDevicePlate.match(/\d/g) || [];
+      const vehicleDigits = normalizedVehiclePlate.match(/\d/g) || [];
+      const digitMatch = deviceDigits.join("") === vehicleDigits.join("");
+      
+      if (digitMatch && deviceDigits.length > 0) {
+        score += 0.2;
+        reason = "الأرقام متطابقة";
+      }
+      
+      // Boost for prefix/suffix matches
+      if (normalizedDevicePlate.startsWith(normalizedVehiclePlate.substring(0, 3)) ||
+          normalizedDevicePlate.endsWith(normalizedVehiclePlate.substring(-3))) {
+        score += 0.1;
+        reason = reason ? reason + "، تطابق جزئي" : "تطابق في البداية/النهاية";
+      }
+      
+      // Only consider if score is reasonable and distance is small
+      if (score >= 0.6 && distance <= 3) {
+        if (distance === 1) {
+          reason = reason ? reason + "، اختلاف حرف واحد" : "اختلاف حرف واحد فقط";
+        } else if (distance === 2) {
+          reason = reason ? reason + "، اختلاف حرفين" : "اختلاف حرفين";
+        }
+        
+        candidates.push({
+          vehicleId: vehicle.id,
+          plate: vehicle.plate_number,
+          score: Math.min(score, 1.0),
+          reason: reason || `تشابه ${Math.round(score * 100)}%`
+        });
+      }
+    }
+    
+    // Sort by score descending and return top 3
+    return candidates
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
+  };
+
+  // Build normalized plate index for exact matching
   const plateIndex = new Map<string, { id: string; plate: string }>();
   for (const v of vehicles ?? []) {
-    plateIndex.set(normalizePlate(v.plate_number), { id: v.id, plate: v.plate_number });
+    const normalized = normalizePlate(v.plate_number);
+    if (normalized) {
+      plateIndex.set(normalized, { id: v.id, plate: v.plate_number });
+    }
   }
 
   // Helper to process a single device record
   const processDevice = async (d: DeviceInput) => {
-    const normalized = normalizePlate(d.plate);
-    const match = plateIndex.get(normalized);
+    const normalizedDevice = normalizePlate(d.plate);
+    const exactMatch = plateIndex.get(normalizedDevice);
 
-    if (!match) {
-      summary.skipped += 1;
-      summary.errors.push(`No vehicle match for plate: ${d.plate}`);
-      return;
-    }
+    if (exactMatch) {
+      summary.matched += 1;
 
-    summary.matched += 1;
+      if (dryRun) {
+        console.log(`[DRY RUN] Would process device: ${d.plate} -> ${d.trackerId}`);
+        return;
+      }
 
-    if (dryRun) {
-      console.log(`[DRY RUN] Would process device: ${d.plate} -> ${d.trackerId}`);
-      return;
-    }
+      // Continue with existing update logic for exact matches
+      const { error: updErr } = await supabase
+        .from("vehicles")
+        .update({ tracker_id: d.trackerId })
+        .eq("id", exactMatch.id);
 
-    // 1) Update vehicles.tracker_id if needed
-    const { error: updErr } = await supabase
-      .from("vehicles")
-      .update({ tracker_id: d.trackerId })
-      .eq("id", match.id);
-
-    if (!updErr) {
-      summary.updatedVehicles += 1;
-    } else {
-      summary.errors.push(`Failed to update vehicle tracker_id for ${d.plate}: ${updErr.message}`);
-    }
-
-    // 2) Upsert vehicle_tracker_mappings
-    const { error: mapErr } = await supabase
-      .from("vehicle_tracker_mappings")
-      .upsert({
-        vehicle_id: match.id,
-        tracker_id: d.trackerId,
-        plate_number: match.plate,
-        last_sync: new Date().toISOString(),
-        sync_status: "active",
-      }, { onConflict: "vehicle_id" });
-
-    if (!mapErr) {
-      summary.upsertedMappings += 1;
-    } else {
-      summary.errors.push(`Failed upsert mapping for ${d.plate}: ${mapErr.message}`);
-    }
-
-    // 3) Upsert vehicle_location if lat/lon provided
-    if (typeof d.latitude === "number" && typeof d.longitude === "number") {
-      const { data: locRows, error: locSelErr } = await supabase
-        .from("vehicle_location")
-        .select("id")
-        .eq("vehicle_id", match.id)
-        .maybeSingle();
-
-      if (locSelErr) {
-        summary.errors.push(`Failed to read location for ${d.plate}: ${locSelErr.message}`);
-      } else if (locRows?.id) {
-        const { error: locUpdErr } = await supabase
-          .from("vehicle_location")
-          .update({
-            latitude: d.latitude,
-            longitude: d.longitude,
-            address: d.address ?? null,
-            is_tracked: true,
-            last_updated: new Date().toISOString(),
-          })
-          .eq("id", locRows.id);
-
-        if (locUpdErr) {
-          summary.errors.push(`Failed to update location for ${d.plate}: ${locUpdErr.message}`);
-        } else {
-          summary.updatedLocations += 1;
-        }
+      if (!updErr) {
+        summary.updatedVehicles += 1;
       } else {
-        const { error: locInsErr } = await supabase
-          .from("vehicle_location")
-          .insert([{
-            vehicle_id: match.id,
-            latitude: d.latitude,
-            longitude: d.longitude,
-            address: d.address ?? null,
-            is_tracked: true,
-            last_updated: new Date().toISOString(),
-          }]);
+        summary.errors.push(`Failed to update vehicle tracker_id for ${d.plate}: ${updErr.message}`);
+      }
 
-        if (locInsErr) {
-          summary.errors.push(`Failed to insert location for ${d.plate}: ${locInsErr.message}`);
+      const { error: mapErr } = await supabase
+        .from("vehicle_tracker_mappings")
+        .upsert({
+          vehicle_id: exactMatch.id,
+          tracker_id: d.trackerId,
+          plate_number: exactMatch.plate,
+          last_sync: new Date().toISOString(),
+          sync_status: "active",
+        }, { onConflict: "vehicle_id" });
+
+      if (!mapErr) {
+        summary.upsertedMappings += 1;
+      } else {
+        summary.errors.push(`Failed upsert mapping for ${d.plate}: ${mapErr.message}`);
+      }
+
+      if (typeof d.latitude === "number" && typeof d.longitude === "number") {
+        const { data: locRows, error: locSelErr } = await supabase
+          .from("vehicle_location")
+          .select("id")
+          .eq("vehicle_id", exactMatch.id)
+          .maybeSingle();
+
+        if (locSelErr) {
+          summary.errors.push(`Failed to read location for ${d.plate}: ${locSelErr.message}`);
+        } else if (locRows?.id) {
+          const { error: locUpdErr } = await supabase
+            .from("vehicle_location")
+            .update({
+              latitude: d.latitude,
+              longitude: d.longitude,
+              address: d.address ?? null,
+              is_tracked: true,
+              last_updated: new Date().toISOString(),
+            })
+            .eq("id", locRows.id);
+
+          if (locUpdErr) {
+            summary.errors.push(`Failed to update location for ${d.plate}: ${locUpdErr.message}`);
+          } else {
+            summary.updatedLocations += 1;
+          }
         } else {
-          summary.updatedLocations += 1;
+          const { error: locInsErr } = await supabase
+            .from("vehicle_location")
+            .insert([{
+              vehicle_id: exactMatch.id,
+              latitude: d.latitude,
+              longitude: d.longitude,
+              address: d.address ?? null,
+              is_tracked: true,
+              last_updated: new Date().toISOString(),
+            }]);
+
+          if (locInsErr) {
+            summary.errors.push(`Failed to insert location for ${d.plate}: ${locInsErr.message}`);
+          } else {
+            summary.updatedLocations += 1;
+          }
         }
       }
+    } else {
+      // No exact match found - try fuzzy matching
+      const fuzzyMatches = findFuzzyMatches(d.plate, normalizedDevice, vehicles ?? []);
+      
+      if (fuzzyMatches.length > 0) {
+        summary.unmatchedSuggestions?.push({
+          devicePlate: d.plate,
+          normalizedPlate: normalizedDevice,
+          topCandidates: fuzzyMatches
+        });
+        
+        console.log(`[FUZZY] Found ${fuzzyMatches.length} suggestions for ${d.plate}:`, 
+          fuzzyMatches.map(m => `${m.plate}(${m.score.toFixed(2)})`).join(", "));
+      } else {
+        summary.errors.push(`No vehicle match found for plate: ${d.plate} (normalized: ${normalizedDevice})`);
+      }
+      
+      summary.skipped += 1;
     }
   };
 
@@ -250,7 +407,6 @@ Deno.serve(async (req) => {
   let cookie = "";
 
   try {
-    // 1) Load login page to fetch ASP.NET hidden fields
     console.log("[sync-tracker] Fetching login page...");
     const loginPageResp = await fetch(`${TRACKING_BASE}${LOGIN_PATH}`);
     cookie = mergeCookies(cookie, loginPageResp.headers.get("set-cookie"));
@@ -261,7 +417,6 @@ Deno.serve(async (req) => {
     const passFieldName = findInputName(loginHtml, ["Password", "password", "txtPassword", "Login1$Password", "ctl00$ContentPlaceHolder1$txtPassword"]);
     const submitFieldName = findInputName(loginHtml, ["btnLogin", "LoginButton", "ctl00$ContentPlaceHolder1$btnLogin"], true) || "btnLogin";
 
-    // 2) Post login form
     const form = new URLSearchParams();
     Object.entries(hiddenFields).forEach(([k, v]) => {
       if (v !== undefined && v !== null) form.set(k, v);
@@ -306,11 +461,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 3) Get devices page
     let devicesHtml = "";
     
     if (DEVICES_PATH) {
-      // Use configured devices path
       console.log(`[sync-tracker] Using configured devices path: ${DEVICES_PATH}`);
       const devicesResp = await fetch(`${TRACKING_BASE}${DEVICES_PATH}`, {
         headers: { 
@@ -326,11 +479,9 @@ Deno.serve(async (req) => {
       }
     }
     
-    // If no devices HTML yet, try auto-discovery
     if (!devicesHtml) {
       console.log("[sync-tracker] Auto-discovering devices page...");
       
-      // Try common home pages first
       const homeCandidates = ["/Default.aspx", "/", "/Home.aspx", "/Dashboard.aspx"];
       let homeHtml = "";
       
@@ -355,7 +506,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Build candidates list
       let candidates = [
         "/Devices.aspx",
         "/Default.aspx", 
@@ -367,7 +517,6 @@ Deno.serve(async (req) => {
         "/Admin/Devices.aspx"
       ];
 
-      // Discover additional candidates from homepage links
       if (homeHtml) {
         const discovered = discoverDevicesLinks(homeHtml)
           .map((href) => normalizeHref(href))
@@ -376,7 +525,6 @@ Deno.serve(async (req) => {
         console.log("[sync-tracker] Discovered device page candidates:", discovered);
       }
 
-      // Try each candidate
       for (const path of candidates) {
         try {
           const url = path.startsWith("http") ? path : `${TRACKING_BASE}${path}`;
@@ -408,7 +556,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 4) Parse devices from HTML
     const parsedDevices = parseDevicesFromHtml(devicesHtml);
     console.log(`[sync-tracker] Parsed ${parsedDevices.length} devices`);
     
@@ -422,6 +569,11 @@ Deno.serve(async (req) => {
       for (const d of parsedDevices) {
         await processDevice(d);
       }
+    }
+
+    // Process devices for testing
+    for (const d of parsedDevices) {
+      await processDevice(d);
     }
 
   } catch (error) {
@@ -543,7 +695,6 @@ function cellText(html: string): string {
 function parseDevicesFromHtml(html: string): DeviceInput[] {
   const results: DeviceInput[] = [];
 
-  // A) Attribute-based rows (data-plate, data-tracker attributes)
   const attrRe = /<tr[^>]*data-plate="([^"]+)"[^>]*data-tracker="([^"]+)"[^>]*?(?:data-lat="([^"]+)")?[^>]*?(?:data-lon="([^"]+)")?[^>]*?(?:data-addr="([^"]*)")?[^>]*>/gi;
   let a: RegExpExecArray | null;
   while ((a = attrRe.exec(html)) !== null) {
@@ -557,7 +708,6 @@ function parseDevicesFromHtml(html: string): DeviceInput[] {
     }
   }
 
-  // B) Table-based parsing with header detection
   const tableRe = /<table[^>]*>([\s\S]*?)<\/table>/gi;
   let t: RegExpExecArray | null;
   
@@ -584,7 +734,7 @@ function parseDevicesFromHtml(html: string): DeviceInput[] {
 
     const rowRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
     let rr: RegExpExecArray | null;
-    rowRe.exec(table); // Skip header row
+    rowRe.exec(table);
     
     while ((rr = rowRe.exec(table)) !== null) {
       const rowHtml = rr[1];
@@ -604,10 +754,9 @@ function parseDevicesFromHtml(html: string): DeviceInput[] {
       }
     }
 
-    if (results.length > 0) break; // Found devices in this table
+    if (results.length > 0) break;
   }
 
-  // Deduplicate
   const uniq = new Map<string, DeviceInput>();
   for (const d of results) {
     const key = `${d.plate}::${d.trackerId}`;

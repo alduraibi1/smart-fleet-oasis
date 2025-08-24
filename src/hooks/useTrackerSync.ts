@@ -1,6 +1,19 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+export type MatchSuggestion = {
+  vehicleId: string;
+  plate: string;
+  score: number;
+  reason: string;
+};
+
+export type UnmatchedSuggestion = {
+  devicePlate: string;
+  normalizedPlate: string;
+  topCandidates: MatchSuggestion[];
+};
+
 export type TrackerSyncSummary = {
   success: boolean;
   summary?: {
@@ -13,6 +26,7 @@ export type TrackerSyncSummary = {
     mode: "auto" | "manual";
     dryRun?: boolean;
     discoveredDevices?: Array<{ plate: string; trackerId: string; latitude?: number; longitude?: number; address?: string; }>;
+    unmatchedSuggestions?: UnmatchedSuggestion[];
   };
   error?: string;
 };
