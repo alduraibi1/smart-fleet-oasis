@@ -1,99 +1,88 @@
+import React from 'react'
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+} from "react-router-dom";
+import { ThemeProvider } from "@/components/theme-provider"
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Toaster } from "@/components/ui/toaster"
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from '@/components/theme/ThemeProvider';
-import { AuthProvider } from '@/hooks/useAuth';
-import ProtectedRoute from '@/components/Auth/ProtectedRoute';
-import Index from './pages/Index';
 import Auth from './pages/Auth';
-import Customers from './pages/Customers';
-import Owners from './pages/Owners';
+import Index from './pages/Index';
+import Dashboard from './pages/Dashboard';
 import Vehicles from './pages/Vehicles';
+import Customers from './pages/Customers';
+import CustomersNew from './pages/CustomersNew';
+import CustomersV2 from './pages/CustomersV2';
 import Contracts from './pages/Contracts';
-import Accounting from './pages/Accounting';
-import Reports from './pages/Reports';
-import SystemManagement from './pages/SystemManagement';
-import EnhancedSystemManagement from './pages/EnhancedSystemManagement';
+import EnhancedContracts from './pages/EnhancedContracts';
 import Maintenance from './pages/Maintenance';
 import Inventory from './pages/Inventory';
-import { Toaster } from '@/components/ui/toaster';
-import './App.css';
+import Suppliers from './pages/Suppliers';
+import Owners from './pages/Owners';
+import Accounting from './pages/Accounting';
+import FinancialControl from './pages/FinancialControl';
+import CustomerArrearsControl from './pages/CustomerArrearsControl';
+import Reports from './pages/Reports';
+import HR from './pages/HR';
+import SystemManagement from './pages/SystemManagement';
+import EnhancedSystemManagement from './pages/EnhancedSystemManagement';
+import SystemOptimization from './pages/SystemOptimization';
+import NotFound from './pages/NotFound';
+import ButtonTest from './pages/ButtonTest';
+import ProtectedRoute from './components/ProtectedRoute';
+import NotificationsPage from './pages/NotificationsPage';
+import NotificationSettings from './components/Notifications/NotificationSettings';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient()
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-        <AuthProvider>
-          <Router>
-            <div className="App">
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } />
-                <Route path="/customers" element={
-                  <ProtectedRoute>
-                    <Customers />
-                  </ProtectedRoute>
-                } />
-                <Route path="/owners" element={
-                  <ProtectedRoute>
-                    <Owners />
-                  </ProtectedRoute>
-                } />
-                <Route path="/vehicles" element={
-                  <ProtectedRoute>
-                    <Vehicles />
-                  </ProtectedRoute>
-                } />
-                <Route path="/contracts" element={
-                  <ProtectedRoute>
-                    <Contracts />
-                  </ProtectedRoute>
-                } />
-                <Route path="/accounting" element={
-                  <ProtectedRoute>
-                    <Accounting />
-                  </ProtectedRoute>
-                } />
-                <Route path="/reports" element={
-                  <ProtectedRoute>
-                    <Reports />
-                  </ProtectedRoute>
-                } />
-                <Route path="/maintenance" element={
-                  <ProtectedRoute>
-                    <Maintenance />
-                  </ProtectedRoute>
-                } />
-                <Route path="/inventory" element={
-                  <ProtectedRoute>
-                    <Inventory />
-                  </ProtectedRoute>
-                } />
-                <Route path="/advanced-reports" element={<Navigate to="/reports" replace />} />
-                <Route path="/system-management" element={
-                  <ProtectedRoute>
-                    <SystemManagement />
-                  </ProtectedRoute>
-                } />
-                <Route path="/enhanced-system-management" element={
-                  <ProtectedRoute>
-                    <EnhancedSystemManagement />
-                  </ProtectedRoute>
-                } />
-              </Routes>
-            </div>
-            <Toaster />
-          </Router>
-        </AuthProvider>
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+        <Toaster />
+        <Router>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route
+              path="/*"
+              element={
+                <ProtectedRoute>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/vehicles" element={<Vehicles />} />
+                    <Route path="/customers" element={<Customers />} />
+                    <Route path="/customers-new" element={<CustomersNew />} />
+                    <Route path="/customers-v2" element={<CustomersV2 />} />
+                    <Route path="/contracts" element={<Contracts />} />
+                    <Route path="/enhanced-contracts" element={<EnhancedContracts />} />
+                    <Route path="/maintenance" element={<Maintenance />} />
+                    <Route path="/inventory" element={<Inventory />} />
+                    <Route path="/suppliers" element={<Suppliers />} />
+                    <Route path="/owners" element={<Owners />} />
+                    <Route path="/accounting" element={<Accounting />} />
+                    <Route path="/financial-control" element={<FinancialControl />} />
+                    <Route path="/customer-arrears-control" element={<CustomerArrearsControl />} />
+                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/hr" element={<HR />} />
+                    <Route path="/system-management" element={<SystemManagement />} />
+                    <Route path="/enhanced-system-management" element={<EnhancedSystemManagement />} />
+                    <Route path="/system-optimization" element={<SystemOptimization />} />
+                    <Route path="/notifications" element={<NotificationsPage />} />
+                    <Route path="/notification-settings" element={<NotificationSettings />} />
+                    <Route path="/button-test" element={<ButtonTest />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Router>
       </ThemeProvider>
     </QueryClientProvider>
-  );
+  )
 }
 
-export default App;
+export default App

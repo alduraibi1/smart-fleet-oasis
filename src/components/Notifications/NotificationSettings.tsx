@@ -1,116 +1,84 @@
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, Mail, Smartphone, AlertTriangle, Calendar, Car, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Bell, Mail, MessageSquare, Settings, Clock, AlertTriangle } from 'lucide-react';
 
-interface CategoryPreference {
-  enabled: boolean;
-  advance_days: number;
-}
-
-interface NotificationPreferences {
+interface NotificationPreference {
+  id?: string;
+  notification_type: string;
   enabled: boolean;
   email_enabled: boolean;
-  sms_enabled: boolean;
   push_enabled: boolean;
-  contract_expiry: CategoryPreference;
-  document_expiry: CategoryPreference;
-  maintenance_due: CategoryPreference;
-  payment_overdue: CategoryPreference;
+  sms_enabled: boolean;
+  advance_days?: number;
 }
 
-export default function NotificationSettings() {
-  const { toast } = useToast();
-  const [preferences, setPreferences] = useState<NotificationPreferences>({
-    enabled: true,
-    email_enabled: true,
-    sms_enabled: false,
-    push_enabled: true,
-    contract_expiry: { enabled: true, advance_days: 7 },
-    document_expiry: { enabled: true, advance_days: 14 },
-    maintenance_due: { enabled: true, advance_days: 5 },
-    payment_overdue: { enabled: true, advance_days: 3 },
-  });
+const NotificationSettings: React.FC = () => {
+  const [preferences, setPreferences] = useState<NotificationPreference[]>([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    loadPreferences();
-  }, []);
+  const notificationTypes = [
+    { id: 'maintenance_due', name: 'صيانة مستحقة', icon: Settings, defaultAdvanceDays: 3 },
+    { id: 'maintenance_overdue', name: 'صيانة متأخرة', icon: AlertTriangle, defaultAdvanceDays: 0 },
+    { id: 'document_expiry', name: 'انتهاء الوثائق', icon: Bell, defaultAdvanceDays: 30 },
+    { id: 'insurance_expiry', name: 'انتهاء التأمين', icon: Bell, defaultAdvanceDays: 30 },
+    { id: 'contract_expiry', name: 'انتهاء العقود', icon: Bell, defaultAdvanceDays: 7 },
+    { id: 'low_stock', name: 'نفاد المخزون', icon: Bell, defaultAdvanceDays: 0 },
+    { id: 'item_expiring', name: 'انتهاء صلاحية الأصناف', icon: Clock, defaultAdvanceDays: 30 },
+    { id: 'vehicle_idle', name: 'مركبات خاملة', icon: Bell, defaultAdvanceDays: 0 },
+    { id: 'customer_arrears', name: 'عملاء متعثرين', icon: AlertTriangle, defaultAdvanceDays: 0 }
+  ];
 
-  const loadPreferences = async () => {
+  // جلب الإعدادات الحالية
+  const fetchPreferences = async () => {
+    setLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
       const { data, error } = await supabase
-        .from('notification_preferences')
+        .from('user_notification_preferences')
         .select('*')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-
-      if (data) {
-        const categoryPrefs = data.category_preferences as any || {};
-        
-        setPreferences({
-          enabled: data.enabled,
-          email_enabled: data.email_enabled,
-          sms_enabled: data.sms_enabled,
-          push_enabled: data.push_enabled,
-          contract_expiry: categoryPrefs.contract_expiry || { enabled: true, advance_days: 7 },
-          document_expiry: categoryPrefs.document_expiry || { enabled: true, advance_days: 14 },
-          maintenance_due: categoryPrefs.maintenance || { enabled: true, advance_days: 5 },
-          payment_overdue: categoryPrefs.payment_due || { enabled: true, advance_days: 3 },
-        });
-      }
-    } catch (error) {
-      console.error('Error loading preferences:', error);
-    }
-  };
-
-  const savePreferences = async () => {
-    try {
-      setLoading(true);
-      const user = (await supabase.auth.getUser()).data.user;
-      if (!user) throw new Error('User not authenticated');
-
-      // تحويل التفضيلات إلى تنسيق JSON مناسب لقاعدة البيانات
-      const categoryPreferences = {
-        contract_expiry: preferences.contract_expiry,
-        document_expiry: preferences.document_expiry,
-        maintenance: preferences.maintenance_due,
-        payment_due: preferences.payment_overdue,
-      };
-
-      const { error } = await supabase
-        .from('notification_preferences')
-        .upsert({
-          user_id: user.id,
-          enabled: preferences.enabled,
-          email_enabled: preferences.email_enabled,
-          sms_enabled: preferences.sms_enabled,
-          push_enabled: preferences.push_enabled,
-          category_preferences: categoryPreferences as any,
-        });
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
-      toast({
-        title: "تم الحفظ بنجاح",
-        description: "تم حفظ إعدادات الإشعارات",
+      // إنشاء إعدادات افتراضية للأنواع غير الموجودة
+      const existingTypes = data?.map(p => p.notification_type) || [];
+      const defaultPreferences: NotificationPreference[] = [];
+
+      notificationTypes.forEach(type => {
+        const existing = data?.find(p => p.notification_type === type.id);
+        if (existing) {
+          defaultPreferences.push(existing);
+        } else {
+          defaultPreferences.push({
+            notification_type: type.id,
+            enabled: true,
+            email_enabled: true,
+            push_enabled: true,
+            sms_enabled: false,
+            advance_days: type.defaultAdvanceDays
+          });
+        }
       });
+
+      setPreferences(defaultPreferences);
     } catch (error) {
-      console.error('Error saving preferences:', error);
+      console.error('Error fetching preferences:', error);
       toast({
-        title: "خطأ في الحفظ",
-        description: "فشل في حفظ الإعدادات",
+        title: "خطأ",
+        description: "حدث خطأ أثناء جلب الإعدادات",
         variant: "destructive",
       });
     } finally {
@@ -118,280 +86,267 @@ export default function NotificationSettings() {
     }
   };
 
+  // حفظ الإعدادات
+  const savePreferences = async () => {
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // حذف الإعدادات الحالية
+      await supabase
+        .from('user_notification_preferences')
+        .delete()
+        .eq('user_id', user.id);
+
+      // إضافة الإعدادات الجديدة
+      const preferencesToSave = preferences.map(pref => ({
+        ...pref,
+        user_id: user.id
+      }));
+
+      const { error } = await supabase
+        .from('user_notification_preferences')
+        .insert(preferencesToSave);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم الحفظ",
+        description: "تم حفظ إعدادات التنبيهات بنجاح",
+      });
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حفظ الإعدادات",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // تحديث إعداد معين
+  const updatePreference = (type: string, field: keyof NotificationPreference, value: any) => {
+    setPreferences(prev => prev.map(pref => 
+      pref.notification_type === type 
+        ? { ...pref, [field]: value }
+        : pref
+    ));
+  };
+
+  // اختبار التنبيهات
+  const testNotification = async () => {
+    try {
+      const { error } = await supabase.functions.invoke('smart-notifications');
+      
+      if (error) throw error;
+
+      toast({
+        title: "تم الاختبار",
+        description: "تم تشغيل فحص التنبيهات التجريبي",
+      });
+    } catch (error) {
+      console.error('Error testing notifications:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء اختبار التنبيهات",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchPreferences();
+  }, []);
+
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="general">الإعدادات العامة</TabsTrigger>
-          <TabsTrigger value="categories">إعدادات الفئات</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="general" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                إعدادات الإشعارات العامة
-              </CardTitle>
-              <CardDescription>
-                تحكم في تفعيل الإشعارات وطرق التسليم المختلفة
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-base font-medium">تفعيل الإشعارات</Label>
-                  <p className="text-sm text-muted-foreground">تفعيل أو إيقاف جميع الإشعارات</p>
-                </div>
-                <Switch
-                  checked={preferences.enabled}
-                  onCheckedChange={(checked) => 
-                    setPreferences(prev => ({ ...prev, enabled: checked }))
-                  }
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    <Label className="font-medium">البريد الإلكتروني</Label>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">تفعيل</span>
-                    <Switch
-                      checked={preferences.email_enabled}
-                      onCheckedChange={(checked) => 
-                        setPreferences(prev => ({ ...prev, email_enabled: checked }))
-                      }
-                      disabled={!preferences.enabled}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="h-4 w-4" />
-                    <Label className="font-medium">الرسائل النصية</Label>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">تفعيل</span>
-                    <Switch
-                      checked={preferences.sms_enabled}
-                      onCheckedChange={(checked) => 
-                        setPreferences(prev => ({ ...prev, sms_enabled: checked }))
-                      }
-                      disabled={!preferences.enabled}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Bell className="h-4 w-4" />
-                    <Label className="font-medium">الإشعارات المباشرة</Label>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">تفعيل</span>
-                    <Switch
-                      checked={preferences.push_enabled}
-                      onCheckedChange={(checked) => 
-                        setPreferences(prev => ({ ...prev, push_enabled: checked }))
-                      }
-                      disabled={!preferences.enabled}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="categories" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Calendar className="h-4 w-4" />
-                  انتهاء العقود
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>تفعيل التنبيهات</Label>
-                  <Switch
-                    checked={preferences.contract_expiry.enabled}
-                    onCheckedChange={(checked) => 
-                      setPreferences(prev => ({ 
-                        ...prev, 
-                        contract_expiry: { ...prev.contract_expiry, enabled: checked }
-                      }))
-                    }
-                  />
-                </div>
-                {preferences.contract_expiry.enabled && (
-                  <div className="space-y-2">
-                    <Label className="text-sm">التنبيه قبل (أيام)</Label>
-                    <Input
-                      type="number"
-                      value={preferences.contract_expiry.advance_days}
-                      onChange={(e) => 
-                        setPreferences(prev => ({ 
-                          ...prev, 
-                          contract_expiry: { 
-                            ...prev.contract_expiry, 
-                            advance_days: parseInt(e.target.value) || 7
-                          }
-                        }))
-                      }
-                      min="1"
-                      max="30"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <AlertTriangle className="h-4 w-4" />
-                  انتهاء الوثائق
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>تفعيل التنبيهات</Label>
-                  <Switch
-                    checked={preferences.document_expiry.enabled}
-                    onCheckedChange={(checked) => 
-                      setPreferences(prev => ({ 
-                        ...prev, 
-                        document_expiry: { ...prev.document_expiry, enabled: checked }
-                      }))
-                    }
-                  />
-                </div>
-                {preferences.document_expiry.enabled && (
-                  <div className="space-y-2">
-                    <Label className="text-sm">التنبيه قبل (أيام)</Label>
-                    <Input
-                      type="number"
-                      value={preferences.document_expiry.advance_days}
-                      onChange={(e) => 
-                        setPreferences(prev => ({ 
-                          ...prev, 
-                          document_expiry: { 
-                            ...prev.document_expiry, 
-                            advance_days: parseInt(e.target.value) || 14
-                          }
-                        }))
-                      }
-                      min="1"
-                      max="60"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Car className="h-4 w-4" />
-                  الصيانة المستحقة
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>تفعيل التنبيهات</Label>
-                  <Switch
-                    checked={preferences.maintenance_due.enabled}
-                    onCheckedChange={(checked) => 
-                      setPreferences(prev => ({ 
-                        ...prev, 
-                        maintenance_due: { ...prev.maintenance_due, enabled: checked }
-                      }))
-                    }
-                  />
-                </div>
-                {preferences.maintenance_due.enabled && (
-                  <div className="space-y-2">
-                    <Label className="text-sm">التنبيه قبل (أيام)</Label>
-                    <Input
-                      type="number"
-                      value={preferences.maintenance_due.advance_days}
-                      onChange={(e) => 
-                        setPreferences(prev => ({ 
-                          ...prev, 
-                          maintenance_due: { 
-                            ...prev.maintenance_due, 
-                            advance_days: parseInt(e.target.value) || 5
-                          }
-                        }))
-                      }
-                      min="1"
-                      max="30"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Settings className="h-4 w-4" />
-                  الدفعات المتأخرة
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>تفعيل التنبيهات</Label>
-                  <Switch
-                    checked={preferences.payment_overdue.enabled}
-                    onCheckedChange={(checked) => 
-                      setPreferences(prev => ({ 
-                        ...prev, 
-                        payment_overdue: { ...prev.payment_overdue, enabled: checked }
-                      }))
-                    }
-                  />
-                </div>
-                {preferences.payment_overdue.enabled && (
-                  <div className="space-y-2">
-                    <Label className="text-sm">التنبيه بعد (أيام)</Label>
-                    <Input
-                      type="number"
-                      value={preferences.payment_overdue.advance_days}
-                      onChange={(e) => 
-                        setPreferences(prev => ({ 
-                          ...prev, 
-                          payment_overdue: { 
-                            ...prev.payment_overdue, 
-                            advance_days: parseInt(e.target.value) || 3
-                          }
-                        }))
-                      }
-                      min="1"
-                      max="30"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      <div className="flex justify-end gap-2 pt-6 border-t">
-        <Button variant="outline" onClick={loadPreferences}>
-          إلغاء
-        </Button>
-        <Button onClick={savePreferences} disabled={loading}>
-          {loading ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
-        </Button>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold">إعدادات التنبيهات</h2>
+          <p className="text-muted-foreground">
+            تخصيص تنبيهاتك وطرق التواصل المفضلة
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={testNotification}>
+            اختبار التنبيهات
+          </Button>
+          <Button onClick={savePreferences} disabled={saving}>
+            {saving ? "جاري الحفظ..." : "حفظ الإعدادات"}
+          </Button>
+        </div>
       </div>
+
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <Tabs defaultValue="notifications" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="notifications">أنواع التنبيهات</TabsTrigger>
+            <TabsTrigger value="channels">قنوات التواصل</TabsTrigger>
+            <TabsTrigger value="schedule">الجدولة</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="notifications" className="space-y-4">
+            {notificationTypes.map(type => {
+              const pref = preferences.find(p => p.notification_type === type.id);
+              const Icon = type.icon;
+              
+              return (
+                <Card key={type.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-full bg-primary/10">
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{type.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            تنبيهات {type.name.toLowerCase()}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-4">
+                        {type.defaultAdvanceDays > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Label className="text-sm">أيام مسبقة:</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              max="365"
+                              value={pref?.advance_days || type.defaultAdvanceDays}
+                              onChange={(e) => updatePreference(type.id, 'advance_days', parseInt(e.target.value))}
+                              className="w-20"
+                            />
+                          </div>
+                        )}
+                        
+                        <Switch
+                          checked={pref?.enabled || false}
+                          onCheckedChange={(checked) => updatePreference(type.id, 'enabled', checked)}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </TabsContent>
+
+          <TabsContent value="channels" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>قنوات التواصل</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {notificationTypes.map(type => {
+                  const pref = preferences.find(p => p.notification_type === type.id);
+                  const Icon = type.icon;
+                  
+                  return (
+                    <div key={type.id} className="border rounded-lg p-4">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Icon className="h-4 w-4" />
+                        <h4 className="font-medium">{type.name}</h4>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="flex items-center gap-2">
+                          <Bell className="h-4 w-4 text-blue-500" />
+                          <Label>داخل التطبيق</Label>
+                          <Switch
+                            checked={pref?.push_enabled || false}
+                            onCheckedChange={(checked) => updatePreference(type.id, 'push_enabled', checked)}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-green-500" />
+                          <Label>البريد الإلكتروني</Label>
+                          <Switch
+                            checked={pref?.email_enabled || false}
+                            onCheckedChange={(checked) => updatePreference(type.id, 'email_enabled', checked)}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4 text-orange-500" />
+                          <Label>رسائل SMS</Label>
+                          <Switch
+                            checked={pref?.sms_enabled || false}
+                            onCheckedChange={(checked) => updatePreference(type.id, 'sms_enabled', checked)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="schedule" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>جدولة التنبيهات</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>وقت الفحص اليومي</Label>
+                    <Select defaultValue="09:00">
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر الوقت" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="06:00">6:00 ص</SelectItem>
+                        <SelectItem value="09:00">9:00 ص</SelectItem>
+                        <SelectItem value="12:00">12:00 م</SelectItem>
+                        <SelectItem value="15:00">3:00 م</SelectItem>
+                        <SelectItem value="18:00">6:00 م</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>تكرار الفحص</Label>
+                    <Select defaultValue="daily">
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر التكرار" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hourly">كل ساعة</SelectItem>
+                        <SelectItem value="daily">يومياً</SelectItem>
+                        <SelectItem value="weekly">أسبوعياً</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Switch defaultChecked />
+                  <Label>تفعيل الفحص التلقائي</Label>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Switch defaultChecked />
+                  <Label>إرسال تقرير يومي</Label>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
-}
+};
+
+export default NotificationSettings;

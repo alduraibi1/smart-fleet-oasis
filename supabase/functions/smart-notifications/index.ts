@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -20,24 +21,52 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    console.log('بدء التحقق من التنبيهات الذكية...')
+    console.log('🔔 بدء فحص التنبيهات الذكية...')
 
-    // 1. التحقق من الصيانة المستحقة
-    await checkMaintenanceDue(supabase)
+    const results = {
+      maintenance_due: 0,
+      maintenance_overdue: 0,
+      low_stock: 0,
+      expired_items: 0,
+      expiring_items: 0,
+      document_expiry: 0,
+      insurance_expiry: 0,
+      contract_expiry: 0,
+      vehicle_idle: 0,
+      customer_arrears: 0
+    }
+
+    // 1. فحص الصيانة المستحقة والمتأخرة
+    results.maintenance_due = await checkMaintenanceDue(supabase)
+    results.maintenance_overdue = await checkMaintenanceOverdue(supabase)
     
-    // 2. التحقق من نفاد المخزون
-    await checkLowStock(supabase)
+    // 2. فحص المخزون المنخفض والمنتهي الصلاحية
+    results.low_stock = await checkLowStock(supabase)
+    results.expired_items = await checkExpiredItems(supabase)
+    results.expiring_items = await checkExpiringItems(supabase)
     
-    // 3. التحقق من انتهاء صلاحية القطع
-    await checkExpiredItems(supabase)
+    // 3. فحص انتهاء صلاحية الوثائق والتأمين
+    results.document_expiry = await checkDocumentExpiry(supabase)
+    results.insurance_expiry = await checkInsuranceExpiry(supabase)
     
-    // 4. التحقق من انتهاء صلاحية الوثائق
-    await checkDocumentExpiry(supabase)
+    // 4. فحص انتهاء العقود
+    results.contract_expiry = await checkContractExpiry(supabase)
+    
+    // 5. فحص المركبات الخاملة
+    results.vehicle_idle = await checkIdleVehicles(supabase)
+    
+    // 6. فحص العملاء المتعثرين
+    results.customer_arrears = await checkCustomerArrears(supabase)
+
+    const totalNotifications = Object.values(results).reduce((sum, count) => sum + count, 0)
+
+    console.log('✅ تم إنشاء', totalNotifications, 'تنبيه جديد')
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'تم التحقق من جميع التنبيهات بنجاح',
+        message: `تم فحص جميع التنبيهات وإنشاء ${totalNotifications} تنبيه جديد`,
+        results,
         timestamp: new Date().toISOString()
       }),
       { 
@@ -49,7 +78,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('خطأ في نظام التنبيهات:', error)
+    console.error('❌ خطأ في نظام التنبيهات:', error)
     return new Response(
       JSON.stringify({ 
         error: error.message,
@@ -66,14 +95,13 @@ serve(async (req) => {
   }
 })
 
-// التحقق من الصيانة المستحقة
-async function checkMaintenanceDue(supabase: any) {
-  console.log('التحقق من الصيانة المستحقة...')
+// فحص الصيانة المستحقة
+async function checkMaintenanceDue(supabase: any): Promise<number> {
+  console.log('🔧 فحص الصيانة المستحقة...')
   
   const today = new Date()
   const threeDaysLater = new Date(today.getTime() + (3 * 24 * 60 * 60 * 1000))
   
-  // البحث عن الصيانة المجدولة خلال الأيام القادمة
   const { data: dueMaintenance } = await supabase
     .from('maintenance_schedules')
     .select(`
@@ -84,6 +112,7 @@ async function checkMaintenanceDue(supabase: any) {
     .lte('scheduled_date', threeDaysLater.toISOString().split('T')[0])
     .gte('scheduled_date', today.toISOString().split('T')[0])
 
+  let count = 0
   if (dueMaintenance && dueMaintenance.length > 0) {
     for (const maintenance of dueMaintenance) {
       await createNotification(supabase, {
@@ -93,17 +122,30 @@ async function checkMaintenanceDue(supabase: any) {
         severity: 'warning',
         reference_type: 'maintenance_schedule',
         reference_id: maintenance.id,
+        category: 'maintenance',
+        priority: 'medium',
+        delivery_channels: ['in_app', 'email'],
+        target_roles: ['mechanic', 'manager', 'admin'],
+        action_required: true,
         metadata: {
           vehicle_plate: maintenance.vehicles?.plate_number,
           maintenance_type: maintenance.maintenance_type,
-          scheduled_date: maintenance.scheduled_date
+          scheduled_date: maintenance.scheduled_date,
+          days_remaining: Math.ceil((new Date(maintenance.scheduled_date).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
         }
       })
+      count++
     }
-    console.log(`تم إنشاء ${dueMaintenance.length} تنبيه صيانة`)
   }
+  return count
+}
 
-  // البحث عن الصيانة المتأخرة
+// فحص الصيانة المتأخرة
+async function checkMaintenanceOverdue(supabase: any): Promise<number> {
+  console.log('⚠️ فحص الصيانة المتأخرة...')
+  
+  const today = new Date()
+  
   const { data: overdueMaintenance } = await supabase
     .from('maintenance_schedules')
     .select(`
@@ -113,6 +155,7 @@ async function checkMaintenanceDue(supabase: any) {
     .eq('status', 'scheduled')
     .lt('scheduled_date', today.toISOString().split('T')[0])
 
+  let count = 0
   if (overdueMaintenance && overdueMaintenance.length > 0) {
     for (const maintenance of overdueMaintenance) {
       // تحديث حالة الصيانة إلى متأخرة
@@ -128,20 +171,27 @@ async function checkMaintenanceDue(supabase: any) {
         severity: 'error',
         reference_type: 'maintenance_schedule',
         reference_id: maintenance.id,
+        category: 'maintenance',
+        priority: 'urgent',
+        delivery_channels: ['in_app', 'email', 'sms'],
+        target_roles: ['mechanic', 'manager', 'admin'],
+        action_required: true,
         metadata: {
           vehicle_plate: maintenance.vehicles?.plate_number,
           maintenance_type: maintenance.maintenance_type,
-          scheduled_date: maintenance.scheduled_date
+          scheduled_date: maintenance.scheduled_date,
+          days_overdue: Math.ceil((today.getTime() - new Date(maintenance.scheduled_date).getTime()) / (1000 * 60 * 60 * 24))
         }
       })
+      count++
     }
-    console.log(`تم إنشاء ${overdueMaintenance.length} تنبيه صيانة متأخرة`)
   }
+  return count
 }
 
-// التحقق من نفاد المخزون
-async function checkLowStock(supabase: any) {
-  console.log('التحقق من نفاد المخزون...')
+// فحص المخزون المنخفض
+async function checkLowStock(supabase: any): Promise<number> {
+  console.log('📦 فحص المخزون المنخفض...')
   
   const { data: lowStockItems } = await supabase
     .from('inventory_items')
@@ -152,171 +202,385 @@ async function checkLowStock(supabase: any) {
     .eq('is_active', true)
     .filter('current_stock', 'lte', 'minimum_stock')
 
+  let count = 0
   if (lowStockItems && lowStockItems.length > 0) {
     for (const item of lowStockItems) {
+      const stockPercentage = item.minimum_stock > 0 ? (item.current_stock / item.minimum_stock) * 100 : 0
+      const severity = stockPercentage <= 25 ? 'error' : 'warning'
+      const priority = stockPercentage <= 25 ? 'urgent' : 'high'
+
       await createNotification(supabase, {
         type: 'low_stock',
         title: 'مخزون منخفض',
-        message: `المخزون منخفض للصنف: ${item.name} (${item.current_stock} متبقي)`,
-        severity: 'warning',
+        message: `المخزون منخفض للصنف: ${item.name} (${item.current_stock} متبقي من ${item.minimum_stock})`,
+        severity,
         reference_type: 'inventory_item',
         reference_id: item.id,
+        category: 'inventory',
+        priority,
+        delivery_channels: ['in_app', 'email'],
+        target_roles: ['inventory_manager', 'manager', 'admin'],
+        action_required: true,
         metadata: {
           item_name: item.name,
           current_stock: item.current_stock,
           minimum_stock: item.minimum_stock,
+          stock_percentage: stockPercentage,
+          sku: item.sku,
           category: item.inventory_categories?.name
         }
       })
+      count++
     }
-    console.log(`تم إنشاء ${lowStockItems.length} تنبيه مخزون منخفض`)
   }
+  return count
 }
 
-// التحقق من انتهاء صلاحية القطع
-async function checkExpiredItems(supabase: any) {
-  console.log('التحقق من انتهاء صلاحية القطع...')
+// فحص الأصناف منتهية الصلاحية
+async function checkExpiredItems(supabase: any): Promise<number> {
+  console.log('⏰ فحص الأصناف منتهية الصلاحية...')
+  
+  const today = new Date()
+  
+  const { data: expiredItems } = await supabase
+    .from('inventory_items')
+    .select('*')
+    .eq('is_active', true)
+    .not('expiry_date', 'is', null)
+    .lt('expiry_date', today.toISOString().split('T')[0])
+
+  let count = 0
+  if (expiredItems && expiredItems.length > 0) {
+    for (const item of expiredItems) {
+      const daysExpired = Math.ceil((today.getTime() - new Date(item.expiry_date).getTime()) / (1000 * 60 * 60 * 24))
+      
+      await createNotification(supabase, {
+        type: 'item_expired',
+        title: 'صنف منتهي الصلاحية',
+        message: `الصنف ${item.name} منتهي الصلاحية منذ ${daysExpired} يوم (${new Date(item.expiry_date).toLocaleDateString('ar-SA')})`,
+        severity: 'error',
+        reference_type: 'inventory_item',
+        reference_id: item.id,
+        category: 'inventory',
+        priority: 'urgent',
+        delivery_channels: ['in_app', 'email'],
+        target_roles: ['inventory_manager', 'manager', 'admin'],
+        action_required: true,
+        metadata: {
+          item_name: item.name,
+          expiry_date: item.expiry_date,
+          days_expired: daysExpired,
+          current_stock: item.current_stock,
+          sku: item.sku
+        }
+      })
+      count++
+    }
+  }
+  return count
+}
+
+// فحص الأصناف التي ستنتهي صلاحيتها
+async function checkExpiringItems(supabase: any): Promise<number> {
+  console.log('⏳ فحص الأصناف التي ستنتهي صلاحيتها...')
   
   const today = new Date()
   const thirtyDaysLater = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000))
   
-  // القطع التي ستنتهي صلاحيتها خلال 30 يوم
   const { data: expiringItems } = await supabase
     .from('inventory_items')
-    .select(`
-      *,
-      inventory_categories (name)
-    `)
+    .select('*')
     .eq('is_active', true)
     .not('expiry_date', 'is', null)
     .lte('expiry_date', thirtyDaysLater.toISOString().split('T')[0])
     .gte('expiry_date', today.toISOString().split('T')[0])
 
+  let count = 0
   if (expiringItems && expiringItems.length > 0) {
     for (const item of expiringItems) {
       const daysUntilExpiry = Math.ceil((new Date(item.expiry_date).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+      const severity = daysUntilExpiry <= 7 ? 'error' : 'warning'
+      const priority = daysUntilExpiry <= 7 ? 'urgent' : daysUntilExpiry <= 15 ? 'high' : 'medium'
       
       await createNotification(supabase, {
         type: 'item_expiring',
         title: 'انتهاء صلاحية قريب',
         message: `الصنف ${item.name} ستنتهي صلاحيته خلال ${daysUntilExpiry} يوم`,
-        severity: daysUntilExpiry <= 7 ? 'error' : 'warning',
+        severity,
         reference_type: 'inventory_item',
         reference_id: item.id,
+        category: 'inventory',
+        priority,
+        delivery_channels: ['in_app', 'email'],
+        target_roles: ['inventory_manager', 'manager', 'admin'],
+        action_required: daysUntilExpiry <= 7,
         metadata: {
           item_name: item.name,
           expiry_date: item.expiry_date,
           days_until_expiry: daysUntilExpiry,
-          current_stock: item.current_stock
+          current_stock: item.current_stock,
+          sku: item.sku
         }
       })
+      count++
     }
-    console.log(`تم إنشاء ${expiringItems.length} تنبيه انتهاء صلاحية`)
   }
-
-  // القطع منتهية الصلاحية
-  const { data: expiredItems } = await supabase
-    .from('inventory_items')
-    .select(`
-      *,
-      inventory_categories (name)
-    `)
-    .eq('is_active', true)
-    .not('expiry_date', 'is', null)
-    .lt('expiry_date', today.toISOString().split('T')[0])
-
-  if (expiredItems && expiredItems.length > 0) {
-    for (const item of expiredItems) {
-      await createNotification(supabase, {
-        type: 'item_expired',
-        title: 'صنف منتهي الصلاحية',
-        message: `الصنف ${item.name} منتهي الصلاحية منذ ${new Date(item.expiry_date).toLocaleDateString('ar-SA')}`,
-        severity: 'error',
-        reference_type: 'inventory_item',
-        reference_id: item.id,
-        metadata: {
-          item_name: item.name,
-          expiry_date: item.expiry_date,
-          current_stock: item.current_stock
-        }
-      })
-    }
-    console.log(`تم إنشاء ${expiredItems.length} تنبيه انتهاء صلاحية`)
-  }
+  return count
 }
 
-// التحقق من انتهاء صلاحية الوثائق
-async function checkDocumentExpiry(supabase: any) {
-  console.log('التحقق من انتهاء صلاحية الوثائق...')
+// فحص انتهاء صلاحية الوثائق
+async function checkDocumentExpiry(supabase: any): Promise<number> {
+  console.log('📄 فحص انتهاء صلاحية الوثائق...')
   
   const today = new Date()
   const thirtyDaysLater = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000))
   
   const { data: expiringDocs } = await supabase
-    .from('vehicle_documents')
+    .from('customer_documents')
     .select(`
       *,
-      vehicles (plate_number, brand, model)
+      customers (name, phone)
     `)
     .eq('status', 'valid')
     .not('expiry_date', 'is', null)
     .lte('expiry_date', thirtyDaysLater.toISOString().split('T')[0])
     .gte('expiry_date', today.toISOString().split('T')[0])
 
+  let count = 0
   if (expiringDocs && expiringDocs.length > 0) {
     for (const doc of expiringDocs) {
       const daysUntilExpiry = Math.ceil((new Date(doc.expiry_date).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+      const severity = daysUntilExpiry <= 7 ? 'error' : 'warning'
+      const priority = daysUntilExpiry <= 7 ? 'urgent' : 'high'
       
       await createNotification(supabase, {
         type: 'document_expiring',
         title: 'وثيقة ستنتهي صلاحيتها',
-        message: `وثيقة ${doc.name} للمركبة ${doc.vehicles?.plate_number} ستنتهي صلاحيتها خلال ${daysUntilExpiry} يوم`,
-        severity: daysUntilExpiry <= 7 ? 'error' : 'warning',
-        reference_type: 'vehicle_document',
+        message: `وثيقة ${doc.document_name} للعميل ${doc.customers?.name} ستنتهي صلاحيتها خلال ${daysUntilExpiry} يوم`,
+        severity,
+        reference_type: 'customer_document',
         reference_id: doc.id,
+        category: 'documents',
+        priority,
+        delivery_channels: ['in_app', 'email'],
+        target_roles: ['employee', 'manager', 'admin'],
+        action_required: daysUntilExpiry <= 7,
         metadata: {
-          document_name: doc.name,
-          vehicle_plate: doc.vehicles?.plate_number,
+          document_name: doc.document_name,
+          document_type: doc.document_type,
+          customer_name: doc.customers?.name,
+          customer_phone: doc.customers?.phone,
           expiry_date: doc.expiry_date,
           days_until_expiry: daysUntilExpiry
         }
       })
+      count++
     }
-    console.log(`تم إنشاء ${expiringDocs.length} تنبيه انتهاء صلاحية وثائق`)
   }
+  return count
+}
+
+// فحص انتهاء صلاحية التأمين
+async function checkInsuranceExpiry(supabase: any): Promise<number> {
+  console.log('🛡️ فحص انتهاء صلاحية التأمين...')
+  
+  const today = new Date()
+  const sixtyDaysLater = new Date(today.getTime() + (60 * 24 * 60 * 60 * 1000))
+  
+  const { data: expiringInsurance } = await supabase
+    .from('vehicle_insurance')
+    .select(`
+      *,
+      vehicles (plate_number, brand, model)
+    `)
+    .eq('is_active', true)
+    .lte('end_date', sixtyDaysLater.toISOString().split('T')[0])
+    .gte('end_date', today.toISOString().split('T')[0])
+
+  let count = 0
+  if (expiringInsurance && expiringInsurance.length > 0) {
+    for (const insurance of expiringInsurance) {
+      const daysUntilExpiry = Math.ceil((new Date(insurance.end_date).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+      const severity = daysUntilExpiry <= 14 ? 'error' : 'warning'
+      const priority = daysUntilExpiry <= 7 ? 'urgent' : daysUntilExpiry <= 14 ? 'high' : 'medium'
+      
+      await createNotification(supabase, {
+        type: 'insurance_expiring',
+        title: 'انتهاء تأمين المركبة',
+        message: `تأمين المركبة ${insurance.vehicles?.plate_number} سينتهي خلال ${daysUntilExpiry} يوم`,
+        severity,
+        reference_type: 'vehicle_insurance',
+        reference_id: insurance.id,
+        category: 'insurance',
+        priority,
+        delivery_channels: ['in_app', 'email'],
+        target_roles: ['employee', 'manager', 'admin'],
+        action_required: daysUntilExpiry <= 14,
+        metadata: {
+          vehicle_plate: insurance.vehicles?.plate_number,
+          vehicle_info: `${insurance.vehicles?.brand} ${insurance.vehicles?.model}`,
+          insurance_company: insurance.insurance_company,
+          policy_number: insurance.policy_number,
+          end_date: insurance.end_date,
+          days_until_expiry: daysUntilExpiry
+        }
+      })
+      count++
+    }
+  }
+  return count
+}
+
+// فحص انتهاء العقود
+async function checkContractExpiry(supabase: any): Promise<number> {
+  console.log('📋 فحص انتهاء العقود...')
+  
+  const today = new Date()
+  const sevenDaysLater = new Date(today.getTime() + (7 * 24 * 60 * 60 * 1000))
+  
+  const { data: expiringContracts } = await supabase
+    .from('rental_contracts')
+    .select(`
+      *,
+      customers (name, phone),
+      vehicles (plate_number, brand, model)
+    `)
+    .in('status', ['active', 'confirmed'])
+    .lte('end_date', sevenDaysLater.toISOString().split('T')[0])
+    .gte('end_date', today.toISOString().split('T')[0])
+
+  let count = 0
+  if (expiringContracts && expiringContracts.length > 0) {
+    for (const contract of expiringContracts) {
+      const daysUntilExpiry = Math.ceil((new Date(contract.end_date).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+      const severity = daysUntilExpiry <= 2 ? 'error' : 'warning'
+      const priority = daysUntilExpiry <= 1 ? 'urgent' : 'high'
+      
+      await createNotification(supabase, {
+        type: 'contract_expiring',
+        title: 'انتهاء عقد إيجار',
+        message: `عقد إيجار المركبة ${contract.vehicles?.plate_number} للعميل ${contract.customers?.name} سينتهي خلال ${daysUntilExpiry} يوم`,
+        severity,
+        reference_type: 'rental_contract',
+        reference_id: contract.id,
+        category: 'contracts',
+        priority,
+        delivery_channels: ['in_app', 'email'],
+        target_roles: ['employee', 'manager', 'admin'],
+        action_required: true,
+        metadata: {
+          contract_number: contract.contract_number,
+          customer_name: contract.customers?.name,
+          customer_phone: contract.customers?.phone,
+          vehicle_plate: contract.vehicles?.plate_number,
+          end_date: contract.end_date,
+          days_until_expiry: daysUntilExpiry,
+          total_amount: contract.total_amount
+        }
+      })
+      count++
+    }
+  }
+  return count
+}
+
+// فحص المركبات الخاملة
+async function checkIdleVehicles(supabase: any): Promise<number> {
+  console.log('🚗 فحص المركبات الخاملة...')
+  
+  const today = new Date()
+  const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000))
+  
+  // البحث عن المركبات المتاحة التي لم يتم تأجيرها لأكثر من 30 يوم
+  const { data: idleVehicles } = await supabase
+    .from('vehicles')
+    .select(`
+      *,
+      rental_contracts!inner (end_date)
+    `)
+    .eq('status', 'available')
+    .lt('rental_contracts.end_date', thirtyDaysAgo.toISOString().split('T')[0])
+
+  let count = 0
+  if (idleVehicles && idleVehicles.length > 0) {
+    for (const vehicle of idleVehicles) {
+      const daysSinceLastRental = Math.ceil((today.getTime() - new Date(vehicle.rental_contracts[0]?.end_date || vehicle.created_at).getTime()) / (1000 * 60 * 60 * 24))
+      
+      if (daysSinceLastRental >= 30) {
+        await createNotification(supabase, {
+          type: 'vehicle_idle',
+          title: 'مركبة خاملة',
+          message: `المركبة ${vehicle.plate_number} خاملة لمدة ${daysSinceLastRental} يوم بدون تأجير`,
+          severity: daysSinceLastRental >= 60 ? 'error' : 'warning',
+          reference_type: 'vehicle',
+          reference_id: vehicle.id,
+          category: 'operations',
+          priority: daysSinceLastRental >= 60 ? 'high' : 'medium',
+          delivery_channels: ['in_app'],
+          target_roles: ['manager', 'admin'],
+          action_required: daysSinceLastRental >= 60,
+          metadata: {
+            vehicle_plate: vehicle.plate_number,
+            vehicle_info: `${vehicle.brand} ${vehicle.model}`,
+            days_idle: daysSinceLastRental,
+            daily_rate: vehicle.daily_rate,
+            potential_revenue_loss: daysSinceLastRental * vehicle.daily_rate
+          }
+        })
+        count++
+      }
+    }
+  }
+  return count
+}
+
+// فحص العملاء المتعثرين
+async function checkCustomerArrears(supabase: any): Promise<number> {
+  console.log('💰 فحص العملاء المتعثرين...')
+  
+  // استدعاء الدالة الموجودة
+  const { data, error } = await supabase.rpc('check_and_notify_customer_arrears')
+  
+  if (error) {
+    console.error('خطأ في فحص العملاء المتعثرين:', error)
+    return 0
+  }
+  
+  return data || 0
 }
 
 // إنشاء تنبيه جديد
-async function createNotification(supabase: any, notificationData: any) {
+async function createNotification(supabase: any, notificationData: any): Promise<void> {
   // التحقق من عدم وجود تنبيه مماثل في آخر 24 ساعة
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
   
   const { data: existingNotification } = await supabase
-    .from('notifications')
+    .from('smart_notifications')
     .select('id')
     .eq('type', notificationData.type)
+    .eq('reference_type', notificationData.reference_type)
     .eq('reference_id', notificationData.reference_id)
     .gte('created_at', oneDayAgo.toISOString())
     .limit(1)
 
   if (existingNotification && existingNotification.length > 0) {
-    console.log(`تنبيه موجود بالفعل للمرجع: ${notificationData.reference_id}`)
+    console.log(`⚠️ تنبيه موجود بالفعل: ${notificationData.reference_type}/${notificationData.reference_id}`)
     return
   }
 
-  // إنشاء التنبيه
+  // إنشاء التنبيه الجديد
   const { error } = await supabase
-    .from('notifications')
+    .from('smart_notifications')
     .insert([{
       ...notificationData,
       status: 'unread',
       auto_generated: true,
-      action_required: notificationData.severity === 'error'
+      reference_data: notificationData.metadata || {}
     }])
 
   if (error) {
-    console.error('خطأ في إنشاء التنبيه:', error)
+    console.error('❌ خطأ في إنشاء التنبيه:', error)
   } else {
-    console.log(`تم إنشاء تنبيه: ${notificationData.title}`)
+    console.log(`✅ تم إنشاء تنبيه: ${notificationData.title}`)
   }
 }
