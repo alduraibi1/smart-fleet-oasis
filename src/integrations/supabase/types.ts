@@ -4059,6 +4059,47 @@ export type Database = {
           },
         ]
       }
+      vehicle_tracker_mappings: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_sync: string | null
+          plate_number: string
+          sync_status: string | null
+          tracker_id: string
+          updated_at: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_sync?: string | null
+          plate_number: string
+          sync_status?: string | null
+          tracker_id: string
+          updated_at?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_sync?: string | null
+          plate_number?: string
+          sync_status?: string | null
+          tracker_id?: string
+          updated_at?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_tracker_mappings_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: true
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_trackers: {
         Row: {
           battery_level: number | null
@@ -4141,6 +4182,7 @@ export type Database = {
           registration_expiry: string | null
           seating_capacity: number
           status: string
+          tracker_id: string | null
           transmission: string
           updated_at: string
           vin: string | null
@@ -4168,6 +4210,7 @@ export type Database = {
           registration_expiry?: string | null
           seating_capacity?: number
           status?: string
+          tracker_id?: string | null
           transmission?: string
           updated_at?: string
           vin?: string | null
@@ -4195,6 +4238,7 @@ export type Database = {
           registration_expiry?: string | null
           seating_capacity?: number
           status?: string
+          tracker_id?: string | null
           transmission?: string
           updated_at?: string
           vin?: string | null
@@ -4661,6 +4705,10 @@ export type Database = {
       is_ip_blocked: {
         Args: { p_ip_address: unknown }
         Returns: boolean
+      }
+      normalize_plate_number: {
+        Args: { plate: string }
+        Returns: string
       }
       save_profitability_snapshot: {
         Args: {

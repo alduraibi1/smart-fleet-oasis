@@ -9,6 +9,7 @@ import VehicleActions from '@/components/Vehicles/VehicleActions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
 import { useVehicles } from '@/hooks/useVehicles';
+import TrackerSyncButton from '@/components/Vehicles/TrackerSyncButton';
 
 const Vehicles = () => {
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
@@ -80,6 +81,11 @@ const Vehicles = () => {
             onUpdateVehicle={handleVehicleUpdated}
             onDeleteVehicle={handleVehicleDeleted}
           />
+
+          {/* Tracker Sync */}
+          <div className="dashboard-card">
+            <TrackerSyncButton />
+          </div>
 
           {/* Filters */}
           <div className="dashboard-card">
