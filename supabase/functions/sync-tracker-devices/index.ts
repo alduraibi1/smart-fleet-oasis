@@ -2,7 +2,7 @@
 /* eslint-disable */
 // Deno Edge Function: sync-tracker-devices
 // Modes:
-// - auto   : Try to login to the tracking site and fetch devices (scaffold, requires page paths)
+// - auto   : Login to tracking site and fetch devices (with improved discovery & parsing)
 // - manual : Accept payload.devices = [{ plate, trackerId, latitude?, longitude?, address? }]
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -224,8 +224,9 @@ Deno.serve(async (req) => {
     });
   }
 
-  // AUTO MODE (scaffold)
-  // You can customize these paths after confirming the device list page path and selectors.
+  // =========================
+  // AUTO MODE (improved)
+  // =========================
   const TRACKING_BASE = "http://194.165.139.226";
   const LOGIN_PATH = "/Login.aspx";
   const username = Deno.env.get("TRACKING_USERNAME");
@@ -243,24 +244,28 @@ Deno.serve(async (req) => {
   let cookie = "";
 
   // 1) Load login page to fetch ASP.NET hidden fields
+  console.log("[sync-tracker] Fetching login page...");
   const loginPageResp = await fetch(`${TRACKING_BASE}${LOGIN_PATH}`);
   cookie = mergeCookies(cookie, loginPageResp.headers.get("set-cookie"));
   const loginHtml = await loginPageResp.text();
-  const viewState = extractHidden(loginHtml, "__VIEWSTATE");
-  const eventValidation = extractHidden(loginHtml, "__EVENTVALIDATION");
-  const viewStateGenerator = extractHidden(loginHtml, "__VIEWSTATEGENERATOR");
+  const hiddenFields = extractAspNetHiddenFields(loginHtml);
+  const userFieldName = findInputName(loginHtml, ["UserName", "username", "txtUserName", "Login1$UserName", "ctl00$ContentPlaceHolder1$txtUserName"]);
+  const passFieldName = findInputName(loginHtml, ["Password", "password", "txtPassword", "Login1$Password", "ctl00$ContentPlaceHolder1$txtPassword"]);
+  const submitFieldName = findInputName(loginHtml, ["btnLogin", "LoginButton", "ctl00$ContentPlaceHolder1$btnLogin"], true) || "btnLogin";
 
-  // 2) Post login form (keys may differ, adjust after inspecting page)
+  // 2) Post login form
   const form = new URLSearchParams();
-  // Common ASP.NET fields
-  if (viewState) form.set("__VIEWSTATE", viewState);
-  if (eventValidation) form.set("__EVENTVALIDATION", eventValidation);
-  if (viewStateGenerator) form.set("__VIEWSTATEGENERATOR", viewStateGenerator);
-  // Likely input names - adjust to actual names from the page
-  form.set("txtUserName", username);
-  form.set("txtPassword", password);
-  form.set("btnLogin", "Login");
+  // Hidden ASP.NET fields
+  Object.entries(hiddenFields).forEach(([k, v]) => {
+    if (v !== undefined && v !== null) form.set(k, v);
+  });
 
+  // Credentials: try detected names then common fallbacks
+  form.set(userFieldName || "txtUserName", username);
+  form.set(passFieldName || "txtPassword", password);
+  form.set(submitFieldName, "Login");
+
+  console.log("[sync-tracker] Posting login...");
   const loginResp = await fetch(`${TRACKING_BASE}${LOGIN_PATH}`, {
     method: "POST",
     headers: {
@@ -272,13 +277,15 @@ Deno.serve(async (req) => {
   });
   cookie = mergeCookies(cookie, loginResp.headers.get("set-cookie"));
   const loginStatus = loginResp.status;
+  console.log("[sync-tracker] Login status:", loginStatus);
 
   if (loginStatus >= 300 && loginStatus < 400) {
     // redirected after successful login: continue
+    console.log("[sync-tracker] Login likely successful (redirect).");
   } else if (loginStatus === 200) {
     // Possibly remained on login page due to invalid auth
     const text = await loginResp.text();
-    if (text.includes("Invalid") || text.includes("error")) {
+    if (text.includes("Invalid") || text.includes("error") || text.match(/Password|UserName|اسم المستخدم|كلمة المرور/i)) {
       summary.errors.push("Login might have failed. Please verify credentials or CAPTCHA.");
       return new Response(JSON.stringify({ success: false, summary }), {
         status: 401,
@@ -293,17 +300,60 @@ Deno.serve(async (req) => {
     });
   }
 
-  // 3) Fetch devices page (placeholder path - update after confirmation)
-  // Example paths to try: "/Devices.aspx", "/Fleet/Devices.aspx", "/Default.aspx"
-  const candidates = ["/Devices.aspx", "/Default.aspx", "/Fleet/Devices.aspx"];
+  // 3) Discover a devices list page
+  // Try common landings first
+  const homeCandidates = ["/Default.aspx", "/", "/Home.aspx", "/Dashboard.aspx"];
+  let homeHtml = "";
+  for (const path of homeCandidates) {
+    try {
+      const r = await fetch(`${TRACKING_BASE}${path}`, { headers: { "Cookie": cookie } });
+      if (r.ok) {
+        const t = await r.text();
+        if (t && t.length > 100) {
+          homeHtml = t;
+          break;
+        }
+      }
+    } catch (e) {
+      console.log("[sync-tracker] Home fetch error for", path, e);
+    }
+  }
+
+  let candidates = [
+    "/Devices.aspx",
+    "/Default.aspx",
+    "/Fleet/Devices.aspx",
+    "/VehicleList.aspx",
+    "/Tracking/Devices.aspx",
+    "/Assets.aspx",
+  ];
+
+  // Discover additional candidates from homepage links (English/Arabic hints)
+  if (homeHtml) {
+    const discovered = discoverDevicesLinks(homeHtml)
+      .map((href) => normalizeHref(href))
+      .filter(Boolean) as string[];
+    candidates = Array.from(new Set([...discovered, ...candidates]));
+    console.log("[sync-tracker] Discovered device page candidates:", candidates);
+  }
+
+  // 4) Fetch devices page by trying candidates
   let devicesHtml = "";
   for (const path of candidates) {
-    const r = await fetch(`${TRACKING_BASE}${path}`, { headers: { "Cookie": cookie } });
-    if (r.ok) {
-      devicesHtml = await r.text();
-      if (devicesHtml && devicesHtml.length > 200) {
-        break;
+    try {
+      const url = path.startsWith("http") ? path : `${TRACKING_BASE}${path}`;
+      const r = await fetch(url, { headers: { "Cookie": cookie } });
+      if (r.ok) {
+        const t = await r.text();
+        // Heuristic: look for plate/IMEI/device patterns to accept this page
+        if (t && t.length > 200 && /plate|imei|device|tracker|لوحة|رقم|جهاز|تتبع/i.test(t)) {
+          devicesHtml = t;
+          console.log("[sync-tracker] Using devices page:", url);
+          break;
+        }
       }
+    } catch (e) {
+      console.log("[sync-tracker] Devices fetch error for", path, e);
     }
   }
 
@@ -314,9 +364,10 @@ Deno.serve(async (req) => {
     });
   }
 
-  // 4) Parse devices from HTML (placeholder: expects rows with data attributes)
-  // Adjust the parsing to actual HTML structure.
+  // 5) Parse devices from HTML using improved parser
   const parsedDevices = parseDevicesFromHtml(devicesHtml);
+  console.log("[sync-tracker] Parsed devices count:", parsedDevices.length);
+
   if (parsedDevices.length === 0) {
     summary.errors.push("No devices parsed. Please adjust parser to page structure.");
   } else {
@@ -330,36 +381,36 @@ Deno.serve(async (req) => {
   });
 });
 
+// =========================
 // Helpers
+// =========================
 function mergeCookies(existing: string, incoming: string | null): string {
   if (!incoming) return existing;
-  const parts = incoming.split(",");
-  const cookies = parts
+  // More tolerant merging: split by comma only when a new cookie starts (key=value;...)
+  const incomingParts = incoming
+    .split(/,(?=\s*[A-Za-z0-9_\-]+=)/g)
     .map((p) => p.split(";")[0].trim())
     .filter(Boolean);
+
   const jar = new Map<string, string>();
-  const add = (c: string) => {
-    const [k, v] = c.split("=");
-    if (!k) return;
-    jar.set(k.trim(), v ?? "");
-  };
+
   // Load existing
   existing.split(";").forEach((c) => {
     const [k, v] = c.trim().split("=");
     if (!k) return;
     jar.set(k.trim(), v ?? "");
   });
+
   // Add incoming
-  cookies.forEach(add);
+  incomingParts.forEach((c) => {
+    const [k, v] = c.split("=");
+    if (!k) return;
+    jar.set(k.trim(), v ?? "");
+  });
+
   return Array.from(jar.entries())
     .map(([k, v]) => `${k}=${v}`)
     .join("; ");
-}
-
-function extractHidden(html: string, name: string): string | null {
-  const re = new RegExp(`name="${name}"\\s+id="${name}"\\s+value="([^"]*)"`, "i");
-  const m = html.match(re);
-  return m ? decodeHtml(m[1]) : null;
 }
 
 function decodeHtml(s: string): string {
@@ -371,21 +422,178 @@ function decodeHtml(s: string): string {
     .replace(/&quot;/g, '"');
 }
 
-function parseDevicesFromHtml(html: string): DeviceInput[] {
-  // Placeholder parser:
-  // Try to find rows like: <tr data-plate="..." data-tracker="..." data-lat="..." data-lon="..." data-addr="...">
-  const re = /<tr[^>]*data-plate="([^"]+)"[^>]*data-tracker="([^"]+)"[^>]*?(?:data-lat="([^"]+)")?[^>]*?(?:data-lon="([^"]+)")?[^>]*?(?:data-addr="([^"]*)")?[^>]*>/gi;
-  const out: DeviceInput[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(html)) !== null) {
-    const plate = m[1];
-    const trackerId = m[2];
-    const latitude = m[3] ? Number(m[3]) : undefined;
-    const longitude = m[4] ? Number(m[4]) : undefined;
-    const address = m[5] || undefined;
-    if (plate && trackerId) {
-      out.push({ plate, trackerId, latitude, longitude, address });
+function extractAspNetHiddenFields(html: string): Record<string, string> {
+  const names = ["__VIEWSTATE", "__EVENTVALIDATION", "__VIEWSTATEGENERATOR"];
+  const out: Record<string, string> = {};
+  for (const n of names) {
+    const re = new RegExp(`name="${n}"[^>]*value="([^"]*)"`, "i");
+    const m = html.match(re);
+    if (m) out[n] = decodeHtml(m[1]);
+  }
+  // Also include any __EVENTTARGET/ARGUMENT if preset
+  const et = html.match(/name="__EVENTTARGET"[^>]*value="([^"]*)"/i)?.[1];
+  const ea = html.match(/name="__EVENTARGUMENT"[^>]*value="([^"]*)"/i)?.[1];
+  if (et) out["__EVENTTARGET"] = decodeHtml(et);
+  if (ea) out["__EVENTARGUMENT"] = decodeHtml(ea);
+  return out;
+}
+
+function findInputName(html: string, candidates: string[], exact = false): string | null {
+  // Try to detect input names (name or id) present in page that match any candidate
+  for (const cand of candidates) {
+    const re = exact
+      ? new RegExp(`name="${escapeRegex(cand)}"|id="${escapeRegex(cand)}"`, "i")
+      : new RegExp(`name="([^"]*${escapeRegex(cand)}[^"]*)"|id="([^"]*${escapeRegex(cand)}[^"]*)"`, "i");
+    const m = html.match(re);
+    if (m) {
+      const full = m[1] || m[2];
+      return full || cand;
     }
   }
-  return out;
+  return null;
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function normalizeHref(href: string): string {
+  try {
+    if (!href) return "";
+    // Ignore javascript:void
+    if (/^javascript:/i.test(href)) return "";
+    // Return as-is if absolute
+    if (/^https?:\/\//i.test(href)) return href;
+    // Ensure starts with slash
+    if (!href.startsWith("/")) return `/${href}`;
+    return href;
+  } catch {
+    return "";
+  }
+}
+
+function discoverDevicesLinks(html: string): string[] {
+  const out = new Set<string>();
+  const re = /<a\s+[^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/gis;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    const href = m[1] || "";
+    const text = stripTags(m[2] || "");
+    // Heuristics in both EN/AR
+    if (
+      /device|devices|tracker|vehicle|fleet|asset|IMEI|GPS|تتبع|جهاز|أجهزة|مركبة|المركبات|الأسطول/i.test(href + " " + text)
+    ) {
+      out.add(href);
+    }
+  }
+  return Array.from(out);
+}
+
+function stripTags(s: string): string {
+  return s.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+}
+
+function cellText(html: string): string {
+  return stripTags(decodeHtml(html)).trim();
+}
+
+// Improved parser: combine attribute-based and table-based parsing
+function parseDevicesFromHtml(html: string): DeviceInput[] {
+  const results: DeviceInput[] = [];
+
+  // A) Attribute-based rows
+  const attrRe =
+    /<tr[^>]*data-plate="([^"]+)"[^>]*data-tracker="([^"]+)"[^>]*?(?:data-lat="([^"]+)")?[^>]*?(?:data-lon="([^"]+)")?[^>]*?(?:data-addr="([^"]*)")?[^>]*>/gi;
+  let a: RegExpExecArray | null;
+  while ((a = attrRe.exec(html)) !== null) {
+    const plate = a[1];
+    const trackerId = a[2];
+    const latitude = a[3] ? Number(a[3]) : undefined;
+    const longitude = a[4] ? Number(a[4]) : undefined;
+    const address = a[5] || undefined;
+    if (plate && trackerId) {
+      results.push({ plate, trackerId, latitude, longitude, address });
+    }
+  }
+
+  // B) Table-based parsing with header detection (EN/AR)
+  // Find first table that looks like a devices list (has plate/tracker headers)
+  const tableRe = /<table[^>]*>([\s\S]*?)<\/table>/gi;
+  let t: RegExpExecArray | null;
+  while ((t = tableRe.exec(html)) !== null) {
+    const table = t[1];
+
+    // Find header row
+    const headerRowMatch = table.match(/<tr[^>]*>([\s\S]*?)<\/tr>/i);
+    if (!headerRowMatch) continue;
+    const headerRow = headerRowMatch[1];
+
+    const headers = Array.from(headerRow.matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi)).map((m) =>
+      cellText(m[1])
+    );
+    if (headers.length === 0) continue;
+
+    // Identify columns
+    const colIndex = {
+      plate: findHeaderIndex(headers, ["plate", "لوحة", "رقم اللوحة", "plate number", "vehicle", "المركبة"]),
+      tracker: findHeaderIndex(headers, ["tracker", "imei", "device", "جهاز", "المتتبع"]),
+      lat: findHeaderIndex(headers, ["lat", "latitude", "خط العرض", "إحداثيات"]),
+      lon: findHeaderIndex(headers, ["lon", "lng", "longitude", "خط الطول"]),
+      addr: findHeaderIndex(headers, ["address", "العنوان", "location", "الموقع"]),
+    };
+
+    // Need at least plate + tracker columns
+    if (colIndex.plate === -1 || colIndex.tracker === -1) continue;
+
+    // Iterate data rows (all rows after header)
+    const rowRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+    let rr: RegExpExecArray | null;
+    // Skip first match (header) by advancing once
+    rowRe.exec(table);
+    while ((rr = rowRe.exec(table)) !== null) {
+      const rowHtml = rr[1];
+      const cells = Array.from(rowHtml.matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi)).map((m) => cellText(m[1]));
+      if (cells.length < Math.max(colIndex.plate, colIndex.tracker) + 1) continue;
+
+      const plate = cells[colIndex.plate]?.trim();
+      const trackerId = cells[colIndex.tracker]?.trim();
+      const latitude = colIndex.lat !== -1 ? parseNumberSafe(cells[colIndex.lat]) : undefined;
+      const longitude = colIndex.lon !== -1 ? parseNumberSafe(cells[colIndex.lon]) : undefined;
+      const address = colIndex.addr !== -1 ? (cells[colIndex.addr] || undefined) : undefined;
+
+      if (plate && trackerId) {
+        results.push({ plate, trackerId, latitude, longitude, address });
+      }
+    }
+
+    // If we found any in this table, accept and stop scanning more tables to avoid duplicates
+    if (results.length > 0) break;
+  }
+
+  // Deduplicate by plate+trackerId
+  const uniq = new Map<string, DeviceInput>();
+  for (const d of results) {
+    const key = `${d.plate}::${d.trackerId}`;
+    if (!uniq.has(key)) uniq.set(key, d);
+  }
+  return Array.from(uniq.values());
+}
+
+function parseNumberSafe(s?: string): number | undefined {
+  if (!s) return undefined;
+  const n = Number(String(s).replace(/[^\d.\-]/g, ""));
+  return isFinite(n) ? n : undefined;
+}
+
+function findHeaderIndex(headers: string[], keys: string[]): number {
+  const normalized = headers.map((h) => h.toLowerCase());
+  for (const k of keys) {
+    const kk = k.toLowerCase();
+    // Exact or contains
+    let i = normalized.findIndex((h) => h === kk);
+    if (i !== -1) return i;
+    i = normalized.findIndex((h) => h.includes(kk));
+    if (i !== -1) return i;
+  }
+  return -1;
 }
