@@ -1,22 +1,26 @@
-
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
+import React, { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Activity, 
+  Settings, 
+  TrendingUp, 
+  Shield,
+  BarChart3,
   Wifi, 
   WifiOff, 
   Clock, 
   CheckCircle, 
   AlertTriangle, 
   RefreshCcw,
-  TrendingUp,
-  MapPin,
-  Settings
+  MapPin
 } from "lucide-react";
+import TrackerHealthMonitor from "./TrackerHealthMonitor";
+import TrackerSyncSettings from "./TrackerSyncSettings";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { useTrackerSync } from "@/hooks/useTrackerSync";
 import { useToast } from "@/hooks/use-toast";
 
@@ -38,6 +42,7 @@ interface DeviceStatus {
 }
 
 const TrackerSyncDashboard: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("overview");
   const [syncStats, setSyncStats] = useState<SyncStats>({
     totalDevices: 0,
     connectedDevices: 0,
@@ -79,7 +84,7 @@ const TrackerSyncDashboard: React.FC = () => {
     }
   ];
 
-  useEffect(() => {
+  useState(() => {
     // تحميل البيانات الأولية
     loadSyncStats();
     setDeviceStatuses(mockDeviceStatuses);
@@ -163,6 +168,40 @@ const TrackerSyncDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">لوحة تحكم أجهزة التتبع المتقدمة</h3>
+          <p className="text-sm text-muted-foreground">
+            مراقبة شاملة وإدارة ذكية لأجهزة التتبع
+          </p>
+        </div>
+      </div>
+
+      {/* الشريط المتقدم */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview" className="gap-2">
+            <BarChart3 className="h-4 w-4" />
+            نظرة عامة
+          </TabsTrigger>
+          <TabsTrigger value="health" className="gap-2">
+            <Activity className="h-4 w-4" />
+            المراقبة الفورية
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <TrendingUp className="h-4 w-4" />
+            التحليلات
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="gap-2">
+            <Settings className="h-4 w-4" />
+            الإعدادات المتقدمة
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6 mt-6">
+          {/* المحتوى الأصلي للوحة التحكم */}
+          <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -345,6 +384,27 @@ const TrackerSyncDashboard: React.FC = () => {
           </CardContent>
         </Card>
       )}
+    </div>
+        </TabsContent>
+
+        <TabsContent value="health" className="mt-6">
+          <TrackerHealthMonitor />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-6">
+          <div className="text-center py-12">
+            <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">تحليلات متقدمة</h3>
+            <p className="text-muted-foreground">
+              قريباً: تحليلات مفصلة وتقارير شاملة عن أداء أجهزة التتبع
+            </p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="settings" className="mt-6">
+          <TrackerSyncSettings />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
