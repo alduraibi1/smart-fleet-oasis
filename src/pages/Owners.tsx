@@ -47,49 +47,47 @@ const Owners = () => {
 
   return (
     <div className="content-spacing">
-      <div className="page-container">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">مالكي المركبات</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              إدارة ملاك المركبات والحسابات المالية
-            </p>
-          </div>
-          <Button 
-            onClick={() => setIsAddDialogOpen(true)}
-            className="btn-responsive flex-shrink-0"
-            size="sm"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            إضافة مالك
-          </Button>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">مالكي المركبات</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            إدارة ملاك المركبات والحسابات المالية
+          </p>
         </div>
+        <Button 
+          onClick={() => setIsAddDialogOpen(true)}
+          className="btn-responsive flex-shrink-0"
+          size="sm"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          إضافة مالك
+        </Button>
+      </div>
 
-        {/* Stats Section */}
-        <div className="stats-container">
-          <OwnerStats 
-            stats={mockStats}
-            loading={loading}
-          />
-        </div>
+      {/* Stats Section */}
+      <div className="stats-container mb-6">
+        <OwnerStats 
+          stats={mockStats}
+          loading={loading}
+        />
+      </div>
 
-        {/* Filters */}
-        <div className="dashboard-card mb-4 sm:mb-6">
-          <OwnerFilters 
-            onFiltersChange={handleFiltersChange}
-          />
-        </div>
+      {/* Filters */}
+      <div className="dashboard-card mb-4 sm:mb-6">
+        <OwnerFilters 
+          onFiltersChange={handleFiltersChange}
+        />
+      </div>
 
-        {/* Main Content */}
-        <div className="dashboard-card">
-          <OwnerTable 
-            owners={owners}
-            loading={loading}
-            onUpdate={handleUpdate}
-            onDelete={handleDelete}
-          />
-        </div>
+      {/* Main Content */}
+      <div className="dashboard-card">
+        <OwnerTable 
+          owners={owners}
+          loading={loading}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
+        />
       </div>
 
       {/* Add Owner Dialog */}

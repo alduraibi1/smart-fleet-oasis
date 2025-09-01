@@ -19,41 +19,52 @@ export default function Contracts() {
   const { contracts, loading, stats } = useContracts();
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">إدارة العقود</h1>
-          <p className="text-muted-foreground">
+    <div className="content-spacing">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">إدارة العقود</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             إدارة عقود الإيجار وعمليات إرجاع المركبات
           </p>
         </div>
-        <Button onClick={() => setShowAddDialog(true)}>
+        <Button onClick={() => setShowAddDialog(true)} className="btn-responsive flex-shrink-0">
           <Plus className="ml-2 h-4 w-4" />
           إضافة عقد جديد
         </Button>
       </div>
 
       {/* إحصائيات إرجاع المركبات */}
-      <VehicleReturnStats />
+      <div className="dashboard-card mb-6">
+        <VehicleReturnStats />
+      </div>
       
       {/* تنبيهات انتهاء العقود */}
-      <ContractExpiryAlerts />
+      <div className="dashboard-card mb-6">
+        <ContractExpiryAlerts />
+      </div>
 
       {/* تنبيهات العملاء المتعثرين */}
-      <CustomerArrearsAlerts />
+      <div className="dashboard-card mb-6">
+        <CustomerArrearsAlerts />
+      </div>
 
       {/* إحصائيات العقود العامة */}
-      <ContractsStats stats={stats} />
+      <div className="stats-container mb-6">
+        <ContractsStats stats={stats} />
+      </div>
 
       {/* جدول العقود */}
-      <Card>
-        <CardHeader>
-          <CardTitle>قائمة العقود</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ContractsTable contracts={contracts} loading={loading} />
-        </CardContent>
-      </Card>
+      <div className="dashboard-card">
+        <Card>
+          <CardHeader>
+            <CardTitle>قائمة العقود</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ContractsTable contracts={contracts} loading={loading} />
+          </CardContent>
+        </Card>
+      </div>
 
       <AddContractDialog 
         open={showAddDialog} 
