@@ -4724,6 +4724,10 @@ export type Database = {
         Args: { p_email: string; p_ip_address: unknown; p_user_agent?: string }
         Returns: boolean
       }
+      user_roles_text: {
+        Args: { _user_id: string }
+        Returns: string[]
+      }
       validate_password_strength: {
         Args: { password_text: string }
         Returns: Json
