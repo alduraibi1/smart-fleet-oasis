@@ -1,25 +1,18 @@
 
-import { Bell, Search, Settings, User } from 'lucide-react';
+import { Search, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import { NotificationCenter } from '@/components/Notifications/NotificationCenter';
 import { useState } from 'react';
 
-interface HeaderProps {
-  onMenuClick: () => void;
-}
-
-export default function Header({ onMenuClick }: HeaderProps) {
+export default function Header() {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 backdrop-glass">
       <div className="flex h-12 sm:h-14 md:h-16 items-center justify-between spacing-adaptive">
         <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
-          <SidebarTrigger className="btn-icon-responsive flex-shrink-0" />
-          
           {/* Desktop Search */}
           <div className="hidden sm:flex items-center gap-2 max-w-xs lg:max-w-sm flex-1">
             <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
