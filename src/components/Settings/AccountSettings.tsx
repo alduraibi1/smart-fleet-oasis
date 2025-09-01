@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Globe, Clock, Shield } from 'lucide-react';
+import { Globe, Clock, Shield, CheckCircle, AlertCircle } from 'lucide-react';
 
 export function AccountSettings() {
   const { toast } = useToast();
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [settings, setSettings] = useState({
     language: 'ar',
     timezone: 'Asia/Riyadh',
@@ -16,11 +18,47 @@ export function AccountSettings() {
     dataRetention: '1year'
   });
 
+  // Auto-save functionality
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+
+    const autoSaveTimer = setTimeout(() => {
+      handleAutoSave();
+    }, 1500);
+
+    return () => clearTimeout(autoSaveTimer);
+  }, [settings, hasUnsavedChanges]);
+
+  const handleAutoSave = async () => {
+    if (!hasUnsavedChanges) return;
+
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setHasUnsavedChanges(false);
+      setLastSaved(new Date());
+      
+      toast({
+        title: "تم الحفظ التلقائي",
+        description: "تم حفظ إعدادات الحساب تلقائياً",
+        duration: 2000,
+      });
+    } catch (error) {
+      toast({
+        title: "خطأ في الحفظ التلقائي",
+        description: "حدث خطأ أثناء الحفظ التلقائي",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSettingChange = (key: string, value: any) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: value
-    }));
+    setSettings(prev => {
+      const newSettings = { ...prev, [key]: value };
+      setHasUnsavedChanges(true);
+      return newSettings;
+    });
   };
 
   const saveSettings = () => {
@@ -32,9 +70,33 @@ export function AccountSettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
+      {/* Auto-save status */}
+      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
+        <div className="flex items-center gap-2">
+          {hasUnsavedChanges ? (
+            <>
+              <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-muted-foreground">يتم الحفظ التلقائي...</span>
+            </>
+          ) : lastSaved ? (
+            <>
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span className="text-sm text-green-600">
+                آخر حفظ: {lastSaved.toLocaleTimeString('ar-SA')}
+              </span>
+            </>
+          ) : (
+            <>
+              <AlertCircle className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">الحفظ التلقائي مفعل</span>
+            </>
+          )}
+        </div>
+      </div>
+
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
           <div className="space-y-0.5">
             <Label className="text-base flex items-center gap-2">
               <Globe className="h-4 w-4" />
@@ -58,7 +120,7 @@ export function AccountSettings() {
           </Select>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
           <div className="space-y-0.5">
             <Label className="text-base flex items-center gap-2">
               <Clock className="h-4 w-4" />
@@ -83,7 +145,7 @@ export function AccountSettings() {
           </Select>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
           <div className="space-y-0.5">
             <Label htmlFor="auto-save" className="text-base">
               الحفظ التلقائي
@@ -99,7 +161,7 @@ export function AccountSettings() {
           />
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
           <div className="space-y-0.5">
             <Label htmlFor="email-updates" className="text-base">
               تحديثات البريد الإلكتروني
@@ -115,7 +177,7 @@ export function AccountSettings() {
           />
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
           <div className="space-y-0.5">
             <Label className="text-base flex items-center gap-2">
               <Shield className="h-4 w-4" />
@@ -143,8 +205,12 @@ export function AccountSettings() {
       </div>
 
       <div className="flex justify-end pt-4 border-t">
-        <Button onClick={saveSettings}>
-          حفظ الإعدادات
+        <Button 
+          onClick={saveSettings} 
+          disabled={!hasUnsavedChanges}
+          className="hover-scale"
+        >
+          حفظ يدوي
         </Button>
       </div>
     </div>

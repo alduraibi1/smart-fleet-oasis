@@ -13,7 +13,7 @@ import { useState } from 'react';
 export default function Header() {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const { user, signOut, userRoles } = useAuth();
+  const { user, signOut, userRoles, userProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -43,19 +43,38 @@ export default function Header() {
   };
 
   const getUserDisplayName = () => {
+    if (userProfile?.full_name) {
+      return userProfile.full_name;
+    }
     return user?.email?.split('@')[0] || 'مستخدم';
   };
 
   const getUserInitials = () => {
     const name = getUserDisplayName();
+    if (userProfile?.full_name) {
+      const names = userProfile.full_name.split(' ');
+      if (names.length >= 2) {
+        return names[0].charAt(0) + names[1].charAt(0);
+      }
+      return name.charAt(0).toUpperCase();
+    }
     return name.charAt(0).toUpperCase();
   };
 
   const getPrimaryRole = () => {
     if (userRoles.includes('admin')) return 'مدير النظام';
     if (userRoles.includes('manager')) return 'مدير';
+    if (userRoles.includes('accountant')) return 'محاسب';
     if (userRoles.includes('employee')) return 'موظف';
     return 'مستخدم';
+  };
+
+  const getStatusIndicator = () => {
+    return {
+      color: 'text-green-500',
+      text: 'متصل',
+      dot: 'bg-green-500'
+    };
   };
 
   return (
@@ -101,29 +120,50 @@ export default function Header() {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-background/95 backdrop-blur-sm border-border/50" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{getUserDisplayName()}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user?.email}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {getPrimaryRole()}
-                  </p>
+            <DropdownMenuContent className="w-64 bg-background/95 backdrop-blur-sm border-border/50 animate-fade-in" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal p-4">
+                <div className="flex items-center space-x-3 space-x-reverse">
+                  <div className="relative">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src="/placeholder.svg" />
+                      <AvatarFallback className="bg-primary/10 text-sm font-medium">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-background ${getStatusIndicator().dot}`}></div>
+                  </div>
+                  <div className="flex flex-col space-y-1 flex-1">
+                    <p className="text-sm font-medium leading-none">{getUserDisplayName()}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {getPrimaryRole()}
+                      </p>
+                      <p className={`text-xs leading-none ${getStatusIndicator().color}`}>
+                        {getStatusIndicator().text}
+                      </p>
+                    </div>
+                    {userProfile?.phone && (
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {userProfile.phone}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/profile')}>
+              <DropdownMenuItem onClick={() => navigate('/profile')} className="hover-scale cursor-pointer">
                 <UserCircle className="mr-2 h-4 w-4" />
                 <span>الملف الشخصي</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
+              <DropdownMenuItem onClick={() => navigate('/settings')} className="hover-scale cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />
                 <span>الإعدادات</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
+              <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut} className="hover-scale cursor-pointer text-red-600 focus:text-red-600">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>{isLoggingOut ? 'جاري تسجيل الخروج...' : 'تسجيل الخروج'}</span>
               </DropdownMenuItem>
