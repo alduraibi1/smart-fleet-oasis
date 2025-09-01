@@ -144,8 +144,8 @@ export const EnhancedStats = () => {
         {[...Array(8)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="pt-6">
-              <div className="h-8 bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded"></div>
+              <div className="h-8 bg-muted rounded mb-2"></div>
+              <div className="h-4 bg-muted rounded"></div>
             </CardContent>
           </Card>
         ))}
@@ -157,11 +157,11 @@ export const EnhancedStats = () => {
     <div className="space-y-6">
       {/* تنبيهات عاجلة */}
       {stats.alerts.urgent > 0 && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-destructive/20 bg-destructive/5">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              <span className="font-medium text-red-800">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <span className="font-medium text-destructive-foreground">
                 لديك {stats.alerts.urgent} تنبيه عاجل يحتاج متابعة فورية
               </span>
             </div>
@@ -175,7 +175,7 @@ export const EnhancedStats = () => {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Car className="h-4 w-4 text-blue-600" />
+              <Car className="h-4 w-4 text-info" />
               السيارات
             </CardTitle>
           </CardHeader>
@@ -183,20 +183,20 @@ export const EnhancedStats = () => {
             <div className="text-2xl font-bold mb-2">{stats.vehicles.total}</div>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-green-600">متاحة</span>
-                <Badge variant="outline" className="text-green-600">
+                <span className="text-success">متاحة</span>
+                <Badge variant="outline" className="text-success border-success/30">
                   {stats.vehicles.available}
                 </Badge>
               </div>
               <div className="flex justify-between">
-                <span className="text-blue-600">مؤجرة</span>
-                <Badge variant="outline" className="text-blue-600">
+                <span className="text-info">مؤجرة</span>
+                <Badge variant="outline" className="text-info border-info/30">
                   {stats.vehicles.rented}
                 </Badge>
               </div>
               <div className="flex justify-between">
-                <span className="text-orange-600">صيانة</span>
-                <Badge variant="outline" className="text-orange-600">
+                <span className="text-warning">صيانة</span>
+                <Badge variant="outline" className="text-warning border-warning/30">
                   {stats.vehicles.maintenance}
                 </Badge>
               </div>
@@ -208,7 +208,7 @@ export const EnhancedStats = () => {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <FileText className="h-4 w-4 text-purple-600" />
+              <FileText className="h-4 w-4 text-primary" />
               العقود
             </CardTitle>
           </CardHeader>
@@ -220,14 +220,14 @@ export const EnhancedStats = () => {
                 <Badge variant="outline">{stats.contracts.active}</Badge>
               </div>
               <div className="flex justify-between">
-                <span className="text-red-600">تنتهي قريباً</span>
+                <span className="text-destructive">تنتهي قريباً</span>
                 <Badge variant="destructive" className="text-xs">
                   {stats.contracts.expiring_soon}
                 </Badge>
               </div>
               <div className="flex justify-between">
-                <span className="text-green-600">مكتملة هذا الشهر</span>
-                <Badge variant="outline" className="text-green-600">
+                <span className="text-success">مكتملة هذا الشهر</span>
+                <Badge variant="outline" className="text-success border-success/30">
                   {stats.contracts.completed_this_month}
                 </Badge>
               </div>
@@ -239,12 +239,12 @@ export const EnhancedStats = () => {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-green-600" />
+              <DollarSign className="h-4 w-4 text-success" />
               الإيرادات الشهرية
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600 mb-2">
+            <div className="text-2xl font-bold text-success mb-2">
               {stats.financial.monthly_revenue.toLocaleString()} ريال
             </div>
             <div className="text-xs text-muted-foreground">
@@ -257,17 +257,17 @@ export const EnhancedStats = () => {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Clock className="h-4 w-4 text-orange-600" />
+              <Clock className="h-4 w-4 text-warning" />
               المبالغ المعلقة
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600 mb-2">
+            <div className="text-2xl font-bold text-warning mb-2">
               {stats.financial.outstanding_amount.toLocaleString()} ريال
             </div>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-red-600">متأخرة</span>
+                <span className="text-destructive">متأخرة</span>
                 <Badge variant="destructive" className="text-xs">
                   {stats.financial.overdue_payments}
                 </Badge>
@@ -295,9 +295,9 @@ export const EnhancedStats = () => {
                   : 0}%
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
+            <div className="w-full bg-muted rounded-full h-3">
               <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-primary to-primary-variant h-3 rounded-full transition-all duration-300"
                 style={{ 
                   width: `${stats.vehicles.total > 0 
                     ? (stats.vehicles.rented / stats.vehicles.total) * 100 
@@ -307,15 +307,15 @@ export const EnhancedStats = () => {
             </div>
             <div className="grid grid-cols-3 gap-4 text-center text-sm">
               <div>
-                <div className="font-bold text-green-600">{stats.vehicles.available}</div>
+                <div className="font-bold text-success">{stats.vehicles.available}</div>
                 <div className="text-muted-foreground">متاحة</div>
               </div>
               <div>
-                <div className="font-bold text-blue-600">{stats.vehicles.rented}</div>
+                <div className="font-bold text-info">{stats.vehicles.rented}</div>
                 <div className="text-muted-foreground">مؤجرة</div>
               </div>
               <div>
-                <div className="font-bold text-orange-600">{stats.vehicles.maintenance}</div>
+                <div className="font-bold text-warning">{stats.vehicles.maintenance}</div>
                 <div className="text-muted-foreground">صيانة</div>
               </div>
             </div>

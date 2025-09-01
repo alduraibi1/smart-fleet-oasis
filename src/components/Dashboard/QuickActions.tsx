@@ -72,20 +72,20 @@ export const QuickActions = () => {
 
       {/* التنبيهات العاجلة */}
       {urgentNotifications.length > 0 && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-destructive/20 bg-destructive/5">
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2 text-red-800">
+            <CardTitle className="text-lg flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
               تنبيهات عاجلة ({urgentNotifications.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {urgentNotifications.slice(0, 3).map((notification) => (
-              <div key={notification.id} className="flex items-start gap-3 p-3 bg-white rounded-lg border">
-                <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5" />
+              <div key={notification.id} className="flex items-start gap-3 p-3 bg-background rounded-lg border">
+                <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-red-800">{notification.title}</p>
-                  <p className="text-sm text-red-600">{notification.message}</p>
+                  <p className="font-medium text-destructive">{notification.title}</p>
+                  <p className="text-sm text-muted-foreground">{notification.message}</p>
                 </div>
                 <Badge variant="destructive" className="text-xs">
                   عاجل
@@ -105,22 +105,22 @@ export const QuickActions = () => {
 
       {/* التنبيهات التحذيرية */}
       {warningNotifications.length > 0 && (
-        <Card className="border-yellow-200 bg-yellow-50">
+        <Card className="border-warning/20 bg-warning/5">
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2 text-yellow-800">
+            <CardTitle className="text-lg flex items-center gap-2 text-warning">
               <Clock className="h-5 w-5" />
               تنبيهات تحتاج متابعة ({warningNotifications.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {warningNotifications.slice(0, 2).map((notification) => (
-              <div key={notification.id} className="flex items-start gap-3 p-3 bg-white rounded-lg border">
-                <Clock className="h-4 w-4 text-yellow-500 mt-0.5" />
+              <div key={notification.id} className="flex items-start gap-3 p-3 bg-background rounded-lg border">
+                <Clock className="h-4 w-4 text-warning mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-yellow-800">{notification.title}</p>
-                  <p className="text-sm text-yellow-600">{notification.message}</p>
+                  <p className="font-medium text-warning">{notification.title}</p>
+                  <p className="text-sm text-muted-foreground">{notification.message}</p>
                 </div>
-                <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                <Badge variant="outline" className="text-warning border-warning/30">
                   تحذير
                 </Badge>
               </div>
@@ -140,7 +140,7 @@ export const QuickActions = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-green-600" />
+            <CheckCircle className="h-5 w-5 text-success" />
             حالة النظام
           </CardTitle>
         </CardHeader>
@@ -148,15 +148,15 @@ export const QuickActions = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span>النظام المالي</span>
-              <Badge className="bg-green-100 text-green-800">يعمل</Badge>
+              <Badge className="bg-success/10 text-success border-success/30">يعمل</Badge>
             </div>
             <div className="flex items-center justify-between">
               <span>التنبيهات الذكية</span>
-              <Badge className="bg-green-100 text-green-800">نشط</Badge>
+              <Badge className="bg-success/10 text-success border-success/30">نشط</Badge>
             </div>
             <div className="flex items-center justify-between">
               <span>الربط التلقائي</span>
-              <Badge className="bg-green-100 text-green-800">متصل</Badge>
+              <Badge className="bg-success/10 text-success border-success/30">متصل</Badge>
             </div>
             <div className="flex items-center justify-between">
               <span>آخر فحص</span>
