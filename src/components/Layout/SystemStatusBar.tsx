@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { AlertTriangle, CheckCircle, Clock, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SystemAlert {
   id: string;
@@ -14,69 +14,62 @@ interface SystemAlert {
 }
 
 export function SystemStatusBar() {
-  const { user, userRoles } = useAuth();
   const [alerts, setAlerts] = useState<SystemAlert[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    // محاكاة تحديث حالة النظام
-    const updateSystemStatus = () => {
+useEffect(() => {
+    let canceled = false;
+
+    const checkConnectivity = async () => {
       const newAlerts: SystemAlert[] = [];
 
-      // تحقق من حالة الاتصال بقاعدة البيانات
-      if (Math.random() > 0.9) {
+      // اتصال المتصفح
+      if (!navigator.onLine) {
+        newAlerts.push({
+          id: 'offline',
+          type: 'error',
+          message: 'أنت غير متصل بالإنترنت',
+          dismissible: false,
+          priority: 1,
+        });
+      }
+
+      // فحص اتصال قاعدة البيانات عبر استعلام خفيف
+      try {
+        const { error } = await supabase
+          .from('system_settings')
+          .select('id', { count: 'exact', head: true })
+          .limit(1);
+
+        if (error) {
+          newAlerts.push({
+            id: 'db-connection',
+            type: 'error',
+            message: 'تحذير: تعذر الاتصال بقاعدة البيانات حالياً',
+            dismissible: false,
+            priority: 1,
+          });
+        }
+      } catch (e) {
         newAlerts.push({
           id: 'db-connection',
           type: 'error',
-          message: 'تحذير: انقطاع مؤقت في الاتصال بقاعدة البيانات',
+          message: 'تحذير: تعذر الاتصال بقاعدة البيانات حالياً',
           dismissible: false,
-          priority: 1
+          priority: 1,
         });
       }
 
-      // تنبيهات الصيانة المجدولة
-      if (new Date().getDay() === 6 && new Date().getHours() === 2) {
-        newAlerts.push({
-          id: 'maintenance',
-          type: 'warning',
-          message: 'صيانة مجدولة للنظام يوم السبت من 2:00 إلى 4:00 صباحاً',
-          dismissible: true,
-          priority: 2
-        });
-      }
-
-      // تنبيهات للمدراء والمحاسبين
-      if (userRoles.includes('admin') || userRoles.includes('manager')) {
-        if (Math.random() > 0.7) {
-          newAlerts.push({
-            id: 'backup-reminder',
-            type: 'info',
-            message: 'تذكير: آخر نسخة احتياطية تمت منذ 3 أيام',
-            dismissible: true,
-            priority: 3
-          });
-        }
-      }
-
-      // النظام يعمل بشكل طبيعي
-      if (newAlerts.length === 0) {
-        newAlerts.push({
-          id: 'system-ok',
-          type: 'success',
-          message: 'النظام يعمل بشكل طبيعي',
-          dismissible: true,
-          priority: 4
-        });
-      }
-
-      setAlerts(newAlerts);
+      if (!canceled) setAlerts(newAlerts);
     };
 
-    updateSystemStatus();
-    const interval = setInterval(updateSystemStatus, 30000); // تحديث كل 30 ثانية
-
-    return () => clearInterval(interval);
-  }, [userRoles]);
+    checkConnectivity();
+    const interval = setInterval(checkConnectivity, 60000);
+    return () => {
+      canceled = true;
+      clearInterval(interval);
+    };
+  }, []);
 
   const getAlertIcon = (type: string) => {
     switch (type) {
