@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/hooks/useAuth'
+import { AppLayout } from '@/components/Layout/AppLayout';
 
 import Auth from './pages/Auth';
 import Index from './pages/Index';
@@ -54,37 +55,39 @@ function App() {
                 path="/*"
                 element={
                   <ProtectedRoute>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/vehicles" element={<Vehicles />} />
-                      <Route path="/customers" element={<Customers />} />
-                      <Route path="/customers-new" element={<CustomersNew />} />
-                      <Route path="/customers-v2" element={<CustomersV2 />} />
-                      <Route path="/contracts" element={<Contracts />} />
-                      <Route path="/enhanced-contracts" element={<EnhancedContracts />} />
-                      <Route path="/maintenance" element={<Maintenance />} />
-                      <Route path="/inventory" element={<Inventory />} />
-                      <Route path="/suppliers" element={<Suppliers />} />
-                      <Route path="/owners" element={<Owners />} />
-                      <Route path="/accounting" element={<Accounting />} />
-                      <Route path="/financial-control" element={<FinancialControl />} />
-                      <Route path="/customer-arrears-control" element={<CustomerArrearsControl />} />
-                      <Route path="/reports" element={<Reports />} />
-                      <Route path="/hr" element={<HR />} />
-                      <Route path="/system-management" element={<SystemManagement />} />
-                      <Route path="/enhanced-system-management" element={<EnhancedSystemManagement />} />
-                      <Route path="/system-optimization" element={<SystemOptimization />} />
-                      <Route path="/security-monitoring" element={
-                        <PermissionGuard permissions={['system.read']} requireAll={false}>
-                          <SecurityMonitoring />
-                        </PermissionGuard>
-                      } />
-                      <Route path="/notifications" element={<NotificationsPage />} />
-                      <Route path="/notification-settings" element={<NotificationSettings />} />
-                      <Route path="/button-test" element={<ButtonTestPage />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
+                    <AppLayout>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/vehicles" element={<Vehicles />} />
+                        <Route path="/customers" element={<Customers />} />
+                        <Route path="/customers-new" element={<CustomersNew />} />
+                        <Route path="/customers-v2" element={<CustomersV2 />} />
+                        <Route path="/contracts" element={<Contracts />} />
+                        <Route path="/enhanced-contracts" element={<EnhancedContracts />} />
+                        <Route path="/maintenance" element={<Maintenance />} />
+                        <Route path="/inventory" element={<Inventory />} />
+                        <Route path="/suppliers" element={<Suppliers />} />
+                        <Route path="/owners" element={<Owners />} />
+                        <Route path="/accounting" element={<Accounting />} />
+                        <Route path="/financial-control" element={<FinancialControl />} />
+                        <Route path="/customer-arrears-control" element={<CustomerArrearsControl />} />
+                        <Route path="/reports" element={<Reports />} />
+                        <Route path="/hr" element={<HR />} />
+                        <Route path="/system-management" element={<SystemManagement />} />
+                        <Route path="/enhanced-system-management" element={<EnhancedSystemManagement />} />
+                        <Route path="/system-optimization" element={<SystemOptimization />} />
+                        <Route path="/security-monitoring" element={
+                          <PermissionGuard permissions={['system.read']} requireAll={false}>
+                            <SecurityMonitoring />
+                          </PermissionGuard>
+                        } />
+                        <Route path="/notifications" element={<NotificationsPage />} />
+                        <Route path="/notification-settings" element={<NotificationSettings />} />
+                        <Route path="/button-test" element={<ButtonTestPage />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </AppLayout>
                   </ProtectedRoute>
                 }
               />

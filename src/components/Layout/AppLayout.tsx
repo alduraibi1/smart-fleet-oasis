@@ -1,6 +1,6 @@
 
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import AppSidebar from './AppSidebar';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { RoleBasedSidebar } from './RoleBasedSidebar';
 import Header from './Header';
 import { SystemStatusBar } from './SystemStatusBar';
 import { BreadcrumbNavigation } from '@/components/UI/Navigation/BreadcrumbNavigation';
@@ -19,11 +19,16 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <ErrorBoundary onError={handleLayoutError}>
       <SidebarProvider defaultOpen={false}>
-        <div className="min-h-screen-mobile flex w-full bg-background">
-          <AppSidebar />
+        <div className="min-h-screen flex w-full bg-background">
+          <RoleBasedSidebar />
           <SidebarInset className="flex-1 flex flex-col min-w-0">
             <SystemStatusBar />
-            <Header onMenuClick={() => {}} />
+            <div className="flex items-center gap-2 px-4 py-2 border-b border-border/50">
+              <SidebarTrigger />
+              <div className="flex-1">
+                <Header onMenuClick={() => {}} />
+              </div>
+            </div>
             <div className="flex-1 flex flex-col min-h-0">
               <div className="px-2 py-1.5 sm:px-3 sm:py-2 md:px-6 md:py-3 border-b border-border/50">
                 <ErrorBoundary>

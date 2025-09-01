@@ -1,11 +1,9 @@
 
 import { EnhancedStats } from '@/components/Dashboard/EnhancedStats';
 import { QuickActions } from '@/components/Dashboard/QuickActions';
-import { AppLayout } from '@/components/Layout/AppLayout';
 
 const Dashboard = () => {
   return (
-    <AppLayout>
       <div className="content-spacing min-h-full">
         {/* العنوان الرئيسي */}
         <div className="space-y-4 sm:space-y-6">
@@ -63,7 +61,6 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-    </AppLayout>
   );
 };
 
