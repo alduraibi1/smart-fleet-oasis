@@ -14,11 +14,11 @@ const InventoryItemsTable = ({ inventory }: { inventory: InventoryHook }) => {
   const { items, categories } = inventory;
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryId, setCategoryId] = useState<string>("");
+  const [categoryId, setCategoryId] = useState<string>("all");
 
   const filtered = useMemo(() => {
     let data: InventoryItem[] = items;
-    if (categoryId) data = data.filter(i => i.category_id === categoryId);
+    if (categoryId && categoryId !== "all") data = data.filter(i => i.category_id === categoryId);
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
       data = data.filter(i =>
@@ -61,7 +61,7 @@ const InventoryItemsTable = ({ inventory }: { inventory: InventoryHook }) => {
               <SelectValue placeholder="تصفية حسب الفئة" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">كل الفئات</SelectItem>
+              <SelectItem value="all">كل الفئات</SelectItem>
               {categories.map(cat => (
                 <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
               ))}
