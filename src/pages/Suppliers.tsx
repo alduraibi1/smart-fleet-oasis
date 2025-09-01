@@ -10,7 +10,6 @@ import { PurchaseOrdersTable } from "@/components/Suppliers/PurchaseOrdersTable"
 import { SuppliersReports } from "@/components/Suppliers/SuppliersReports";
 import { AddSupplierDialog } from "@/components/Suppliers/AddSupplierDialog";
 import { CreatePurchaseOrderDialog } from "@/components/Suppliers/CreatePurchaseOrderDialog";
-import { AppLayout } from "@/components/Layout/AppLayout";
 
 export default function Suppliers() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -29,19 +28,19 @@ export default function Suppliers() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <div className="content-spacing">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
             <p className="mt-4 text-muted-foreground">جاري تحميل بيانات الموردين...</p>
           </div>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
+    <div className="content-spacing">
       <div className="space-y-6">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -114,6 +113,6 @@ export default function Suppliers() {
           onOpenChange={setShowCreateOrderDialog}
         />
       </div>
-    </AppLayout>
+    </div>
   );
 }

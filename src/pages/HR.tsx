@@ -7,13 +7,12 @@ import PayrollManagement from "@/components/HR/PayrollManagement";
 import AttendanceTracking from "@/components/HR/AttendanceTracking";
 import PerformanceManagement from "@/components/HR/PerformanceManagement";
 import LeaveManagement from "@/components/HR/LeaveManagement";
-import { AppLayout } from "@/components/Layout/AppLayout";
 
 const HR = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <AppLayout>
+    <div className="content-spacing">
       <div className="space-y-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">إدارة الموارد البشرية</h1>
@@ -23,24 +22,30 @@ const HR = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
             <TabsTrigger value="overview" className="text-sm">
-              نظرة عامة
+              <span className="hidden sm:inline">نظرة عامة</span>
+              <span className="sm:hidden">عامة</span>
             </TabsTrigger>
             <TabsTrigger value="employees" className="text-sm">
-              الموظفون
+              <span className="hidden sm:inline">الموظفون</span>
+              <span className="sm:hidden">موظفون</span>
             </TabsTrigger>
             <TabsTrigger value="payroll" className="text-sm">
-              الرواتب
+              <span className="hidden sm:inline">الرواتب</span>
+              <span className="sm:hidden">رواتب</span>
             </TabsTrigger>
             <TabsTrigger value="attendance" className="text-sm">
-              الحضور
+              <span className="hidden sm:inline">الحضور</span>
+              <span className="sm:hidden">حضور</span>
             </TabsTrigger>
             <TabsTrigger value="performance" className="text-sm">
-              الأداء
+              <span className="hidden sm:inline">الأداء</span>
+              <span className="sm:hidden">أداء</span>
             </TabsTrigger>
             <TabsTrigger value="leave" className="text-sm">
-              الإجازات
+              <span className="hidden sm:inline">الإجازات</span>
+              <span className="sm:hidden">إجازات</span>
             </TabsTrigger>
           </TabsList>
 
@@ -69,7 +74,7 @@ const HR = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </div>
   );
 };
 

@@ -6,7 +6,6 @@ import { Plus, Package, Users, TrendingUp, Settings } from "lucide-react";
 import { useInventory } from "@/hooks/useInventory";
 import InventoryOverview from "@/components/Inventory/InventoryOverview";
 import InventoryReports from "@/components/Inventory/InventoryReports";
-import { AppLayout } from "@/components/Layout/AppLayout";
 
 const Inventory = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -30,19 +29,19 @@ const Inventory = () => {
 
   if (loading) {
     return (
-      <AppLayout>
+      <div className="content-spacing">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
             <p className="mt-4 text-muted-foreground">جاري تحميل بيانات المخزون...</p>
           </div>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
+    <div className="content-spacing">
       <div className="space-y-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">إدارة المخزون</h1>
@@ -98,20 +97,26 @@ const Inventory = () => {
           </TabsContent>
 
           <TabsContent value="items" className="space-y-6">
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">قريباً - جدول عناصر المخزون</p>
+            <div className="dashboard-card">
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">قريباً - جدول عناصر المخزون</p>
+              </div>
             </div>
           </TabsContent>
 
           <TabsContent value="transactions" className="space-y-6">
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">قريباً - جدول حركات المخزون</p>
+            <div className="dashboard-card">
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">قريباً - جدول حركات المخزون</p>
+              </div>
             </div>
           </TabsContent>
 
           <TabsContent value="categories" className="space-y-6">
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">قريباً - إدارة فئات المخزون</p>
+            <div className="dashboard-card">
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">قريباً - إدارة فئات المخزون</p>
+              </div>
             </div>
           </TabsContent>
 
@@ -120,7 +125,7 @@ const Inventory = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </div>
   );
 };
 

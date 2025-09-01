@@ -10,7 +10,6 @@ import {
   Database,
   TrendingUp
 } from "lucide-react";
-import { AppLayout } from '@/components/Layout/AppLayout';
 import SystemSettings from '@/components/SystemManagement/SystemSettings';
 import UserManagement from '@/components/SystemManagement/UserManagement';
 import ActivityLogs from '@/components/SystemManagement/ActivityLogs';
@@ -20,7 +19,7 @@ import { SampleDataManager } from '@/components/SystemManagement/SampleDataManag
 
 const SystemManagement = () => {
   return (
-    <AppLayout>
+    <div className="content-spacing">
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">إدارة النظام</h1>
@@ -30,35 +29,35 @@ const SystemManagement = () => {
         </div>
 
         <Tabs defaultValue="settings" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
-              الإعدادات
+              <span className="hidden sm:inline">الإعدادات</span>
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              المستخدمين
+              <span className="hidden sm:inline">المستخدمين</span>
             </TabsTrigger>
             <TabsTrigger value="roles" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              الأدوار
+              <span className="hidden sm:inline">الأدوار</span>
             </TabsTrigger>
             <TabsTrigger value="logs" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
-              السجلات
+              <span className="hidden sm:inline">السجلات</span>
             </TabsTrigger>
             <TabsTrigger value="status" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
-              الحالة
+              <span className="hidden sm:inline">الحالة</span>
             </TabsTrigger>
             <TabsTrigger value="data" className="flex items-center gap-2">
               <Database className="h-4 w-4" />
-              البيانات
+              <span className="hidden sm:inline">البيانات</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="settings">
-            <Card>
+            <Card className="dashboard-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Settings className="h-5 w-5" />
@@ -72,7 +71,7 @@ const SystemManagement = () => {
           </TabsContent>
 
           <TabsContent value="users">
-            <Card>
+            <Card className="dashboard-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
@@ -86,7 +85,7 @@ const SystemManagement = () => {
           </TabsContent>
 
           <TabsContent value="roles">
-            <Card>
+            <Card className="dashboard-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5" />
@@ -100,7 +99,7 @@ const SystemManagement = () => {
           </TabsContent>
 
           <TabsContent value="logs">
-            <Card>
+            <Card className="dashboard-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="h-5 w-5" />
@@ -114,7 +113,7 @@ const SystemManagement = () => {
           </TabsContent>
 
           <TabsContent value="status">
-            <Card>
+            <Card className="dashboard-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
@@ -128,7 +127,7 @@ const SystemManagement = () => {
           </TabsContent>
 
           <TabsContent value="data">
-            <Card>
+            <Card className="dashboard-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Database className="h-5 w-5" />
@@ -142,7 +141,7 @@ const SystemManagement = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </div>
   );
 };
 
