@@ -123,7 +123,7 @@ function App() {
                           
                           {/* Administrative Routes */}
                           <Route 
-                            path="system" 
+                            path="system-management" 
                             element={
                               <PermissionGuard permissions={['admin.system']}>
                                 <SystemManagement />
