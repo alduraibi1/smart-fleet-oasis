@@ -11,7 +11,8 @@ type Permission =
   | 'inventory.read' | 'inventory.write' | 'inventory.delete'
   | 'accounting.read' | 'accounting.write' | 'accounting.delete'
   | 'reports.read' | 'reports.write' | 'reports.delete'
-  | 'system.read' | 'system.write' | 'system.delete';
+  | 'system.read' | 'system.write' | 'system.delete'
+  | 'admin.system' | 'admin.security' | 'admin.users';
 
 interface PermissionGuardProps {
   children: ReactNode;
@@ -43,4 +44,4 @@ export function PermissionGuard({
   }
 
   return hasAccess ? <>{children}</> : <>{fallback}</>;
-}
+};
