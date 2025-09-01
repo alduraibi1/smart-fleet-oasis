@@ -10,6 +10,7 @@ import { Search, Edit, Trash2 } from "lucide-react";
 import { useInventory, InventoryItem } from "@/hooks/useInventory";
 import EditInventoryItemDialog from "./dialogs/EditInventoryItemDialog";
 import DeleteInventoryItemDialog from "./dialogs/DeleteInventoryItemDialog";
+import { formatQuantityWithUnit } from "@/utils/unitTranslations";
 
 type InventoryHook = ReturnType<typeof useInventory>;
 
@@ -103,9 +104,13 @@ const InventoryItemsTable = ({ inventory }: { inventory: InventoryHook }) => {
                       <div className="text-xs text-muted-foreground">{item.sku || "-"}</div>
                     </div>
                   </TableCell>
-                  <TableCell>{item.inventory_categories?.name || "-"}</TableCell>
-                  <TableCell className="font-medium">{item.current_stock}</TableCell>
-                  <TableCell>{item.minimum_stock}</TableCell>
+                   <TableCell>{item.inventory_categories?.name || "-"}</TableCell>
+                   <TableCell className="font-medium">
+                     {formatQuantityWithUnit(item.current_stock, item.unit_of_measure)}
+                   </TableCell>
+                   <TableCell>
+                     {formatQuantityWithUnit(item.minimum_stock, item.unit_of_measure)}
+                   </TableCell>
                   <TableCell>{typeof item.unit_cost === "number" ? `${item.unit_cost}` : "-"}</TableCell>
                   <TableCell>{typeof item.selling_price === "number" ? `${item.selling_price}` : "-"}</TableCell>
                   <TableCell>{getStatusBadge(item)}</TableCell>

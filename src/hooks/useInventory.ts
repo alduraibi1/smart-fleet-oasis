@@ -54,6 +54,7 @@ export interface StockTransaction {
   inventory_items?: {
     name: string;
     sku?: string;
+    unit_of_measure: string;
   };
 }
 
@@ -118,7 +119,7 @@ export const useInventory = () => {
         .from('stock_transactions')
         .select(`
           *,
-          inventory_items (name, sku)
+          inventory_items (name, sku, unit_of_measure)
         `)
         .order('transaction_date', { ascending: false })
         .limit(100);

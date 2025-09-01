@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useInventory } from "@/hooks/useInventory";
+import { formatQuantityWithUnit, translateUnit } from "@/utils/unitTranslations";
 
 type InventoryHook = ReturnType<typeof useInventory>;
 
@@ -74,8 +75,9 @@ const AddStockTransactionDialog = ({ open, onOpenChange, inventory }: Props) => 
               </SelectContent>
             </Select>
             {selectedItem && (
-              <div className="text-xs text-muted-foreground mt-1">
-                الرصيد الحالي: {selectedItem.current_stock} | التكلفة: {selectedItem.unit_cost}
+              <div className="text-xs text-muted-foreground mt-1 space-y-1">
+                <div>الرصيد الحالي: {formatQuantityWithUnit(selectedItem.current_stock, selectedItem.unit_of_measure)}</div>
+                <div>التكلفة: {selectedItem.unit_cost} ر.س | وحدة القياس: {translateUnit(selectedItem.unit_of_measure)}</div>
               </div>
             )}
           </div>
@@ -95,8 +97,16 @@ const AddStockTransactionDialog = ({ open, onOpenChange, inventory }: Props) => 
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="qty">الكمية</Label>
-              <Input id="qty" type="number" value={quantity} onChange={(e) => setQuantity(parseFloat(e.target.value || "0"))} />
+              <Label htmlFor="qty">
+                الكمية {selectedItem && `(${translateUnit(selectedItem.unit_of_measure)})`}
+              </Label>
+              <Input 
+                id="qty" 
+                type="number" 
+                value={quantity} 
+                onChange={(e) => setQuantity(parseFloat(e.target.value || "0"))}
+                placeholder={selectedItem ? `أدخل الكمية بـ${translateUnit(selectedItem.unit_of_measure)}` : "أدخل الكمية"}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="ucost">تكلفة الوحدة (اختياري)</Label>

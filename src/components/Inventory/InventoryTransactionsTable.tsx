@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useInventory } from "@/hooks/useInventory";
+import { formatQuantityWithUnit } from "@/utils/unitTranslations";
 
 type InventoryHook = ReturnType<typeof useInventory>;
 
@@ -55,8 +56,13 @@ const InventoryTransactionsTable = ({ inventory }: { inventory: InventoryHook })
                       <div className="text-xs text-muted-foreground">{tx.inventory_items?.sku || ""}</div>
                     </div>
                   </TableCell>
-                  <TableCell>{typeBadge(tx.transaction_type)}</TableCell>
-                  <TableCell className="font-medium">{tx.quantity}</TableCell>
+                   <TableCell>{typeBadge(tx.transaction_type)}</TableCell>
+                   <TableCell className="font-medium">
+                     {tx.inventory_items?.unit_of_measure 
+                       ? formatQuantityWithUnit(tx.quantity, tx.inventory_items.unit_of_measure)
+                       : tx.quantity
+                     }
+                   </TableCell>
                   <TableCell>{typeof tx.total_cost === "number" ? `${tx.total_cost}` : (typeof tx.unit_cost === "number" ? `${tx.unit_cost}` : "-")}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">
                     {tx.reference_type || "-"}
