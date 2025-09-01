@@ -4,13 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Search, Plus, MoreHorizontal, Edit, Trash2, Shield, UserCheck, UserX } from 'lucide-react';
-import AddUserDialog from './AddUserDialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Search, Plus, MoreHorizontal, Edit, Trash2, Shield, UserCheck, UserX, UserPlus } from 'lucide-react';
+import EnhancedAddUserDialog from './EnhancedAddUserDialog';
+import { usePermissionToast } from '@/hooks/usePermissionToast';
+import { PermissionGuard } from '@/components/Auth/PermissionGuard';
 
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const { withPermissionHandling, showPermissionError } = usePermissionToast();
 
   const users = [
     {
@@ -82,10 +85,12 @@ const UserManagement = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-foreground">إدارة المستخدمين</CardTitle>
-          <Button onClick={() => setShowAddDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            إضافة مستخدم
-          </Button>
+          <PermissionGuard permission="system.write">
+            <Button onClick={() => setShowAddDialog(true)}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              إضافة مستخدم
+            </Button>
+          </PermissionGuard>
         </CardHeader>
         <CardContent>
           {/* شريط البحث */}
@@ -153,29 +158,45 @@ const UserManagement = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Edit className="mr-2 h-4 w-4" />
-                            تعديل
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Shield className="mr-2 h-4 w-4" />
-                            تغيير الصلاحيات
-                          </DropdownMenuItem>
-                          {user.status === 'نشط' ? (
+                          <DropdownMenuLabel>الإجراءات</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <PermissionGuard permission="system.write">
                             <DropdownMenuItem>
-                              <UserX className="mr-2 h-4 w-4" />
-                              تعطيل الحساب
+                              <Edit className="mr-2 h-4 w-4" />
+                              تعديل
                             </DropdownMenuItem>
-                          ) : (
                             <DropdownMenuItem>
-                              <UserCheck className="mr-2 h-4 w-4" />
-                              تفعيل الحساب
+                              <Shield className="mr-2 h-4 w-4" />
+                              تغيير الصلاحيات
                             </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem className="text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            حذف
-                          </DropdownMenuItem>
+                            {user.status === 'نشط' ? (
+                              <DropdownMenuItem>
+                                <UserX className="mr-2 h-4 w-4" />
+                                تعطيل الحساب
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem>
+                                <UserCheck className="mr-2 h-4 w-4" />
+                                تفعيل الحساب
+                              </DropdownMenuItem>
+                            )}
+                          </PermissionGuard>
+                          <PermissionGuard permission="system.delete">
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={() => withPermissionHandling(
+                                async () => {
+                                  // Simulate delete operation that fails
+                                  throw { status: 403, message: 'حذف المستخدم غير مسموح' };
+                                },
+                                'حذف المستخدم'
+                              )}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              حذف
+                            </DropdownMenuItem>
+                          </PermissionGuard>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -193,7 +214,7 @@ const UserManagement = () => {
         </CardContent>
       </Card>
 
-      <AddUserDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
+      <EnhancedAddUserDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
     </div>
   );
 };
