@@ -3,10 +3,13 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Search, Edit, Trash2 } from "lucide-react";
 import { useInventory, InventoryItem } from "@/hooks/useInventory";
+import EditInventoryItemDialog from "./dialogs/EditInventoryItemDialog";
+import DeleteInventoryItemDialog from "./dialogs/DeleteInventoryItemDialog";
 
 type InventoryHook = ReturnType<typeof useInventory>;
 
@@ -15,6 +18,8 @@ const InventoryItemsTable = ({ inventory }: { inventory: InventoryHook }) => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryId, setCategoryId] = useState<string>("all");
+  const [editItem, setEditItem] = useState<InventoryItem | null>(null);
+  const [deleteItem, setDeleteItem] = useState<InventoryItem | null>(null);
 
   const filtered = useMemo(() => {
     let data: InventoryItem[] = items;
@@ -80,12 +85,13 @@ const InventoryItemsTable = ({ inventory }: { inventory: InventoryHook }) => {
                 <TableHead>التكلفة</TableHead>
                 <TableHead>السعر</TableHead>
                 <TableHead>الحالة</TableHead>
+                <TableHead>الإجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                     لا توجد عناصر مطابقة
                   </TableCell>
                 </TableRow>
@@ -103,11 +109,47 @@ const InventoryItemsTable = ({ inventory }: { inventory: InventoryHook }) => {
                   <TableCell>{typeof item.unit_cost === "number" ? `${item.unit_cost}` : "-"}</TableCell>
                   <TableCell>{typeof item.selling_price === "number" ? `${item.selling_price}` : "-"}</TableCell>
                   <TableCell>{getStatusBadge(item)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditItem(item)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDeleteItem(item)}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
+
+        {/* Dialog للتعديل */}
+        <EditInventoryItemDialog
+          open={!!editItem}
+          onOpenChange={(open) => !open && setEditItem(null)}
+          inventory={inventory}
+          item={editItem}
+        />
+
+        {/* Dialog للحذف */}
+        <DeleteInventoryItemDialog
+          open={!!deleteItem}
+          onOpenChange={(open) => !open && setDeleteItem(null)}
+          inventory={inventory}
+          item={deleteItem}
+        />
       </CardContent>
     </Card>
   );
