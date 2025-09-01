@@ -32,7 +32,7 @@ import SystemManagement from './pages/SystemManagement';
 import EnhancedSystemManagement from './pages/EnhancedSystemManagement';
 import SystemOptimization from './pages/SystemOptimization';
 import NotFound from './pages/NotFound';
-import ButtonTest from './pages/ButtonTest';
+import ButtonTestPage from './pages/ButtonTest';
 import { PermissionGuard } from './components/Auth/PermissionGuard';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import SecurityMonitoring from './pages/SecurityMonitoring';
@@ -82,7 +82,7 @@ function App() {
                       } />
                       <Route path="/notifications" element={<NotificationsPage />} />
                       <Route path="/notification-settings" element={<NotificationSettings />} />
-                      <Route path="/button-test" element={<ButtonTest />} />
+                      <Route path="/button-test" element={<ButtonTestPage />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </ProtectedRoute>
