@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,14 +76,17 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-xs sm:max-w-sm md:max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">إضافة مالك جديد</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">إضافة مالك جديد</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            قم بملء البيانات المطلوبة لإضافة مالك جديد للنظام
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="name" className="flex items-center gap-2 text-sm">
               <User className="h-4 w-4" />
               اسم المالك *
             </Label>
@@ -93,6 +96,7 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="أدخل اسم المالك"
               required
+              className="text-sm"
             />
           </div>
 
@@ -122,8 +126,8 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
             showSuggestions
           />
 
-          <div className="space-y-2">
-            <Label htmlFor="address" className="flex items-center gap-2">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="address" className="flex items-center gap-2 text-sm">
               <MapPin className="h-4 w-4" />
               العنوان
             </Label>
@@ -132,12 +136,13 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               placeholder="أدخل العنوان الكامل"
-              rows={3}
+              rows={2}
+              className="text-sm resize-none"
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <Label htmlFor="is_active">الحالة النشطة</Label>
+          <div className="flex items-center justify-between py-2">
+            <Label htmlFor="is_active" className="text-sm">الحالة النشطة</Label>
             <Switch
               id="is_active"
               checked={formData.is_active}
@@ -145,15 +150,15 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
             />
           </div>
 
-          <div className="flex gap-2 pt-4">
-            <Button type="submit" className="flex-1">
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <Button type="submit" className="flex-1 text-sm">
               إضافة المالك
             </Button>
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => onOpenChange(false)}
-              className="flex-1"
+              className="flex-1 text-sm"
             >
               إلغاء
             </Button>
