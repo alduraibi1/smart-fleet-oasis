@@ -18,6 +18,8 @@ import {
   Thermometer
 } from "lucide-react";
 import { MaintenanceFormData } from "../EnhancedAddMaintenanceDialog";
+import { useMaintenanceInventory } from "@/hooks/useMaintenanceInventory";
+import { translateUnit } from "@/utils/unitTranslations";
 
 interface OilsTabProps {
   formData: MaintenanceFormData;
@@ -25,100 +27,21 @@ interface OilsTabProps {
   onCalculateCosts: () => void;
 }
 
-// Mock oil inventory data
-const mockOilInventory = [
-  { 
-    id: 'o1', 
-    name: 'زيت محرك سينثيتك 5W-30', 
-    brand: 'Mobil 1', 
-    viscosity: '5W-30',
-    type: 'engine',
-    stock: 45, 
-    unitCost: 85, 
-    sellingPrice: 120, 
-    expiryDate: '2025-12-31',
-    location: 'رف A1'
-  },
-  { 
-    id: 'o2', 
-    name: 'زيت محرك معدني 20W-50', 
-    brand: 'Shell Helix', 
-    viscosity: '20W-50',
-    type: 'engine',
-    stock: 30, 
-    unitCost: 45, 
-    sellingPrice: 65, 
-    expiryDate: '2025-06-30',
-    location: 'رف A2'
-  },
-  { 
-    id: 'o3', 
-    name: 'زيت ناقل الحركة ATF', 
-    brand: 'Castrol', 
-    viscosity: 'ATF',
-    type: 'transmission',
-    stock: 20, 
-    unitCost: 65, 
-    sellingPrice: 95, 
-    expiryDate: '2026-03-15',
-    location: 'رف B1'
-  },
-  { 
-    id: 'o4', 
-    name: 'زيت الفرامل DOT 4', 
-    brand: 'Bosch', 
-    viscosity: 'DOT 4',
-    type: 'brake',
-    stock: 25, 
-    unitCost: 35, 
-    sellingPrice: 50, 
-    expiryDate: '2025-09-20',
-    location: 'رف C1'
-  },
-  { 
-    id: 'o5', 
-    name: 'سائل التبريد الأخضر', 
-    brand: 'Prestone', 
-    viscosity: '-',
-    type: 'coolant',
-    stock: 15, 
-    unitCost: 25, 
-    sellingPrice: 40, 
-    expiryDate: '2027-01-10',
-    location: 'رف D1'
-  },
-  { 
-    id: 'o6', 
-    name: 'زيت هيدروليك PSF', 
-    brand: 'Lucas', 
-    viscosity: 'PSF',
-    type: 'hydraulic',
-    stock: 8, 
-    unitCost: 55, 
-    sellingPrice: 80, 
-    expiryDate: '2025-11-25',
-    location: 'رف B2'
-  },
-];
-
 export function OilsTab({ formData, setFormData, onCalculateCosts }: OilsTabProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOilId, setSelectedOilId] = useState("");
   const [quantity, setQuantity] = useState(1);
-
-  const filteredOils = mockOilInventory.filter(oil =>
-    oil.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    oil.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    oil.type.includes(searchTerm.toLowerCase()) ||
-    oil.viscosity.includes(searchTerm)
-  );
+  
+  const { getOilsInventory, searchOils, getItemById } = useMaintenanceInventory();
+  
+  const filteredOils = searchOils(searchTerm);
 
   const addOil = () => {
-    const selectedOil = mockOilInventory.find(o => o.id === selectedOilId);
+    const selectedOil = getItemById(selectedOilId);
     if (!selectedOil || quantity <= 0) return;
 
-    if (quantity > selectedOil.stock) {
-      alert(`المخزون غير كافي. المتوفر: ${selectedOil.stock} لتر`);
+    if (quantity > selectedOil.current_stock) {
+      alert(`المخزون غير كافي. المتوفر: ${selectedOil.current_stock} ${translateUnit(selectedOil.unit_of_measure)}`);
       return;
     }
 
@@ -127,25 +50,27 @@ export function OilsTab({ formData, setFormData, onCalculateCosts }: OilsTabProp
     if (existingOilIndex >= 0) {
       // Update existing oil
       const updatedOils = [...formData.oilsUsed];
+      const newQuantity = updatedOils[existingOilIndex].quantity + quantity;
       updatedOils[existingOilIndex] = {
         ...updatedOils[existingOilIndex],
-        quantity: updatedOils[existingOilIndex].quantity + quantity,
-        totalCost: (updatedOils[existingOilIndex].quantity + quantity) * selectedOil.sellingPrice,
-        stockAfter: selectedOil.stock - (updatedOils[existingOilIndex].quantity + quantity)
+        quantity: newQuantity,
+        totalCost: newQuantity * (selectedOil.selling_price || selectedOil.unit_cost),
+        stockAfter: selectedOil.current_stock - newQuantity
       };
       
       setFormData(prev => ({ ...prev, oilsUsed: updatedOils }));
     } else {
       // Add new oil
+      const unitPrice = selectedOil.selling_price || selectedOil.unit_cost;
       const newOil = {
         oilId: selectedOil.id,
         oilName: selectedOil.name,
-        viscosity: selectedOil.viscosity,
+        viscosity: selectedOil.description || 'غير محدد',
         quantity,
-        unitCost: selectedOil.sellingPrice,
-        totalCost: quantity * selectedOil.sellingPrice,
-        stockBefore: selectedOil.stock,
-        stockAfter: selectedOil.stock - quantity
+        unitCost: unitPrice,
+        totalCost: quantity * unitPrice,
+        stockBefore: selectedOil.current_stock,
+        stockAfter: selectedOil.current_stock - quantity
       };
       
       setFormData(prev => ({ ...prev, oilsUsed: [...prev.oilsUsed, newOil] }));
@@ -171,12 +96,12 @@ export function OilsTab({ formData, setFormData, onCalculateCosts }: OilsTabProp
 
     const updatedOils = [...formData.oilsUsed];
     const oil = updatedOils[index];
-    const originalOil = mockOilInventory.find(o => o.id === oil.oilId);
+    const originalOil = getItemById(oil.oilId);
     
     if (!originalOil) return;
 
-    if (newQuantity > originalOil.stock) {
-      alert(`المخزون غير كافي. المتوفر: ${originalOil.stock} لتر`);
+    if (newQuantity > originalOil.current_stock) {
+      alert(`المخزون غير كافي. المتوفر: ${originalOil.current_stock} ${translateUnit(originalOil.unit_of_measure)}`);
       return;
     }
 
@@ -184,7 +109,7 @@ export function OilsTab({ formData, setFormData, onCalculateCosts }: OilsTabProp
       ...oil,
       quantity: newQuantity,
       totalCost: newQuantity * oil.unitCost,
-      stockAfter: originalOil.stock - newQuantity
+      stockAfter: originalOil.current_stock - newQuantity
     };
 
     setFormData(prev => ({ ...prev, oilsUsed: updatedOils }));
@@ -218,7 +143,7 @@ export function OilsTab({ formData, setFormData, onCalculateCosts }: OilsTabProp
     return { status: 'صالح', variant: 'default' as const };
   };
 
-  const selectedOil = mockOilInventory.find(o => o.id === selectedOilId);
+  const selectedOil = getItemById(selectedOilId);
 
   return (
     <div className="space-y-6">
@@ -256,24 +181,24 @@ export function OilsTab({ formData, setFormData, onCalculateCosts }: OilsTabProp
                   </SelectTrigger>
                   <SelectContent>
                     {filteredOils.map((oil) => {
-                      const status = getStockStatus(oil.stock);
-                      const expiry = getExpiryStatus(oil.expiryDate);
+                      const status = getStockStatus(oil.current_stock);
+                      const unitPrice = oil.selling_price || oil.unit_cost;
                       return (
-                        <SelectItem key={oil.id} value={oil.id} disabled={oil.stock === 0}>
+                        <SelectItem key={oil.id} value={oil.id} disabled={oil.current_stock === 0}>
                           <div className="flex items-center justify-between w-full">
                             <div>
                               <div className="font-medium">{oil.name}</div>
                               <div className="text-sm text-muted-foreground">
-                                {oil.brand} - {oil.viscosity} - {getTypeLabel(oil.type)} - {oil.sellingPrice} ر.س/لتر
+                                {oil.suppliers?.name || 'غير محدد'} - {oil.inventory_categories?.name || 'زيوت'} - {unitPrice.toFixed(2)} ر.س/{translateUnit(oil.unit_of_measure)}
                               </div>
                             </div>
                             <div className="flex gap-1 mr-2">
                               <Badge variant={status.variant}>
-                                {oil.stock}L
+                                {oil.current_stock} {translateUnit(oil.unit_of_measure)}
                               </Badge>
-                              {expiry.variant !== 'default' && (
-                                <Badge variant={expiry.variant}>
-                                  {expiry.status}
+                              {oil.expiry_date && getExpiryStatus(oil.expiry_date).variant !== 'default' && (
+                                <Badge variant={getExpiryStatus(oil.expiry_date).variant}>
+                                  {getExpiryStatus(oil.expiry_date).status}
                                 </Badge>
                               )}
                             </div>
@@ -286,7 +211,7 @@ export function OilsTab({ formData, setFormData, onCalculateCosts }: OilsTabProp
               </div>
 
               <div>
-                <Label>الكمية (لتر)</Label>
+                <Label>الكمية ({selectedOil ? translateUnit(selectedOil.unit_of_measure) : 'وحدة'})</Label>
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"
@@ -323,41 +248,43 @@ export function OilsTab({ formData, setFormData, onCalculateCosts }: OilsTabProp
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                     <div>
                       <span className="text-muted-foreground">المخزون المتوفر:</span>
-                      <div className="font-medium">{selectedOil.stock} لتر</div>
+                      <div className="font-medium">{selectedOil.current_stock} {translateUnit(selectedOil.unit_of_measure)}</div>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">سعر اللتر:</span>
-                      <div className="font-medium">{selectedOil.sellingPrice} ر.س</div>
+                      <span className="text-muted-foreground">سعر الوحدة:</span>
+                      <div className="font-medium">{(selectedOil.selling_price || selectedOil.unit_cost).toFixed(2)} ر.س</div>
                     </div>
                     <div>
                       <span className="text-muted-foreground">الإجمالي:</span>
-                      <div className="font-medium">{(selectedOil.sellingPrice * quantity).toFixed(2)} ر.س</div>
+                      <div className="font-medium">{((selectedOil.selling_price || selectedOil.unit_cost) * quantity).toFixed(2)} ر.س</div>
                     </div>
                     <div>
                       <span className="text-muted-foreground">تاريخ الانتهاء:</span>
-                      <div className="font-medium">{selectedOil.expiryDate}</div>
+                      <div className="font-medium">{selectedOil.expiry_date || 'غير محدد'}</div>
                     </div>
                     <div>
                       <span className="text-muted-foreground">الموقع:</span>
-                      <div className="font-medium">{selectedOil.location}</div>
+                      <div className="font-medium">{selectedOil.location || 'غير محدد'}</div>
                     </div>
                   </div>
                   
                   <div className="mt-3 flex items-center gap-4">
                     <div className="flex items-center gap-1 text-sm">
                       <Thermometer className="h-4 w-4" />
-                      <span>اللزوجة: {selectedOil.viscosity}</span>
+                      <span>الوصف: {selectedOil.description || 'غير محدد'}</span>
                     </div>
                     <div className="flex items-center gap-1 text-sm">
                       <Droplets className="h-4 w-4" />
-                      <span>النوع: {getTypeLabel(selectedOil.type)}</span>
+                      <span>الفئة: {selectedOil.inventory_categories?.name || 'زيوت'}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Calendar className="h-4 w-4" />
-                      <Badge variant={getExpiryStatus(selectedOil.expiryDate).variant}>
-                        {getExpiryStatus(selectedOil.expiryDate).status}
-                      </Badge>
-                    </div>
+                    {selectedOil.expiry_date && (
+                      <div className="flex items-center gap-1 text-sm">
+                        <Calendar className="h-4 w-4" />
+                        <Badge variant={getExpiryStatus(selectedOil.expiry_date).variant}>
+                          {getExpiryStatus(selectedOil.expiry_date).status}
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

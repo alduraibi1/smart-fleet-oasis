@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useMaintenance } from "@/hooks/useMaintenance";
+import { useMaintenanceInventory } from "@/hooks/useMaintenanceInventory";
 import { 
   ClipboardList, 
   Package, 
@@ -91,6 +93,8 @@ export interface MaintenanceFormData {
 
 export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAddMaintenanceDialogProps) {
   const { toast } = useToast();
+  const { addMaintenanceRecord } = useMaintenance();
+  const { saveMaintenancePartsUsed, saveMaintenanceOilsUsed } = useMaintenanceInventory();
   const [activeTab, setActiveTab] = useState("basic");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -173,12 +177,39 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
       // Calculate final costs
       calculateCosts();
       
-      // Here you would save to backend
-      console.log("Maintenance Record Data:", formData);
+      // Save maintenance record
+      const maintenanceData = {
+        vehicle_id: formData.vehicleId,
+        mechanic_id: formData.mechanicId,
+        maintenance_type: formData.type,
+        description: formData.description,
+        scheduled_date: formData.date?.toISOString().split('T')[0],
+        status: 'in_progress',
+        priority: formData.priority,
+        estimated_duration: formData.estimatedHours,
+        labor_cost: formData.laborCost,
+        parts_cost: formData.partsCost,
+        total_cost: formData.totalCost,
+        notes: formData.notes,
+        warranty_applicable: formData.warranty,
+        warranty_period_days: formData.warranty ? formData.warrantyPeriod : null
+      };
+
+      const maintenanceRecord = await addMaintenanceRecord(maintenanceData);
+      
+      // Save parts used if any
+      if (formData.partsUsed.length > 0) {
+        await saveMaintenancePartsUsed(maintenanceRecord.id, formData.partsUsed);
+      }
+      
+      // Save oils used if any
+      if (formData.oilsUsed.length > 0) {
+        await saveMaintenanceOilsUsed(maintenanceRecord.id, formData.oilsUsed);
+      }
       
       toast({
         title: "تم إضافة سجل الصيانة",
-        description: "تم حفظ جميع البيانات بنجاح"
+        description: "تم حفظ جميع البيانات وتحديث المخزون بنجاح"
       });
       
       // Reset form
@@ -215,6 +246,7 @@ export function EnhancedAddMaintenanceDialog({ open, onOpenChange }: EnhancedAdd
       onOpenChange(false);
       
     } catch (error) {
+      console.error('خطأ في حفظ سجل الصيانة:', error);
       toast({
         title: "خطأ في الحفظ",
         description: "حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى",

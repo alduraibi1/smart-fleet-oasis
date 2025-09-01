@@ -18,6 +18,8 @@ import {
   Barcode
 } from "lucide-react";
 import { MaintenanceFormData } from "../EnhancedAddMaintenanceDialog";
+import { useMaintenanceInventory } from "@/hooks/useMaintenanceInventory";
+import { translateUnit } from "@/utils/unitTranslations";
 
 interface PartsTabProps {
   formData: MaintenanceFormData;
@@ -25,35 +27,21 @@ interface PartsTabProps {
   onCalculateCosts: () => void;
 }
 
-// Mock inventory data
-const mockPartsInventory = [
-  { id: 'p1', name: 'فلتر الهواء', brand: 'Mann Filter', stock: 25, unitCost: 45, sellingPrice: 65, category: 'filter', barcode: '1234567890' },
-  { id: 'p2', name: 'فلتر الزيت', brand: 'Bosch', stock: 30, unitCost: 35, sellingPrice: 50, category: 'filter', barcode: '1234567891' },
-  { id: 'p3', name: 'أقراص الفرامل الأمامية', brand: 'Brembo', stock: 8, unitCost: 180, sellingPrice: 250, category: 'brake', barcode: '1234567892' },
-  { id: 'p4', name: 'أقراص الفرامل الخلفية', brand: 'Brembo', stock: 12, unitCost: 150, sellingPrice: 210, category: 'brake', barcode: '1234567893' },
-  { id: 'p5', name: 'بطارية 12V 70Ah', brand: 'ACDelco', stock: 5, unitCost: 320, sellingPrice: 450, category: 'battery', barcode: '1234567894' },
-  { id: 'p6', name: 'شمعات الإشعال', brand: 'NGK', stock: 40, unitCost: 25, sellingPrice: 40, category: 'spark_plug', barcode: '1234567895' },
-  { id: 'p7', name: 'حزام التوقيت', brand: 'Gates', stock: 3, unitCost: 120, sellingPrice: 180, category: 'belt', barcode: '1234567896' },
-  { id: 'p8', name: 'إطار 195/65R15', brand: 'Bridgestone', stock: 16, unitCost: 280, sellingPrice: 380, category: 'tire', barcode: '1234567897' },
-];
-
 export function PartsTab({ formData, setFormData, onCalculateCosts }: PartsTabProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPartId, setSelectedPartId] = useState("");
   const [quantity, setQuantity] = useState(1);
-
-  const filteredParts = mockPartsInventory.filter(part =>
-    part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    part.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    part.barcode.includes(searchTerm)
-  );
+  
+  const { getPartsInventory, searchParts, getItemById } = useMaintenanceInventory();
+  
+  const filteredParts = searchParts(searchTerm);
 
   const addPart = () => {
-    const selectedPart = mockPartsInventory.find(p => p.id === selectedPartId);
+    const selectedPart = getItemById(selectedPartId);
     if (!selectedPart || quantity <= 0) return;
 
-    if (quantity > selectedPart.stock) {
-      alert(`المخزون غير كافي. المتوفر: ${selectedPart.stock}`);
+    if (quantity > selectedPart.current_stock) {
+      alert(`المخزون غير كافي. المتوفر: ${selectedPart.current_stock} ${translateUnit(selectedPart.unit_of_measure)}`);
       return;
     }
 
@@ -62,24 +50,26 @@ export function PartsTab({ formData, setFormData, onCalculateCosts }: PartsTabPr
     if (existingPartIndex >= 0) {
       // Update existing part
       const updatedParts = [...formData.partsUsed];
+      const newQuantity = updatedParts[existingPartIndex].quantity + quantity;
       updatedParts[existingPartIndex] = {
         ...updatedParts[existingPartIndex],
-        quantity: updatedParts[existingPartIndex].quantity + quantity,
-        totalCost: (updatedParts[existingPartIndex].quantity + quantity) * selectedPart.sellingPrice,
-        stockAfter: selectedPart.stock - (updatedParts[existingPartIndex].quantity + quantity)
+        quantity: newQuantity,
+        totalCost: newQuantity * (selectedPart.selling_price || selectedPart.unit_cost),
+        stockAfter: selectedPart.current_stock - newQuantity
       };
       
       setFormData(prev => ({ ...prev, partsUsed: updatedParts }));
     } else {
       // Add new part
+      const unitPrice = selectedPart.selling_price || selectedPart.unit_cost;
       const newPart = {
         partId: selectedPart.id,
         partName: selectedPart.name,
         quantity,
-        unitCost: selectedPart.sellingPrice,
-        totalCost: quantity * selectedPart.sellingPrice,
-        stockBefore: selectedPart.stock,
-        stockAfter: selectedPart.stock - quantity
+        unitCost: unitPrice,
+        totalCost: quantity * unitPrice,
+        stockBefore: selectedPart.current_stock,
+        stockAfter: selectedPart.current_stock - quantity
       };
       
       setFormData(prev => ({ ...prev, partsUsed: [...prev.partsUsed, newPart] }));
@@ -105,12 +95,12 @@ export function PartsTab({ formData, setFormData, onCalculateCosts }: PartsTabPr
 
     const updatedParts = [...formData.partsUsed];
     const part = updatedParts[index];
-    const originalPart = mockPartsInventory.find(p => p.id === part.partId);
+    const originalPart = getItemById(part.partId);
     
     if (!originalPart) return;
 
-    if (newQuantity > originalPart.stock) {
-      alert(`المخزون غير كافي. المتوفر: ${originalPart.stock}`);
+    if (newQuantity > originalPart.current_stock) {
+      alert(`المخزون غير كافي. المتوفر: ${originalPart.current_stock} ${translateUnit(originalPart.unit_of_measure)}`);
       return;
     }
 
@@ -118,7 +108,7 @@ export function PartsTab({ formData, setFormData, onCalculateCosts }: PartsTabPr
       ...part,
       quantity: newQuantity,
       totalCost: newQuantity * part.unitCost,
-      stockAfter: originalPart.stock - newQuantity
+      stockAfter: originalPart.current_stock - newQuantity
     };
 
     setFormData(prev => ({ ...prev, partsUsed: updatedParts }));
@@ -131,7 +121,7 @@ export function PartsTab({ formData, setFormData, onCalculateCosts }: PartsTabPr
     return { label: 'متوفر', variant: 'default' as const };
   };
 
-  const selectedPart = mockPartsInventory.find(p => p.id === selectedPartId);
+  const selectedPart = getItemById(selectedPartId);
 
   return (
     <div className="space-y-6">
@@ -169,18 +159,19 @@ export function PartsTab({ formData, setFormData, onCalculateCosts }: PartsTabPr
                   </SelectTrigger>
                   <SelectContent>
                     {filteredParts.map((part) => {
-                      const status = getStockStatus(part.stock);
+                      const status = getStockStatus(part.current_stock);
+                      const unitPrice = part.selling_price || part.unit_cost;
                       return (
-                        <SelectItem key={part.id} value={part.id} disabled={part.stock === 0}>
+                        <SelectItem key={part.id} value={part.id} disabled={part.current_stock === 0}>
                           <div className="flex items-center justify-between w-full">
                             <div>
                               <div className="font-medium">{part.name}</div>
                               <div className="text-sm text-muted-foreground">
-                                {part.brand} - {part.sellingPrice} ر.س
+                                {part.suppliers?.name || 'غير محدد'} - {unitPrice.toFixed(2)} ر.س - {part.sku || 'بدون كود'}
                               </div>
                             </div>
                             <Badge variant={status.variant} className="mr-2">
-                              {part.stock}
+                              {part.current_stock} {translateUnit(part.unit_of_measure)}
                             </Badge>
                           </div>
                         </SelectItem>
@@ -227,19 +218,19 @@ export function PartsTab({ formData, setFormData, onCalculateCosts }: PartsTabPr
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
                       <span className="text-muted-foreground">المخزون المتوفر:</span>
-                      <div className="font-medium">{selectedPart.stock} قطعة</div>
+                      <div className="font-medium">{selectedPart.current_stock} {translateUnit(selectedPart.unit_of_measure)}</div>
                     </div>
                     <div>
                       <span className="text-muted-foreground">سعر الوحدة:</span>
-                      <div className="font-medium">{selectedPart.sellingPrice} ر.س</div>
+                      <div className="font-medium">{(selectedPart.selling_price || selectedPart.unit_cost).toFixed(2)} ر.س</div>
                     </div>
                     <div>
                       <span className="text-muted-foreground">الإجمالي:</span>
-                      <div className="font-medium">{(selectedPart.sellingPrice * quantity).toFixed(2)} ر.س</div>
+                      <div className="font-medium">{((selectedPart.selling_price || selectedPart.unit_cost) * quantity).toFixed(2)} ر.س</div>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">الباركود:</span>
-                      <div className="font-medium font-mono">{selectedPart.barcode}</div>
+                      <span className="text-muted-foreground">الموقع:</span>
+                      <div className="font-medium font-mono">{selectedPart.location || 'غير محدد'}</div>
                     </div>
                   </div>
                 </CardContent>
