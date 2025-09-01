@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { NotificationCenter } from '@/components/Notifications/NotificationCenter';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 export default function Header() {
@@ -14,6 +15,7 @@ export default function Header() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { user, signOut, userRoles } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const toggleMobileSearch = () => {
     const newState = !showMobileSearch;
@@ -112,11 +114,11 @@ export default function Header() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
                 <UserCircle className="mr-2 h-4 w-4" />
                 <span>الملف الشخصي</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/settings')}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>الإعدادات</span>
               </DropdownMenuItem>

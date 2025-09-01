@@ -31,6 +31,8 @@ const FinancialControl = lazy(() => import('@/pages/FinancialControl'));
 const SecurityMonitoring = lazy(() => import('@/pages/SecurityMonitoring'));
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
 const NotificationSettings = lazy(() => import('@/pages/NotificationSettings'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const Settings = lazy(() => import('@/pages/Settings'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -142,6 +144,10 @@ function App() {
                           {/* Notification Routes */}
                           <Route path="notifications" element={<NotificationsPage />} />
                           <Route path="notification-settings" element={<NotificationSettings />} />
+                          
+                          {/* User Routes */}
+                          <Route path="profile" element={<Profile />} />
+                          <Route path="settings" element={<Settings />} />
                           
                           {/* Fallback */}
                           <Route path="*" element={<NotFound />} />
