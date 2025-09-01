@@ -162,6 +162,60 @@ export const useInventory = () => {
     }
   };
 
+  // تحديث فئة مخزون
+  const updateCategory = async (id: string, updates: Partial<InventoryCategory>) => {
+    try {
+      const { error } = await supabase
+        .from('inventory_categories')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: "تم تحديث الفئة بنجاح",
+      });
+
+      await fetchCategories();
+    } catch (error) {
+      console.error('خطأ في تحديث الفئة:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في تحديث الفئة",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  // حذف فئة مخزون
+  const deleteCategory = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('inventory_categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف الفئة بنجاح",
+      });
+
+      await fetchCategories();
+    } catch (error) {
+      console.error('خطأ في حذف الفئة:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف الفئة",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   // إضافة عنصر مخزون جديد
   const addItem = async (itemData: Partial<InventoryItem>) => {
     try {
@@ -394,6 +448,8 @@ export const useInventory = () => {
     fetchItems,
     fetchTransactions,
     addCategory,
+    updateCategory,
+    deleteCategory,
     addItem,
     updateItem,
     deleteItem,
