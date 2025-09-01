@@ -10,6 +10,9 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Car, LogIn, UserPlus } from 'lucide-react';
 import { PasswordStrengthIndicator, validatePassword } from '@/components/ui/password-strength-indicator';
+import { AccountLockoutWarning } from '@/components/Auth/AccountLockoutWarning';
+import { SessionTimeoutWarning } from '@/components/Auth/SessionTimeoutWarning';
+import { useLoginAttempts } from '@/hooks/useLoginAttempts';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,6 +22,13 @@ export default function Auth() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { 
+    isLocked, 
+    lockoutTimeRemaining, 
+    remainingAttempts, 
+    addFailedAttempt, 
+    clearAttempts 
+  } = useLoginAttempts(email);
 
   // Redirect if already authenticated
   if (user) {
@@ -38,6 +48,17 @@ export default function Auth() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if account is locked
+    if (isLocked) {
+      toast({
+        title: "الحساب مقفل مؤقتاً",
+        description: "يرجى الانتظار قبل المحاولة مرة أخرى",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -48,6 +69,9 @@ export default function Auth() {
         });
 
         if (error) throw error;
+        
+        // Clear failed attempts on successful login
+        clearAttempts();
 
         toast({
           title: "تم تسجيل الدخول بنجاح",
@@ -72,6 +96,11 @@ export default function Auth() {
         });
       }
     } catch (error: any) {
+      // Add failed attempt for login errors (not signup)
+      if (isLogin && error?.message?.toLowerCase().includes('invalid login credentials')) {
+        addFailedAttempt();
+      }
+      
       toast({
         title: "خطأ في المصادقة",
         description: mapAuthError(error),
@@ -104,6 +133,17 @@ export default function Auth() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Session timeout warning for authenticated users */}
+            <SessionTimeoutWarning />
+            
+            {/* Account lockout warning */}
+            {isLogin && (
+              <AccountLockoutWarning 
+                remainingAttempts={remainingAttempts}
+                lockoutTimeRemaining={lockoutTimeRemaining}
+              />
+            )}
+            
             <form onSubmit={handleAuth} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">البريد الإلكتروني</Label>
@@ -135,7 +175,7 @@ export default function Auth() {
               <Button 
                 type="submit" 
                 className="w-full btn-glow btn-scale"
-                disabled={loading || (!isLogin && !validatePassword(password).isValid)}
+                disabled={loading || isLocked || (!isLogin && !validatePassword(password).isValid)}
               >
                 {loading ? (
                   "جاري المعالجة..."
