@@ -61,10 +61,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      // Select all columns to satisfy TS types, then safely pick the permission field at runtime
+      // استخدام JOIN مع جدول الصلاحيات للحصول على اسماء الصلاحيات
       const { data, error } = await supabase
         .from('role_permissions')
-        .select('*')
+        .select(`
+          permissions!inner (
+            name
+          )
+        `)
         .in('role', roles);
 
       if (error) {
@@ -73,11 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const rows = (data as unknown as Array<Record<string, any>>) || [];
-      const permissions = rows
-        .map((r) => r.permission ?? r.permission_name)
-        .filter((v): v is string => typeof v === 'string' && v.length > 0);
-
+      const permissions = data?.map(item => item.permissions.name).filter(Boolean) || [];
       setUserPermissions([...new Set(permissions)]);
     } catch (error) {
       console.error('Error fetching user permissions:', error);
@@ -151,16 +151,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // إعداد مستمع تغييرات المصادقة
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // جلب البيانات الإضافية للمستخدم
-          setTimeout(() => {
-            fetchUserRoles(session.user.id);
-            fetchUserProfile(session.user.id);
-          }, 0);
+          // جلب البيانات الإضافية للمستخدم بشكل متزامن
+          fetchUserRoles(session.user.id);
+          fetchUserProfile(session.user.id);
         } else {
           setUserRoles([]);
           setUserProfile(null);
@@ -172,17 +170,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     // التحقق من الجلسة الحالية
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchUserRoles(session.user.id);
-        fetchUserProfile(session.user.id);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await Promise.all([
+            fetchUserRoles(session.user.id),
+            fetchUserProfile(session.user.id)
+          ]);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        setLoading(false);
       }
-      
-      setLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     return () => subscription.unsubscribe();
   }, []);

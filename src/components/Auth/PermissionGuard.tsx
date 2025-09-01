@@ -1,6 +1,9 @@
 
 import { ReactNode } from 'react';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useAuth } from '@/hooks/useAuth';
+import { Card } from '@/components/ui/card';
+import { Loader2, ShieldAlert } from 'lucide-react';
 
 type Permission = 
   | 'dashboard.read' | 'dashboard.write' | 'dashboard.delete'
@@ -30,6 +33,19 @@ export function PermissionGuard({
   fallback = null 
 }: PermissionGuardProps) {
   const { hasPermission, hasAnyPermission, hasAllPermissions } = usePermissions();
+  const { loading, user } = useAuth();
+
+  // عرض loader أثناء التحميل
+  if (loading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <Card className="p-8 text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">جاري التحقق من الصلاحيات...</p>
+        </Card>
+      </div>
+    );
+  }
 
   let hasAccess = false;
 
@@ -43,5 +59,27 @@ export function PermissionGuard({
     hasAccess = true; // No restrictions
   }
 
-  return hasAccess ? <>{children}</> : <>{fallback}</>;
+  // عرض رسالة عدم وجود صلاحية
+  if (!hasAccess) {
+    if (fallback) {
+      return <>{fallback}</>;
+    }
+
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <Card className="p-8 text-center max-w-md">
+          <ShieldAlert className="h-12 w-12 mx-auto mb-4 text-amber-500" />
+          <h3 className="text-lg font-semibold mb-2">غير مصرح بالوصول</h3>
+          <p className="text-muted-foreground mb-4">
+            عذراً، ليس لديك الصلاحية اللازمة للوصول إلى هذه الصفحة.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            الصلاحية المطلوبة: {permission || permissions?.join(', ')}
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 };
