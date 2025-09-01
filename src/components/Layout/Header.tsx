@@ -9,6 +9,12 @@ import { useState } from 'react';
 export default function Header() {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
+  const toggleMobileSearch = () => {
+    const newState = !showMobileSearch;
+    console.log('Toggling mobile search from', showMobileSearch, 'to', newState);
+    setShowMobileSearch(newState);
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 backdrop-glass">
       <div className="flex h-12 sm:h-14 md:h-16 items-center justify-between spacing-adaptive">
@@ -29,7 +35,8 @@ export default function Header() {
             variant="ghost" 
             size="sm" 
             className="sm:hidden btn-icon-responsive"
-            onClick={() => setShowMobileSearch(!showMobileSearch)}
+            onClick={toggleMobileSearch}
+            type="button"
           >
             <Search className="h-4 w-4" />
           </Button>
@@ -64,6 +71,7 @@ export default function Header() {
               size="sm" 
               onClick={() => setShowMobileSearch(false)}
               className="text-muted-foreground"
+              type="button"
             >
               إلغاء
             </Button>
