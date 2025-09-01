@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Car, LogIn, UserPlus } from 'lucide-react';
+import { PasswordStrengthIndicator, validatePassword } from '@/components/ui/password-strength-indicator';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -24,6 +25,16 @@ export default function Auth() {
     navigate('/');
     return null;
   }
+
+  const mapAuthError = (error: any): string => {
+    const msg = (error?.message || '').toLowerCase();
+    if (msg.includes('invalid login credentials')) return 'بيانات الدخول غير صحيحة';
+    if (msg.includes('email address is invalid')) return 'صيغة البريد الإلكتروني غير صحيحة';
+    if (msg.includes('user already registered') || msg.includes('already exists')) return 'البريد الإلكتروني مسجل مسبقاً';
+    if (msg.includes('rate limit')) return 'تم تجاوز الحد المسموح من المحاولات، حاول لاحقاً';
+    if (msg.includes('otp')) return 'انتهت صلاحية رمز التحقق أو غير صالح';
+    return error?.message || 'حدث خطأ غير متوقع';
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +74,7 @@ export default function Auth() {
     } catch (error: any) {
       toast({
         title: "خطأ في المصادقة",
-        description: error.message,
+        description: mapAuthError(error),
         variant: "destructive",
       });
     } finally {
@@ -116,12 +127,15 @@ export default function Auth() {
                   required
                   placeholder="••••••••"
                 />
+                {!isLogin && password && (
+                  <PasswordStrengthIndicator password={password} />
+                )}
               </div>
 
               <Button 
                 type="submit" 
                 className="w-full btn-glow btn-scale"
-                disabled={loading}
+                disabled={loading || (!isLogin && !validatePassword(password).isValid)}
               >
                 {loading ? (
                   "جاري المعالجة..."
