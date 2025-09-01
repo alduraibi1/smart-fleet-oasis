@@ -364,6 +364,41 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_access: {
+        Row: {
+          access_level: string
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          access_level?: string
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          access_level?: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_access_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_documents: {
         Row: {
           created_at: string | null
