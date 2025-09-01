@@ -2,10 +2,16 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, Package, Users, TrendingUp, Settings } from "lucide-react";
+import { Plus, TrendingUp } from "lucide-react";
 import { useInventory } from "@/hooks/useInventory";
 import InventoryOverview from "@/components/Inventory/InventoryOverview";
 import InventoryReports from "@/components/Inventory/InventoryReports";
+import InventoryItemsTable from "@/components/Inventory/InventoryItemsTable";
+import InventoryTransactionsTable from "@/components/Inventory/InventoryTransactionsTable";
+import InventoryCategoriesManager from "@/components/Inventory/InventoryCategoriesManager";
+import AddInventoryItemDialog from "@/components/Inventory/dialogs/AddInventoryItemDialog";
+import AddStockTransactionDialog from "@/components/Inventory/dialogs/AddStockTransactionDialog";
+import AddInventoryCategoryDialog from "@/components/Inventory/dialogs/AddInventoryCategoryDialog";
 
 const Inventory = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -13,7 +19,9 @@ const Inventory = () => {
   const [showAddTransactionDialog, setShowAddTransactionDialog] = useState(false);
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
 
-  const { loading } = useInventory();
+  // استخدمنا الهوك كاملاً ومررناه للمكوّنات الفرعية لتفادي ازدواجية الجلب
+  const inventory = useInventory();
+  const { loading } = inventory;
 
   const handleAddItem = () => {
     setShowAddItemDialog(true);
@@ -97,27 +105,15 @@ const Inventory = () => {
           </TabsContent>
 
           <TabsContent value="items" className="space-y-6">
-            <div className="dashboard-card">
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">قريباً - جدول عناصر المخزون</p>
-              </div>
-            </div>
+            <InventoryItemsTable inventory={inventory} />
           </TabsContent>
 
           <TabsContent value="transactions" className="space-y-6">
-            <div className="dashboard-card">
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">قريباً - جدول حركات المخزون</p>
-              </div>
-            </div>
+            <InventoryTransactionsTable inventory={inventory} />
           </TabsContent>
 
           <TabsContent value="categories" className="space-y-6">
-            <div className="dashboard-card">
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">قريباً - إدارة فئات المخزون</p>
-              </div>
-            </div>
+            <InventoryCategoriesManager inventory={inventory} />
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-6">
@@ -125,6 +121,23 @@ const Inventory = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Dialogs */}
+      <AddInventoryItemDialog
+        open={showAddItemDialog}
+        onOpenChange={setShowAddItemDialog}
+        inventory={inventory}
+      />
+      <AddStockTransactionDialog
+        open={showAddTransactionDialog}
+        onOpenChange={setShowAddTransactionDialog}
+        inventory={inventory}
+      />
+      <AddInventoryCategoryDialog
+        open={showAddCategoryDialog}
+        onOpenChange={setShowAddCategoryDialog}
+        inventory={inventory}
+      />
     </div>
   );
 };
