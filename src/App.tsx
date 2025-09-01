@@ -33,7 +33,9 @@ import EnhancedSystemManagement from './pages/EnhancedSystemManagement';
 import SystemOptimization from './pages/SystemOptimization';
 import NotFound from './pages/NotFound';
 import ButtonTest from './pages/ButtonTest';
+import { PermissionGuard } from './components/Auth/PermissionGuard';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
+import SecurityMonitoring from './pages/SecurityMonitoring';
 import NotificationsPage from './pages/NotificationsPage';
 import NotificationSettings from './components/Notifications/NotificationSettings';
 
@@ -73,6 +75,11 @@ function App() {
                       <Route path="/system-management" element={<SystemManagement />} />
                       <Route path="/enhanced-system-management" element={<EnhancedSystemManagement />} />
                       <Route path="/system-optimization" element={<SystemOptimization />} />
+                      <Route path="/security-monitoring" element={
+                        <PermissionGuard permissions={['system.read']} requireAll={false}>
+                          <SecurityMonitoring />
+                        </PermissionGuard>
+                      } />
                       <Route path="/notifications" element={<NotificationsPage />} />
                       <Route path="/notification-settings" element={<NotificationSettings />} />
                       <Route path="/button-test" element={<ButtonTest />} />

@@ -165,6 +165,54 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          changed_columns: string[] | null
+          id: string
+          ip_addr: unknown | null
+          metadata: Json
+          new_data: Json | null
+          occurred_at: string
+          old_data: Json | null
+          record_id: string | null
+          severity: string
+          table_name: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          changed_columns?: string[] | null
+          id?: string
+          ip_addr?: unknown | null
+          metadata?: Json
+          new_data?: Json | null
+          occurred_at?: string
+          old_data?: Json | null
+          record_id?: string | null
+          severity?: string
+          table_name: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          changed_columns?: string[] | null
+          id?: string
+          ip_addr?: unknown | null
+          metadata?: Json
+          new_data?: Json | null
+          occurred_at?: string
+          old_data?: Json | null
+          record_id?: string | null
+          severity?: string
+          table_name?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       behavioral_analytics: {
         Row: {
           analysis_period_end: string
@@ -4652,6 +4700,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_old_audit_logs: {
+        Args: { p_keep_months?: number }
+        Returns: undefined
+      }
       create_smart_notification: {
         Args: {
           p_action_required?: boolean
@@ -4740,6 +4792,17 @@ export type Database = {
       is_ip_blocked: {
         Args: { p_ip_address: unknown }
         Returns: boolean
+      }
+      log_audit_event: {
+        Args: {
+          p_action: string
+          p_changed_columns?: string[]
+          p_metadata?: Json
+          p_record_id: string
+          p_severity?: string
+          p_table_name: string
+        }
+        Returns: undefined
       }
       normalize_plate_number: {
         Args: { plate: string }
