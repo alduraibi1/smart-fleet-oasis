@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { ChevronRight, Home } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -60,25 +61,27 @@ export function BreadcrumbNavigation() {
       <Breadcrumb>
         <BreadcrumbList>
           {breadcrumbItems.map((item, index) => (
-            <BreadcrumbItem key={item.href || item.label}>
-              {index === breadcrumbItems.length - 1 ? (
-                <BreadcrumbPage className="font-medium">
-                  {item.label}
-                </BreadcrumbPage>
-              ) : (
-                <>
+            <React.Fragment key={item.href || item.label}>
+              <BreadcrumbItem>
+                {index === breadcrumbItems.length - 1 ? (
+                  <BreadcrumbPage className="font-medium">
+                    {item.label}
+                  </BreadcrumbPage>
+                ) : (
                   <BreadcrumbLink asChild>
                     <Link to={item.href!} className="flex items-center gap-1 hover:text-primary">
                       {index === 0 && <Home className="h-4 w-4" />}
                       {item.label}
                     </Link>
                   </BreadcrumbLink>
-                  <BreadcrumbSeparator>
-                    <ChevronRight className="h-4 w-4" />
-                  </BreadcrumbSeparator>
-                </>
+                )}
+              </BreadcrumbItem>
+              {index < breadcrumbItems.length - 1 && (
+                <BreadcrumbSeparator>
+                  <ChevronRight className="h-4 w-4" />
+                </BreadcrumbSeparator>
               )}
-            </BreadcrumbItem>
+            </React.Fragment>
           ))}
         </BreadcrumbList>
       </Breadcrumb>
