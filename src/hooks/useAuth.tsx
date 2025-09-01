@@ -14,6 +14,8 @@ interface AuthContextType {
   hasRole: (role: UserRole) => boolean;
   hasPermission: (permission: string) => Promise<boolean>;
   hasPermissionSync: (permission: string) => boolean;
+  refreshPermissions: () => Promise<void>;
+  error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,10 +27,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userPermissions, setUserPermissions] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // جلب أدوار المستخدم
   const fetchUserRoles = async (userId: string) => {
     try {
+      setError(null);
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -47,7 +51,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // جلب الصلاحيات بناء على الأدوار
       await fetchUserPermissions(validRoles);
     } catch (error) {
+      const errorMessage = 'خطأ في جلب أدوار المستخدم';
       console.error('Error fetching user roles:', error);
+      setError(errorMessage);
       setUserRoles([]);
       setUserPermissions([]);
     }
@@ -72,16 +78,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .in('role', roles);
 
       if (error) {
-        console.error('Role permissions query error:', error);
-        setUserPermissions([]);
-        return;
+        throw new Error(`خطأ في استعلام الصلاحيات: ${error.message}`);
       }
 
       const permissions = data?.map(item => item.permissions.name).filter(Boolean) || [];
       setUserPermissions([...new Set(permissions)]);
     } catch (error) {
       console.error('Error fetching user permissions:', error);
+      const errorMessage = error instanceof Error ? error.message : 'خطأ في جلب الصلاحيات';
+      setError(errorMessage);
       setUserPermissions([]);
+    }
+  };
+
+  // إعادة تحميل الصلاحيات
+  const refreshPermissions = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    try {
+      await fetchUserRoles(user.id);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -205,6 +223,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     hasRole,
     hasPermission,
     hasPermissionSync,
+    refreshPermissions,
+    error,
   };
 
   return (
