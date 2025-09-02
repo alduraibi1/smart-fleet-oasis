@@ -1,8 +1,9 @@
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-type UserRole = 'admin' | 'accountant' | 'employee' | 'manager';
+type UserRole = 'admin' | 'accountant' | 'employee' | 'manager' | 'owner';
 
 interface AuthContextType {
   user: User | null;
@@ -40,10 +41,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
       
-      // Filter and cast roles to ensure they match our UserRole type
+      // تضمين الدور الجديد 'owner' ضمن الأدوار المدعومة في الواجهة
       const validRoles: UserRole[] = (data?.map(r => r.role) || [])
         .filter((role): role is UserRole => 
-          ['admin', 'accountant', 'employee', 'manager'].includes(role)
+          ['admin', 'accountant', 'employee', 'manager', 'owner'].includes(role)
         );
       
       setUserRoles(validRoles);

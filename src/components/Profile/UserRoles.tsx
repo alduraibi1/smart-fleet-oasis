@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,6 +15,8 @@ export function UserRoles() {
         return <Settings className="h-4 w-4" />;
       case 'accountant':
         return <DollarSign className="h-4 w-4" />;
+      case 'owner':
+        return <User className="h-4 w-4" />;
       default:
         return <User className="h-4 w-4" />;
     }
@@ -29,6 +32,8 @@ export function UserRoles() {
         return 'محاسب';
       case 'employee':
         return 'موظف';
+      case 'owner':
+        return 'مالك';
       default:
         return role;
     }
@@ -44,6 +49,8 @@ export function UserRoles() {
         return 'إدارة الحسابات والمعاملات المالية';
       case 'employee':
         return 'الوصول الأساسي للنظام والعمليات اليومية';
+      case 'owner':
+        return 'الوصول إلى مركباتك وتقاريرها ضمن الصلاحيات المسموحة';
       default:
         return 'دور مخصص في النظام';
     }
