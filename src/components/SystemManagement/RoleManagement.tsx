@@ -1,88 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
 import { Shield, Users, Settings, Edit, Trash2, Plus } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+interface Permission {
+  id: string;
+  name: string;
+  description: string | null;
+  module: string;
+  action: string;
+}
+
+interface RolePermission {
+  role: string;
+  permissions: Permission[];
+}
+
+interface RoleData {
+  role: string;
+  userCount: number;
+  permissions: { [key: string]: Permission[] };
+}
 
 const RoleManagement = () => {
-  const [roles, setRoles] = useState([
-    {
-      id: 1,
-      name: 'مدير النظام',
-      description: 'صلاحية كاملة على جميع أجزاء النظام',
-      users: 2,
-      permissions: {
-        dashboard: { read: true, write: true, delete: true },
-        vehicles: { read: true, write: true, delete: true },
-        contracts: { read: true, write: true, delete: true },
-        customers: { read: true, write: true, delete: true },
-        maintenance: { read: true, write: true, delete: true },
-        inventory: { read: true, write: true, delete: true },
-        accounting: { read: true, write: true, delete: true },
-        hr: { read: true, write: true, delete: true },
-        reports: { read: true, write: true, delete: true },
-        system: { read: true, write: true, delete: true }
-      }
-    },
-    {
-      id: 2,
-      name: 'مدير عام',
-      description: 'صلاحية على جميع العمليات التشغيلية',
-      users: 1,
-      permissions: {
-        dashboard: { read: true, write: true, delete: false },
-        vehicles: { read: true, write: true, delete: true },
-        contracts: { read: true, write: true, delete: true },
-        customers: { read: true, write: true, delete: true },
-        maintenance: { read: true, write: true, delete: false },
-        inventory: { read: true, write: true, delete: false },
-        accounting: { read: true, write: false, delete: false },
-        hr: { read: true, write: true, delete: false },
-        reports: { read: true, write: true, delete: false },
-        system: { read: false, write: false, delete: false }
-      }
-    },
-    {
-      id: 3,
-      name: 'مدير مالي',
-      description: 'صلاحية على النظام المحاسبي والتقارير المالية',
-      users: 2,
-      permissions: {
-        dashboard: { read: true, write: false, delete: false },
-        vehicles: { read: true, write: false, delete: false },
-        contracts: { read: true, write: true, delete: false },
-        customers: { read: true, write: false, delete: false },
-        maintenance: { read: true, write: false, delete: false },
-        inventory: { read: true, write: false, delete: false },
-        accounting: { read: true, write: true, delete: true },
-        hr: { read: false, write: false, delete: false },
-        reports: { read: true, write: true, delete: false },
-        system: { read: false, write: false, delete: false }
-      }
-    },
-    {
-      id: 4,
-      name: 'مدير أسطول',
-      description: 'إدارة المركبات والصيانة والعقود',
-      users: 3,
-      permissions: {
-        dashboard: { read: true, write: false, delete: false },
-        vehicles: { read: true, write: true, delete: true },
-        contracts: { read: true, write: true, delete: false },
-        customers: { read: true, write: false, delete: false },
-        maintenance: { read: true, write: true, delete: true },
-        inventory: { read: true, write: true, delete: false },
-        accounting: { read: false, write: false, delete: false },
-        hr: { read: false, write: false, delete: false },
-        reports: { read: true, write: false, delete: false },
-        system: { read: false, write: false, delete: false }
-      }
-    }
-  ]);
+  const [roleData, setRoleData] = useState<RoleData[]>([]);
+  const [allPermissions, setAllPermissions] = useState<Permission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const moduleNames = {
+  const roleDisplayNames = {
+    admin: 'مدير النظام',
+    manager: 'مدير عام', 
+    accountant: 'محاسب',
+    employee: 'موظف'
+  };
+
+  const moduleDisplayNames = {
     dashboard: 'لوحة التحكم',
     vehicles: 'المركبات',
     contracts: 'العقود',
@@ -90,28 +48,161 @@ const RoleManagement = () => {
     maintenance: 'الصيانة',
     inventory: 'المخزون',
     accounting: 'المحاسبة',
-    hr: 'الموارد البشرية',
     reports: 'التقارير',
-    system: 'إدارة النظام'
+    system: 'إدارة النظام',
+    admin: 'صلاحيات إدارية'
   };
 
-  const updatePermission = (roleId: number, module: string, action: string, value: boolean) => {
-    setRoles(prev => prev.map(role => {
-      if (role.id === roleId) {
-        return {
-          ...role,
-          permissions: {
-            ...role.permissions,
-            [module]: {
-              ...role.permissions[module as keyof typeof role.permissions],
-              [action]: value
-            }
-          }
-        };
+  const fetchRolesAndPermissions = async () => {
+    try {
+      setLoading(true);
+      
+      // جلب جميع الصلاحيات
+      const { data: permissionsData, error: permissionsError } = await supabase
+        .from('permissions')
+        .select('*')
+        .order('module', { ascending: true })
+        .order('action', { ascending: true });
+
+      if (permissionsError) throw permissionsError;
+      setAllPermissions(permissionsData || []);
+
+      // جلب صلاحيات كل دور
+      const { data: rolePermissionsData, error: rolePermissionsError } = await supabase
+        .from('role_permissions')
+        .select(`
+          role,
+          permissions!inner (
+            id,
+            name,
+            description,
+            module,
+            action
+          )
+        `);
+
+      if (rolePermissionsError) throw rolePermissionsError;
+
+      // تجميع البيانات حسب الأدوار
+      const rolesMap = new Map<string, RoleData>();
+      
+      // تهيئة الأدوار
+      const roles = ['admin', 'manager', 'accountant', 'employee'];
+      for (const role of roles) {
+        rolesMap.set(role, {
+          role,
+          userCount: 0,
+          permissions: {}
+        });
       }
-      return role;
-    }));
+
+      // تجميع الصلاحيات حسب الأدوار والوحدات
+      rolePermissionsData?.forEach((rp: any) => {
+        const roleData = rolesMap.get(rp.role);
+        if (roleData) {
+          const module = rp.permissions.module;
+          if (!roleData.permissions[module]) {
+            roleData.permissions[module] = [];
+          }
+          roleData.permissions[module].push(rp.permissions);
+        }
+      });
+
+      // جلب عدد المستخدمين لكل دور
+      for (const role of roles) {
+        const { count } = await supabase
+          .from('user_roles')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', role as any);
+        
+        const roleData = rolesMap.get(role);
+        if (roleData) {
+          roleData.userCount = count || 0;
+        }
+      }
+
+      setRoleData(Array.from(rolesMap.values()));
+    } catch (error) {
+      console.error('Error fetching roles and permissions:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ في تحميل بيانات الأدوار والصلاحيات',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchRolesAndPermissions();
+  }, []);
+
+  const hasPermission = (role: string, module: string, action: string) => {
+    const roleObj = roleData.find(r => r.role === role);
+    if (!roleObj) return false;
+    
+    const modulePermissions = roleObj.permissions[module] || [];
+    return modulePermissions.some(p => p.action === action);
+  };
+
+  const togglePermission = async (role: string, module: string, action: string, hasCurrentPermission: boolean) => {
+    try {
+      const permission = allPermissions.find(p => p.module === module && p.action === action);
+      if (!permission) return;
+
+      if (hasCurrentPermission) {
+        // إزالة الصلاحية
+        const { error } = await supabase
+          .from('role_permissions')
+          .delete()
+          .eq('role', role as any)
+          .eq('permission_id', permission.id);
+        
+        if (error) throw error;
+      } else {
+        // إضافة الصلاحية
+        const { error } = await supabase
+          .from('role_permissions')
+          .insert({
+            role: role as any,
+            permission_id: permission.id
+          });
+        
+        if (error) throw error;
+      }
+
+      toast({
+        title: 'تم التحديث',
+        description: `تم ${hasCurrentPermission ? 'إزالة' : 'إضافة'} الصلاحية بنجاح`
+      });
+
+      // إعادة تحميل البيانات
+      fetchRolesAndPermissions();
+    } catch (error) {
+      console.error('Error updating permission:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ في تحديث الصلاحية',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">جاري التحميل...</div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const totalUsers = roleData.reduce((sum, role) => sum + role.userCount, 0);
+  const totalModules = Object.keys(moduleDisplayNames).length;
 
   return (
     <div className="space-y-6">
@@ -125,7 +216,7 @@ const RoleManagement = () => {
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{roles.length}</div>
+            <div className="text-2xl font-bold text-foreground">{roleData.length}</div>
           </CardContent>
         </Card>
 
@@ -137,9 +228,7 @@ const RoleManagement = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {roles.reduce((sum, role) => sum + role.users, 0)}
-            </div>
+            <div className="text-2xl font-bold text-foreground">{totalUsers}</div>
           </CardContent>
         </Card>
 
@@ -151,9 +240,7 @@ const RoleManagement = () => {
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {Object.keys(moduleNames).length}
-            </div>
+            <div className="text-2xl font-bold text-foreground">{totalModules}</div>
           </CardContent>
         </Card>
       </div>
@@ -162,36 +249,26 @@ const RoleManagement = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-foreground">إدارة الأدوار والصلاحيات</CardTitle>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            إضافة دور جديد
-          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {roles.map((role) => (
-              <Card key={role.id} className="border-l-4 border-l-primary">
+            {roleData.map((role) => (
+              <Card key={role.role} className="border-l-4 border-l-primary">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-lg text-foreground">{role.name}</CardTitle>
+                      <CardTitle className="text-lg text-foreground">
+                        {roleDisplayNames[role.role as keyof typeof roleDisplayNames] || role.role}
+                      </CardTitle>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {role.description}
+                        إجمالي الصلاحيات: {Object.values(role.permissions).flat().length}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary">
                         <Users className="h-3 w-3 mr-1" />
-                        {role.users} مستخدم
+                        {role.userCount} مستخدم
                       </Badge>
-                      <Button variant="outline" size="sm">
-                        <Edit className="h-4 w-4 mr-1" />
-                        تعديل
-                      </Button>
-                      <Button variant="outline" size="sm" className="text-destructive">
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        حذف
-                      </Button>
                     </div>
                   </div>
                 </CardHeader>
@@ -207,38 +284,50 @@ const RoleManagement = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {Object.entries(moduleNames).map(([moduleKey, moduleName]) => {
-                          const permissions = role.permissions[moduleKey as keyof typeof role.permissions];
-                          return (
-                            <TableRow key={moduleKey}>
-                              <TableCell className="font-medium">{moduleName}</TableCell>
-                              <TableCell className="text-center">
-                                <Switch
-                                  checked={permissions.read}
-                                  onCheckedChange={(value) => 
-                                    updatePermission(role.id, moduleKey, 'read', value)
-                                  }
-                                />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Switch
-                                  checked={permissions.write}
-                                  onCheckedChange={(value) => 
-                                    updatePermission(role.id, moduleKey, 'write', value)
-                                  }
-                                />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Switch
-                                  checked={permissions.delete}
-                                  onCheckedChange={(value) => 
-                                    updatePermission(role.id, moduleKey, 'delete', value)
-                                  }
-                                />
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
+                        {Object.entries(moduleDisplayNames).map(([moduleKey, moduleName]) => (
+                          <TableRow key={moduleKey}>
+                            <TableCell className="font-medium">{moduleName}</TableCell>
+                            <TableCell className="text-center">
+                              <Switch
+                                checked={hasPermission(role.role, moduleKey, 'read')}
+                                onCheckedChange={(value) => 
+                                  togglePermission(
+                                    role.role, 
+                                    moduleKey, 
+                                    'read', 
+                                    hasPermission(role.role, moduleKey, 'read')
+                                  )
+                                }
+                              />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Switch
+                                checked={hasPermission(role.role, moduleKey, 'write')}
+                                onCheckedChange={(value) => 
+                                  togglePermission(
+                                    role.role, 
+                                    moduleKey, 
+                                    'write', 
+                                    hasPermission(role.role, moduleKey, 'write')
+                                  )
+                                }
+                              />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Switch
+                                checked={hasPermission(role.role, moduleKey, 'delete')}
+                                onCheckedChange={(value) => 
+                                  togglePermission(
+                                    role.role, 
+                                    moduleKey, 
+                                    'delete', 
+                                    hasPermission(role.role, moduleKey, 'delete')
+                                  )
+                                }
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
                       </TableBody>
                     </Table>
                   </div>
