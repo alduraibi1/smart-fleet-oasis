@@ -3,204 +3,164 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, AlertCircle, XCircle, RefreshCw, Activity } from 'lucide-react';
+import { CheckCircle, AlertCircle, XCircle, RefreshCw, Activity, Database, Users, Car, FileText, Package } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-interface SystemComponent {
-  name: string;
-  status: 'online' | 'warning' | 'offline';
-  lastChecked: string;
-  responseTime?: number;
-  details?: string;
+interface SystemMetrics {
+  totalUsers: number;
+  totalVehicles: number;
+  totalContracts: number;
+  totalCustomers: number;
+  totalInventoryItems: number;
+  databaseStatus: 'online' | 'warning' | 'offline';
+  lastUpdate: string;
 }
 
 const SystemStatus = () => {
-  const [components, setComponents] = useState<SystemComponent[]>([
-    {
-      name: 'قاعدة البيانات',
-      status: 'online',
-      lastChecked: new Date().toLocaleString('ar-SA'),
-      responseTime: 45,
-      details: 'جميع الجداول تعمل بشكل طبيعي'
-    },
-    {
-      name: 'نظام المركبات',
-      status: 'online',
-      lastChecked: new Date().toLocaleString('ar-SA'),
-      responseTime: 32,
-      details: 'جميع العمليات تعمل بشكل صحيح'
-    },
-    {
-      name: 'نظام العقود',
-      status: 'online',
-      lastChecked: new Date().toLocaleString('ar-SA'),
-      responseTime: 28,
-      details: 'إدارة العقود تعمل بكامل طاقتها'
-    },
-    {
-      name: 'نظام العملاء',
-      status: 'online',
-      lastChecked: new Date().toLocaleString('ar-SA'),
-      responseTime: 41,
-      details: 'قاعدة بيانات العملاء محدثة'
-    },
-    {
-      name: 'نظام الصيانة',
-      status: 'online',
-      lastChecked: new Date().toLocaleString('ar-SA'),
-      responseTime: 35,
-      details: 'جدولة الصيانة تعمل بانتظام'
-    },
-    {
-      name: 'النظام المالي',
-      status: 'online',
-      lastChecked: new Date().toLocaleString('ar-SA'),
-      responseTime: 38,
-      details: 'الحسابات والتقارير محدثة'
-    },
-    {
-      name: 'نظام المخزون',
-      status: 'online',
-      lastChecked: new Date().toLocaleString('ar-SA'),
-      responseTime: 42,
-      details: 'إدارة المخزون تعمل بشكل مثالي'
-    },
-    {
-      name: 'نظام الموارد البشرية',
-      status: 'online',
-      lastChecked: new Date().toLocaleString('ar-SA'),
-      responseTime: 29,
-      details: 'إدارة الموظفين والحضور'
-    }
-  ]);
-
+  const [loading, setLoading] = useState(true);
+  const [systemMetrics, setSystemMetrics] = useState<SystemMetrics>({
+    totalUsers: 0,
+    totalVehicles: 0,
+    totalContracts: 0,
+    totalCustomers: 0,
+    totalInventoryItems: 0,
+    databaseStatus: 'online',
+    lastUpdate: new Date().toISOString()
+  });
   const [overallHealth, setOverallHealth] = useState(100);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { toast } = useToast();
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'online':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'warning':
-        return <AlertCircle className="h-5 w-5 text-yellow-500" />;
-      case 'offline':
-        return <XCircle className="h-5 w-5 text-red-500" />;
-      default:
-        return <Activity className="h-5 w-5 text-gray-500" />;
-    }
-  };
+  const fetchSystemMetrics = async () => {
+    try {
+      setLoading(true);
+      
+      // استعلام موازي لجمع إحصائيات النظام
+      const [
+        usersResult,
+        vehiclesResult,
+        contractsResult,
+        customersResult,
+        inventoryResult
+      ] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('vehicles').select('id', { count: 'exact', head: true }),
+        supabase.from('rental_contracts').select('id', { count: 'exact', head: true }),
+        supabase.from('customers').select('id', { count: 'exact', head: true }),
+        supabase.from('inventory_items').select('id', { count: 'exact', head: true })
+      ]);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'online':
-        return <Badge className="bg-green-500 text-white">متصل</Badge>;
-      case 'warning':
-        return <Badge className="bg-yellow-500 text-white">تحذير</Badge>;
-      case 'offline':
-        return <Badge className="bg-red-500 text-white">غير متصل</Badge>;
-      default:
-        return <Badge variant="secondary">غير معروف</Badge>;
-    }
-  };
+      // التحقق من وجود أخطاء
+      const hasErrors = [usersResult, vehiclesResult, contractsResult, customersResult, inventoryResult]
+        .some(result => result.error);
 
-  const refreshStatus = () => {
-    setIsRefreshing(true);
-    
-    // Simulate checking all components
-    setTimeout(() => {
-      const updatedComponents = components.map(comp => ({
-        ...comp,
-        lastChecked: new Date().toLocaleString('ar-SA'),
-        responseTime: Math.floor(Math.random() * 50) + 20,
-        status: Math.random() > 0.95 ? 'warning' : 'online' as any
+      if (hasErrors) {
+        throw new Error('فشل في جلب بعض الإحصائيات');
+      }
+
+      const metrics: SystemMetrics = {
+        totalUsers: usersResult.count || 0,
+        totalVehicles: vehiclesResult.count || 0,
+        totalContracts: contractsResult.count || 0,
+        totalCustomers: customersResult.count || 0,
+        totalInventoryItems: inventoryResult.count || 0,
+        databaseStatus: 'online',
+        lastUpdate: new Date().toISOString()
+      };
+
+      setSystemMetrics(metrics);
+      setOverallHealth(100); // النظام يعمل بشكل صحيح
+      
+    } catch (error) {
+      console.error('Error fetching system metrics:', error);
+      setSystemMetrics(prev => ({
+        ...prev,
+        databaseStatus: 'warning',
+        lastUpdate: new Date().toISOString()
       }));
+      setOverallHealth(75); // مشاكل جزئية
       
-      setComponents(updatedComponents);
-      
-      // Calculate overall health
-      const onlineCount = updatedComponents.filter(c => c.status === 'online').length;
-      const healthPercentage = (onlineCount / updatedComponents.length) * 100;
-      setOverallHealth(healthPercentage);
-      
-      setIsRefreshing(false);
-    }, 2000);
+      toast({
+        title: "تحذير",
+        description: "فشل في جلب بعض إحصائيات النظام",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(refreshStatus, 30000);
+    fetchSystemMetrics();
+    // تحديث تلقائي كل 30 ثانية
+    const interval = setInterval(fetchSystemMetrics, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  const getHealthColor = (health: number) => {
+    if (health >= 95) return 'text-green-500';
+    if (health >= 80) return 'text-yellow-500';
+    return 'text-red-500';
+  };
+
+  const getHealthStatus = (health: number) => {
+    if (health >= 95) return 'النظام يعمل بشكل مثالي';
+    if (health >= 80) return 'النظام يعمل بشكل جيد مع تحذيرات بسيطة';
+    if (health >= 60) return 'النظام يعمل مع وجود مشاكل';
+    return 'النظام يواجه مشاكل خطيرة';
+  };
 
   return (
     <div className="space-y-6">
       {/* Overall Health */}
-      <Card>
+      <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>صحة النظام العامة</span>
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={refreshStatus}
-              disabled={isRefreshing}
+              onClick={fetchSystemMetrics}
+              disabled={loading}
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               تحديث
             </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
-            <div className="text-3xl font-bold text-green-500">{overallHealth.toFixed(0)}%</div>
+            <div className={`text-3xl font-bold ${getHealthColor(overallHealth)}`}>
+              {overallHealth.toFixed(0)}%
+            </div>
             <div>
-              <p className="text-lg font-semibold">النظام يعمل بشكل مثالي</p>
+              <p className="text-lg font-semibold">{getHealthStatus(overallHealth)}</p>
               <p className="text-sm text-muted-foreground">
-                آخر فحص: {new Date().toLocaleString('ar-SA')}
+                آخر تحديث: {new Date(systemMetrics.lastUpdate).toLocaleString('ar-SA')}
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Components Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle>حالة المكونات</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {components.map((component, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  {getStatusIcon(component.status)}
-                  <div>
-                    <h3 className="font-medium">{component.name}</h3>
-                    <p className="text-sm text-muted-foreground">{component.details}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  {getStatusBadge(component.status)}
-                  {component.responseTime && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {component.responseTime}ms
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* System Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-blue-500" />
+            <div className="flex items-center gap-3">
+              <Database className="h-8 w-8 text-blue-500" />
               <div>
-                <p className="text-sm text-muted-foreground">متوسط وقت الاستجابة</p>
-                <p className="text-xl font-bold">35ms</p>
+                <p className="text-sm text-muted-foreground">قاعدة البيانات</p>
+                <div className="flex items-center gap-2">
+                  {systemMetrics.databaseStatus === 'online' ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-yellow-500" />
+                  )}
+                  <span className="text-lg font-semibold">
+                    {systemMetrics.databaseStatus === 'online' ? 'متصلة' : 'تحذير'}
+                  </span>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -208,11 +168,11 @@ const SystemStatus = () => {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
+            <div className="flex items-center gap-3">
+              <Users className="h-8 w-8 text-purple-500" />
               <div>
-                <p className="text-sm text-muted-foreground">وقت التشغيل</p>
-                <p className="text-xl font-bold">99.9%</p>
+                <p className="text-sm text-muted-foreground">المستخدمون</p>
+                <p className="text-2xl font-bold">{systemMetrics.totalUsers}</p>
               </div>
             </div>
           </CardContent>
@@ -220,11 +180,47 @@ const SystemStatus = () => {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <RefreshCw className="h-5 w-5 text-purple-500" />
+            <div className="flex items-center gap-3">
+              <Car className="h-8 w-8 text-green-500" />
               <div>
-                <p className="text-sm text-muted-foreground">آخر تحديث</p>
-                <p className="text-xl font-bold">الآن</p>
+                <p className="text-sm text-muted-foreground">المركبات</p>
+                <p className="text-2xl font-bold">{systemMetrics.totalVehicles}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <FileText className="h-8 w-8 text-orange-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">العقود</p>
+                <p className="text-2xl font-bold">{systemMetrics.totalContracts}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Users className="h-8 w-8 text-cyan-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">العملاء</p>
+                <p className="text-2xl font-bold">{systemMetrics.totalCustomers}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Package className="h-8 w-8 text-red-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">المخزون</p>
+                <p className="text-2xl font-bold">{systemMetrics.totalInventoryItems}</p>
               </div>
             </div>
           </CardContent>

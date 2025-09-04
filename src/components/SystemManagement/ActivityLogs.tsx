@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,84 +7,70 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Search, Filter, Download, Calendar as CalendarIcon, Eye, AlertTriangle, CheckCircle, XCircle, Info } from 'lucide-react';
+import { Search, Filter, Download, Calendar as CalendarIcon, Eye, AlertTriangle, CheckCircle, XCircle, Info, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+interface AuditLog {
+  id: string;
+  action: string;
+  table_name: string;
+  record_id: string | null;
+  actor_id: string | null;
+  occurred_at: string;
+  severity: string;
+  metadata: any;
+  ip_addr: string | null;
+  user_agent: string | null;
+  changed_columns: string[] | null;
+  old_data: any;
+  new_data: any;
+}
 
 const ActivityLogs = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterUser, setFilterUser] = useState('all');
   const [filterAction, setFilterAction] = useState('all');
   const [filterDate, setFilterDate] = useState<Date>();
+  const [loading, setLoading] = useState(true);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const { toast } = useToast();
 
-  const activityLogs = [
-    {
-      id: 1,
-      user: 'أحمد محمد',
-      action: 'تسجيل دخول',
-      module: 'النظام',
-      details: 'تم تسجيل الدخول بنجاح',
-      timestamp: new Date('2024-01-15T10:30:00'),
-      ipAddress: '192.168.1.100',
-      status: 'success',
-      severity: 'low'
-    },
-    {
-      id: 2,
-      user: 'فاطمة علي',
-      action: 'إضافة مركبة',
-      module: 'المركبات',
-      details: 'تم إضافة مركبة جديدة: تويوتا كامري 2023',
-      timestamp: new Date('2024-01-15T10:25:00'),
-      ipAddress: '192.168.1.101',
-      status: 'success',
-      severity: 'medium'
-    },
-    {
-      id: 3,
-      user: 'محمد حسن',
-      action: 'محاولة حذف',
-      module: 'العملاء',
-      details: 'محاولة حذف عميل - تم الرفض لعدم توفر الصلاحية',
-      timestamp: new Date('2024-01-15T10:20:00'),
-      ipAddress: '192.168.1.102',
-      status: 'error',
-      severity: 'high'
-    },
-    {
-      id: 4,
-      user: 'سارة أحمد',
-      action: 'تحديث عقد',
-      module: 'العقود',
-      details: 'تم تحديث عقد الإيجار رقم #12345',
-      timestamp: new Date('2024-01-15T10:15:00'),
-      ipAddress: '192.168.1.103',
-      status: 'success',
-      severity: 'medium'
-    },
-    {
-      id: 5,
-      user: 'خالد يوسف',
-      action: 'تسجيل خروج',
-      module: 'النظام',
-      details: 'تم تسجيل الخروج',
-      timestamp: new Date('2024-01-15T10:10:00'),
-      ipAddress: '192.168.1.104',
-      status: 'info',
-      severity: 'low'
-    },
-    {
-      id: 6,
-      user: 'نادية سالم',
-      action: 'فشل تسجيل دخول',
-      module: 'النظام',
-      details: 'محاولة تسجيل دخول فاشلة - كلمة مرور خاطئة',
-      timestamp: new Date('2024-01-15T10:05:00'),
-      ipAddress: '192.168.1.105',
-      status: 'warning',
-      severity: 'high'
+  const fetchAuditLogs = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('occurred_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      setAuditLogs((data || []).map(item => ({
+        ...item,
+        ip_addr: item.ip_addr as string | null,
+        user_agent: item.user_agent as string | null,
+        metadata: item.metadata,
+        old_data: item.old_data,
+        new_data: item.new_data
+      })));
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في جلب سجل الأنشطة",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchAuditLogs();
+  }, []);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -129,20 +115,20 @@ const ActivityLogs = () => {
     }
   };
 
-  const filteredLogs = activityLogs.filter(log => {
-    const matchesSearch = log.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         log.module.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         log.details.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredLogs = auditLogs.filter(log => {
+    const searchString = searchTerm.toLowerCase();
+    const matchesSearch = log.action.toLowerCase().includes(searchString) ||
+                         log.table_name.toLowerCase().includes(searchString) ||
+                         (log.metadata ? JSON.stringify(log.metadata).toLowerCase().includes(searchString) : false);
     
-    const matchesUser = filterUser === 'all' || log.user === filterUser;
+    const matchesUser = filterUser === 'all' || log.actor_id === filterUser;
     const matchesAction = filterAction === 'all' || log.action.includes(filterAction);
     
     return matchesSearch && matchesUser && matchesAction;
   });
 
-  const uniqueUsers = [...new Set(activityLogs.map(log => log.user))];
-  const uniqueActions = [...new Set(activityLogs.map(log => log.action))];
+  const uniqueUsers = [...new Set(auditLogs.map(log => log.actor_id).filter(Boolean))];
+  const uniqueActions = [...new Set(auditLogs.map(log => log.action))];
 
   return (
     <div className="space-y-6">
@@ -156,7 +142,7 @@ const ActivityLogs = () => {
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{activityLogs.length}</div>
+            <div className="text-2xl font-bold text-foreground">{auditLogs.length}</div>
           </CardContent>
         </Card>
 
@@ -169,7 +155,7 @@ const ActivityLogs = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {activityLogs.filter(log => log.status === 'warning').length}
+              {auditLogs.filter(log => log.severity === 'warning').length}
             </div>
           </CardContent>
         </Card>
@@ -183,7 +169,7 @@ const ActivityLogs = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {activityLogs.filter(log => log.status === 'error').length}
+              {auditLogs.filter(log => log.severity === 'error').length}
             </div>
           </CardContent>
         </Card>
@@ -191,13 +177,13 @@ const ActivityLogs = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              نجح
+              معلومات
             </CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {activityLogs.filter(log => log.status === 'success').length}
+              {auditLogs.filter(log => log.severity === 'info').length}
             </div>
           </CardContent>
         </Card>
@@ -207,10 +193,16 @@ const ActivityLogs = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-foreground">سجل الأنشطة</CardTitle>
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            تصدير السجل
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={fetchAuditLogs} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              تحديث
+            </Button>
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              تصدير السجل
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {/* أدوات التصفية */}
@@ -273,50 +265,53 @@ const ActivityLogs = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>التوقيت</TableHead>
-                  <TableHead>المستخدم</TableHead>
                   <TableHead>النشاط</TableHead>
-                  <TableHead>الوحدة</TableHead>
+                  <TableHead>الجدول</TableHead>
+                  <TableHead>المستخدم</TableHead>
                   <TableHead>التفاصيل</TableHead>
-                  <TableHead>الحالة</TableHead>
                   <TableHead>الأولوية</TableHead>
                   <TableHead>عنوان IP</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredLogs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="text-muted-foreground">
-                      {format(log.timestamp, 'HH:mm:ss dd/MM/yyyy', { locale: ar })}
-                    </TableCell>
-                    <TableCell className="font-medium text-foreground">
-                      {log.user}
-                    </TableCell>
-                    <TableCell className="text-foreground">
-                      {log.action}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{log.module}</Badge>
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate text-muted-foreground">
-                      {log.details}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(log.status)} className="flex items-center gap-1 w-fit">
-                        {getStatusIcon(log.status)}
-                        {log.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getSeverityBadgeVariant(log.severity)}>
-                        {log.severity === 'high' ? 'عالية' : 
-                         log.severity === 'medium' ? 'متوسطة' : 'منخفضة'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-sm">
-                      {log.ipAddress}
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
+                      جاري تحميل السجلات...
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredLogs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell className="text-muted-foreground">
+                        {format(new Date(log.occurred_at), 'HH:mm:ss dd/MM/yyyy', { locale: ar })}
+                      </TableCell>
+                      <TableCell className="font-medium text-foreground">
+                        {log.action}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{log.table_name}</Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {log.actor_id ? log.actor_id.substring(0, 8) : 'نظام'}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate text-muted-foreground">
+                        {log.metadata ? JSON.stringify(log.metadata).substring(0, 100) + '...' : 'لا توجد تفاصيل'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getSeverityBadgeVariant(log.severity)}>
+                          {log.severity === 'critical' ? 'حرج' : 
+                           log.severity === 'warning' ? 'تحذير' : 
+                           log.severity === 'error' ? 'خطأ' : 'معلومات'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-sm">
+                        {log.ip_addr || 'غير محدد'}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

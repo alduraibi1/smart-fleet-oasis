@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +43,40 @@ const SystemSettings = () => {
     backupRetention: '30'
   });
 
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const loadSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('system_settings')
+        .select('*');
+
+      if (error) throw error;
+
+      // تحويل إعدادات قاعدة البيانات إلى نموذج الواجهة
+      const loadedSettings = { ...settings };
+      data.forEach(setting => {
+        if (setting.setting_value && typeof setting.setting_value === 'object') {
+          Object.assign(loadedSettings, setting.setting_value);
+        }
+      });
+      
+      setSettings(loadedSettings);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في تحميل الإعدادات",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
   const handleSettingChange = (key: string, value: any) => {
     setSettings(prev => ({
       ...prev,
@@ -48,9 +84,68 @@ const SystemSettings = () => {
     }));
   };
 
-  const handleSave = () => {
-    console.log('Settings saved:', settings);
-    // Handle save logic here
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      // حفظ الإعدادات في قاعدة البيانات
+      const settingsToSave = [
+        { setting_key: 'company_info', setting_value: {
+          companyName: settings.companyName,
+          companyEmail: settings.companyEmail,
+          companyPhone: settings.companyPhone,
+          companyAddress: settings.companyAddress
+        }},
+        { setting_key: 'security_settings', setting_value: {
+          sessionTimeout: settings.sessionTimeout,
+          passwordPolicy: settings.passwordPolicy,
+          twoFactorAuth: settings.twoFactorAuth,
+          loginAttempts: settings.loginAttempts
+        }},
+        { setting_key: 'system_settings', setting_value: {
+          defaultLanguage: settings.defaultLanguage,
+          defaultCurrency: settings.defaultCurrency,
+          dateFormat: settings.dateFormat,
+          timeZone: settings.timeZone
+        }},
+        { setting_key: 'notification_settings', setting_value: {
+          emailNotifications: settings.emailNotifications,
+          smsNotifications: settings.smsNotifications,
+          maintenanceAlerts: settings.maintenanceAlerts,
+          contractExpiry: settings.contractExpiry
+        }},
+        { setting_key: 'backup_settings', setting_value: {
+          autoBackup: settings.autoBackup,
+          backupFrequency: settings.backupFrequency,
+          backupRetention: settings.backupRetention
+        }}
+      ];
+
+      for (const setting of settingsToSave) {
+        const { error } = await supabase
+          .from('system_settings')
+          .upsert({
+            setting_key: setting.setting_key,
+            setting_value: setting.setting_value,
+            description: `إعدادات ${setting.setting_key}`
+          });
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: "تم بنجاح",
+        description: "تم حفظ جميع الإعدادات بنجاح",
+      });
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في حفظ الإعدادات",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleExport = () => {
@@ -356,9 +451,12 @@ const SystemSettings = () => {
       </Card>
 
       {/* حفظ الإعدادات */}
-      <div className="flex justify-end">
-        <Button onClick={handleSave} className="min-w-32">
-          حفظ جميع الإعدادات
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={loadSettings} disabled={loading}>
+          إعادة تحميل
+        </Button>
+        <Button onClick={handleSave} disabled={loading} className="min-w-32">
+          {loading ? 'جاري الحفظ...' : 'حفظ جميع الإعدادات'}
         </Button>
       </div>
     </div>
