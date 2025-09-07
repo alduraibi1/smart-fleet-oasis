@@ -17,11 +17,12 @@ interface User {
   full_name: string | null;
   email: string;
   phone: string | null;
-  
   is_active: boolean;
   created_at: string;
   last_sign_in_at: string | null;
   roles: string[];
+  user_type?: string;
+  approval_status?: string;
 }
 
 const UserManagement = () => {
@@ -44,7 +45,9 @@ const UserManagement = () => {
           full_name,
           phone,
           is_active,
-          created_at
+          created_at,
+          user_type,
+          approval_status
         `);
 
       if (profilesError) throw profilesError;
@@ -69,7 +72,9 @@ const UserManagement = () => {
             is_active: profile.is_active,
             created_at: profile.created_at,
             last_sign_in_at: user?.last_sign_in_at,
-            roles: rolesData?.map(r => r.role) || []
+            roles: rolesData?.map(r => r.role) || [],
+            user_type: profile.user_type,
+            approval_status: profile.approval_status
           };
         })
       );
@@ -109,6 +114,33 @@ const UserManagement = () => {
       employee: 'موظف'
     };
     return roleNames[role as keyof typeof roleNames] || role;
+  };
+
+  const getUserTypeDisplay = (type?: string) => {
+    const types = {
+      employee: 'موظف',
+      owner: 'مالك مركبة',
+      partner: 'شريك'
+    };
+    return type ? types[type as keyof typeof types] || type : 'غير محدد';
+  };
+
+  const getApprovalStatusDisplay = (status?: string) => {
+    const statuses = {
+      pending: 'في الانتظار',
+      approved: 'مُوافق عليه',
+      rejected: 'مرفوض'
+    };
+    return status ? statuses[status as keyof typeof statuses] || status : 'غير محدد';
+  };
+
+  const getApprovalStatusBadgeVariant = (status?: string) => {
+    const variants = {
+      pending: 'secondary',
+      approved: 'default',
+      rejected: 'destructive'
+    };
+    return variants[status as keyof typeof variants] || 'outline';
   };
 
   const formatLastLogin = (lastSignIn: string | null) => {
@@ -196,7 +228,9 @@ const UserManagement = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>المستخدم</TableHead>
+                  <TableHead>نوع المستخدم</TableHead>
                   <TableHead>الأدوار</TableHead>
+                  <TableHead>حالة الموافقة</TableHead>
                   <TableHead>الحالة</TableHead>
                   <TableHead>آخر تسجيل دخول</TableHead>
                   <TableHead className="text-center">الإجراءات</TableHead>
@@ -217,6 +251,11 @@ const UserManagement = () => {
                       </div>
                     </TableCell>
                     <TableCell>
+                      <Badge variant="outline">
+                        {getUserTypeDisplay(user.user_type)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {user.roles.map((role) => (
                           <Badge key={role} variant="outline">
@@ -228,6 +267,11 @@ const UserManagement = () => {
                           <Badge variant="secondary">لا توجد أدوار</Badge>
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getApprovalStatusBadgeVariant(user.approval_status) as "default" | "destructive" | "secondary" | "outline"}>
+                        {getApprovalStatusDisplay(user.approval_status)}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge variant={getStatusBadgeVariant(user.is_active)}>

@@ -4,7 +4,8 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { useAuth } from '@/hooks/useAuth';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, ShieldAlert, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Loader2, ShieldAlert, RefreshCw, AlertTriangle, Clock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 type Permission = 
   | 'dashboard.read' | 'dashboard.write' | 'dashboard.delete'
@@ -34,7 +35,7 @@ export function PermissionGuard({
   fallback = null 
 }: PermissionGuardProps) {
   const { hasPermission, hasAnyPermission, hasAllPermissions } = usePermissions();
-  const { loading, user, error, refreshPermissions } = useAuth();
+  const { loading, user, error, refreshPermissions, userProfile } = useAuth();
 
   // عرض خطأ في جلب الصلاحيات
   if (error && !loading) {
@@ -54,6 +55,54 @@ export function PermissionGuard({
           </Button>
         </Card>
       </div>
+    );
+  }
+
+  // Check if user account is pending approval
+  if (userProfile?.approval_status === 'pending') {
+    return (
+      <Card className="max-w-md mx-auto mt-8">
+        <div className="p-6 text-center">
+          <Clock className="h-12 w-12 mx-auto mb-4 text-yellow-600" />
+          <h3 className="text-lg font-semibold mb-2">في انتظار الموافقة</h3>
+          <p className="text-muted-foreground mb-4">
+            تم إرسال طلب التسجيل الخاص بك. سيتم مراجعته من قبل الإدارة وستتلقى إشعاراً عند الموافقة عليه.
+          </p>
+          <Badge variant="secondary" className="mb-4">
+            حالة الحساب: في الانتظار
+          </Badge>
+          <div className="text-sm text-muted-foreground">
+            إذا كان لديك أي استفسار، يرجى التواصل مع الإدارة
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  // Check if user account was rejected
+  if (userProfile?.approval_status === 'rejected') {
+    return (
+      <Card className="max-w-md mx-auto mt-8">
+        <div className="p-6 text-center">
+          <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-600" />
+          <h3 className="text-lg font-semibold mb-2">تم رفض الطلب</h3>
+          <p className="text-muted-foreground mb-4">
+            عذراً، تم رفض طلب التسجيل الخاص بك.
+          </p>
+          <Badge variant="destructive" className="mb-4">
+            حالة الحساب: مرفوض
+          </Badge>
+          {userProfile.rejection_reason && (
+            <div className="text-sm text-muted-foreground mb-4 p-3 bg-muted rounded">
+              <strong>سبب الرفض:</strong><br />
+              {userProfile.rejection_reason}
+            </div>
+          )}
+          <div className="text-sm text-muted-foreground">
+            يمكنك إنشاء حساب جديد أو التواصل مع الإدارة للمزيد من المعلومات
+          </div>
+        </div>
+      </Card>
     );
   }
 

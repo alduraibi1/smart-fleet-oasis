@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { BarChart3, Users, Shield, Settings, FileText, Lock, Zap, Database, Globe } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import UserManagement from './UserManagement';
+import { PendingUsersManagement } from './PendingUsersManagement';
 import RoleManagement from './RoleManagement';
 import SystemSettings from './SystemSettings';
 import ActivityLogs from './ActivityLogs';
@@ -70,7 +71,12 @@ export const SystemManagementOverview = () => {
           </div>
         )}
         
-        {activeTab === 'users' && <UserManagement />}
+        {activeTab === 'users' && (
+          <div className="space-y-6">
+            <PendingUsersManagement />
+            <UserManagement />
+          </div>
+        )}
         {activeTab === 'roles' && <RoleManagement />}
         {activeTab === 'nationalities' && <NationalitiesManagement />}
         {activeTab === 'settings' && <SystemSettings />}
