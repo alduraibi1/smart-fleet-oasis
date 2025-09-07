@@ -2803,6 +2803,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
           avatar_url: string | null
           created_at: string
           department: string | null
@@ -2812,9 +2815,14 @@ export type Database = {
           is_active: boolean | null
           phone: string | null
           position: string | null
+          rejection_reason: string | null
           updated_at: string
+          user_type: string | null
         }
         Insert: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           avatar_url?: string | null
           created_at?: string
           department?: string | null
@@ -2824,9 +2832,14 @@ export type Database = {
           is_active?: boolean | null
           phone?: string | null
           position?: string | null
+          rejection_reason?: string | null
           updated_at?: string
+          user_type?: string | null
         }
         Update: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           avatar_url?: string | null
           created_at?: string
           department?: string | null
@@ -2836,7 +2849,9 @@ export type Database = {
           is_active?: boolean | null
           phone?: string | null
           position?: string | null
+          rejection_reason?: string | null
           updated_at?: string
+          user_type?: string | null
         }
         Relationships: []
       }
@@ -4552,6 +4567,20 @@ export type Database = {
           },
         ]
       }
+      pending_users: {
+        Row: {
+          approval_status: string | null
+          created_at: string | null
+          email: string | null
+          email_confirmed_at: string | null
+          full_name: string | null
+          id: string | null
+          phone: string | null
+          user_type: string | null
+          user_type_display: string | null
+        }
+        Relationships: []
+      }
       service_schedule: {
         Row: {
           created_at: string | null
@@ -4670,6 +4699,10 @@ export type Database = {
     Functions: {
       analyze_customer_behavior: {
         Args: { p_customer_id: string }
+        Returns: Json
+      }
+      approve_user_registration: {
+        Args: { p_approved_by: string; p_user_id: string }
         Returns: Json
       }
       calculate_maintenance_total_cost: {
@@ -4807,6 +4840,10 @@ export type Database = {
       normalize_plate_number: {
         Args: { plate: string }
         Returns: string
+      }
+      reject_user_registration: {
+        Args: { p_rejection_reason: string; p_user_id: string }
+        Returns: Json
       }
       save_profitability_snapshot: {
         Args: {
