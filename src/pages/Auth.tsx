@@ -7,17 +7,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Car, LogIn, UserPlus } from 'lucide-react';
+import { Car, LogIn, UserPlus, User, Building, Users } from 'lucide-react';
 import { PasswordStrengthIndicator, validatePassword } from '@/components/ui/password-strength-indicator';
 import { AccountLockoutWarning } from '@/components/Auth/AccountLockoutWarning';
 import { SessionTimeoutWarning } from '@/components/Auth/SessionTimeoutWarning';
 import { useLoginAttempts } from '@/hooks/useLoginAttempts';
 
+const userTypes = [
+  { value: 'employee', label: 'موظف', icon: User, description: 'موظف في الشركة' },
+  { value: 'owner', label: 'مالك مركبة', icon: Car, description: 'مالك مركبات للإيجار' },
+  { value: 'partner', label: 'شريك', icon: Building, description: 'شريك في الشركة' }
+];
+
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [userType, setUserType] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -80,19 +90,52 @@ export default function Auth() {
 
         navigate('/');
       } else {
+        // Validate required fields for signup
+        if (!fullName.trim()) {
+          toast({
+            title: "خطأ في البيانات",
+            description: "يرجى إدخال الاسم الكامل",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (!phone.trim()) {
+          toast({
+            title: "خطأ في البيانات", 
+            description: "يرجى إدخال رقم الهاتف",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (!userType) {
+          toast({
+            title: "خطأ في البيانات",
+            description: "يرجى اختيار نوع المستخدم",
+            variant: "destructive",
+          });
+          return;
+        }
+
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              full_name: fullName,
+              phone: phone,
+              user_type: userType
+            }
           }
         });
 
         if (error) throw error;
 
         toast({
-          title: "تم إنشاء الحساب بنجاح",
-          description: "يرجى تفقد بريدك الإلكتروني لتأكيد الحساب",
+          title: "تم إرسال طلب التسجيل",
+          description: "سيتم مراجعة طلبك من قبل الإدارة وستصلك رسالة تأكيد قريباً",
         });
       }
     } catch (error: any) {
@@ -145,6 +188,60 @@ export default function Auth() {
             )}
             
             <form onSubmit={handleAuth} className="space-y-4">
+              {/* Signup additional fields */}
+              {!isLogin && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">الاسم الكامل</Label>
+                    <Input
+                      id="fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required
+                      placeholder="أدخل اسمك الكامل"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">رقم الهاتف</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      required
+                      placeholder="05xxxxxxxx"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="userType">نوع المستخدم</Label>
+                    <Select value={userType} onValueChange={setUserType} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر نوع المستخدم" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {userTypes.map((type) => {
+                          const IconComponent = type.icon;
+                          return (
+                            <SelectItem key={type.value} value={type.value}>
+                              <div className="flex items-center gap-2">
+                                <IconComponent className="h-4 w-4 text-primary" />
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{type.label}</span>
+                                  <span className="text-xs text-muted-foreground">{type.description}</span>
+                                </div>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="email">البريد الإلكتروني</Label>
                 <Input
@@ -175,7 +272,7 @@ export default function Auth() {
               <Button 
                 type="submit" 
                 className="w-full btn-glow btn-scale"
-                disabled={loading || isLocked || (!isLogin && !validatePassword(password).isValid)}
+                disabled={loading || isLocked || (!isLogin && !validatePassword(password).isValid) || (!isLogin && (!fullName || !phone || !userType))}
               >
                 {loading ? (
                   "جاري المعالجة..."
