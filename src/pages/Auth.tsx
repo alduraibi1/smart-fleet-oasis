@@ -13,6 +13,7 @@ import { Car, LogIn, UserPlus, User, Building, Users } from 'lucide-react';
 import { PasswordStrengthIndicator, validatePassword } from '@/components/ui/password-strength-indicator';
 import { AccountLockoutWarning } from '@/components/Auth/AccountLockoutWarning';
 import { SessionTimeoutWarning } from '@/components/Auth/SessionTimeoutWarning';
+import { ForgotPasswordForm } from '@/components/Auth/ForgotPasswordForm';
 import { useLoginAttempts } from '@/hooks/useLoginAttempts';
 
 const userTypes = [
@@ -23,6 +24,7 @@ const userTypes = [
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -44,6 +46,25 @@ export default function Auth() {
   if (user) {
     navigate('/');
     return null;
+  }
+
+  // Show forgot password form
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center space-y-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-primary-variant rounded-2xl shadow-glow mb-4">
+              <Car className="h-8 w-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent">
+              CarRent Pro
+            </h1>
+          </div>
+          <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
+        </div>
+      </div>
+    );
   }
 
   const mapAuthError = (error: any): string => {
@@ -184,6 +205,7 @@ export default function Auth() {
               <AccountLockoutWarning 
                 remainingAttempts={remainingAttempts}
                 lockoutTimeRemaining={lockoutTimeRemaining}
+                onResetPassword={() => setShowForgotPassword(true)}
               />
             )}
             
@@ -290,11 +312,23 @@ export default function Auth() {
               </Button>
             </form>
 
-            <div className="text-center">
+            <div className="space-y-2">
+              {isLogin && (
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="w-full text-sm text-primary hover:text-primary-variant"
+                  disabled={loading}
+                >
+                  نسيت كلمة المرور؟
+                </Button>
+              )}
+              
               <Button
                 variant="ghost"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-sm"
+                className="w-full text-sm"
+                disabled={loading}
               >
                 {isLogin 
                   ? 'لا تملك حساب؟ إنشاء حساب جديد'

@@ -4,11 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { usePasswordReset } from '@/hooks/usePasswordReset';
+import { supabase } from '@/integrations/supabase/client';
 import { Lock, Shield, Key, Loader2 } from 'lucide-react';
 
 export function SecuritySettings() {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const { changePassword, loading } = usePasswordReset();
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -36,31 +38,30 @@ export function SecuritySettings() {
       return;
     }
 
-    setLoading(true);
-    try {
-      // Here you would implement the actual password change logic
-      // using supabase.auth.updateUser({ password: passwordData.newPassword })
-      
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      
-      toast({
-        title: "تم تغيير كلمة المرور",
-        description: "تم تحديث كلمة المرور بنجاح",
-      });
-      
+    const result = await changePassword(passwordData.currentPassword, passwordData.newPassword);
+    
+    if (result.success) {
       setPasswordData({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
+    }
+  };
+
+  const handleSignOutAllDevices = async () => {
+    try {
+      await supabase.auth.signOut({ scope: 'global' });
+      toast({
+        title: "تم تسجيل الخروج",
+        description: "تم تسجيل الخروج من جميع الأجهزة بنجاح",
+      });
     } catch (error) {
       toast({
-        title: "خطأ في التحديث",
-        description: "حدث خطأ أثناء تغيير كلمة المرور",
+        title: "خطأ",
+        description: "حدث خطأ أثناء تسجيل الخروج",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -167,7 +168,11 @@ export function SecuritySettings() {
                 إنهاء جميع الجلسات النشطة على الأجهزة الأخرى
               </p>
             </div>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleSignOutAllDevices}
+            >
               تسجيل خروج
             </Button>
           </div>

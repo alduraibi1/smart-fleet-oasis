@@ -25,6 +25,7 @@ const Suppliers = lazy(() => import('@/pages/Suppliers'));
 const Inventory = lazy(() => import('@/pages/Inventory'));
 const SystemManagement = lazy(() => import('@/pages/SystemManagement'));
 const Auth = lazy(() => import('@/pages/Auth'));
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const CustomerArrearsControl = lazy(() => import('@/pages/CustomerArrearsControl'));
 const FinancialControl = lazy(() => import('@/pages/FinancialControl'));
@@ -63,12 +64,20 @@ function App() {
         <AuthProvider>
           <Router>
             <Routes>
-              {/* Public Route */}
+              {/* Public Routes */}
               <Route 
                 path="/auth" 
                 element={
                   <Suspense fallback={<LoadingFallback />}>
                     <Auth />
+                  </Suspense>
+                } 
+              />
+              <Route 
+                path="/reset-password" 
+                element={
+                  <Suspense fallback={<LoadingFallback />}>
+                    <ResetPassword />
                   </Suspense>
                 } 
               />

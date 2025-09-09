@@ -2449,6 +2449,42 @@ export type Database = {
         }
         Relationships: []
       }
+      password_reset_requests: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          token_hash: string
+          updated_at: string
+          used_at: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          token_hash: string
+          updated_at?: string
+          used_at?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          token_hash?: string
+          updated_at?: string
+          used_at?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       payment_receipts: {
         Row: {
           account_id: string | null
@@ -4728,6 +4764,10 @@ export type Database = {
           severity: string
           threshold_value: number
         }[]
+      }
+      cleanup_expired_password_resets: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       cleanup_old_activity_logs: {
         Args: Record<PropertyKey, never>
