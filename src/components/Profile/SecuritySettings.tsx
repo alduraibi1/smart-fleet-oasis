@@ -74,7 +74,7 @@ export function SecuritySettings() {
             تغيير كلمة المرور
           </CardTitle>
           <CardDescription>
-            تحديث كلمة المرور الخاصة بك لحماية حسابك
+            تحديث كلمة المرور الخاصة بك لحماية حسابك (يتطلب معرفة كلمة المرور الحالية)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -121,19 +121,28 @@ export function SecuritySettings() {
               />
             </div>
 
-            <Button type="submit" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جاري التحديث...
-                </>
-              ) : (
-                <>
-                  <Key className="ml-2 h-4 w-4" />
-                  تحديث كلمة المرور
-                </>
-              )}
-            </Button>
+            <div className="flex gap-3">
+              <Button type="submit" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                    جاري التحديث...
+                  </>
+                ) : (
+                  <>
+                    <Key className="ml-2 h-4 w-4" />
+                    تحديث كلمة المرور
+                  </>
+                )}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => window.location.href = '/auth?tab=forgot'}
+              >
+                نسيت كلمة المرور؟
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
