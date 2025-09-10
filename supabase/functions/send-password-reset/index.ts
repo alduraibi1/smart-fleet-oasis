@@ -123,7 +123,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email using Resend
     const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
-    const resetUrl = `${Deno.env.get('SUPABASE_URL').replace('/supabase', '')}/reset-password?token=${token}`;
+    
+    // Get the correct frontend URL for the reset link
+    const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://oezugvqviogpcqphkbuf.lovableproject.com';
+    const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
 
     const emailResponse = await resend.emails.send({
       from: 'CarRent Pro <noreply@resend.dev>',
