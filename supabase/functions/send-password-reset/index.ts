@@ -129,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
     const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
 
     const emailResponse = await resend.emails.send({
-      from: 'CarRent Pro <noreply@resend.dev>',
+      from: 'CarRent Pro <onboarding@resend.dev>',
       to: [email],
       subject: 'إعادة تعيين كلمة المرور - CarRent Pro',
       html: `
