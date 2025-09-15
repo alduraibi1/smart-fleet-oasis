@@ -69,11 +69,15 @@ export default function Auth() {
 
   const mapAuthError = (error: any): string => {
     const msg = (error?.message || '').toLowerCase();
+    if (msg.includes('captcha verification process failed') || msg.includes('captcha')) {
+      return 'مشكلة في التحقق الأمني. يرجى المحاولة لاحقاً أو التواصل مع الإدارة';
+    }
     if (msg.includes('invalid login credentials')) return 'بيانات الدخول غير صحيحة';
     if (msg.includes('email address is invalid')) return 'صيغة البريد الإلكتروني غير صحيحة';
     if (msg.includes('user already registered') || msg.includes('already exists')) return 'البريد الإلكتروني مسجل مسبقاً';
     if (msg.includes('rate limit')) return 'تم تجاوز الحد المسموح من المحاولات، حاول لاحقاً';
     if (msg.includes('otp')) return 'انتهت صلاحية رمز التحقق أو غير صالح';
+    if (msg.includes('unexpected_failure')) return 'خطأ في الخادم، يرجى المحاولة لاحقاً';
     return error?.message || 'حدث خطأ غير متوقع';
   };
 
@@ -160,16 +164,27 @@ export default function Auth() {
         });
       }
     } catch (error: any) {
+      console.error('Authentication error:', error);
+      
       // Add failed attempt for login errors (not signup)
       if (isLogin && error?.message?.toLowerCase().includes('invalid login credentials')) {
         addFailedAttempt();
       }
       
-      toast({
-        title: "خطأ في المصادقة",
-        description: mapAuthError(error),
-        variant: "destructive",
-      });
+      // Special handling for CAPTCHA errors
+      if (error?.message?.toLowerCase().includes('captcha')) {
+        toast({
+          title: "مشكلة في التحقق الأمني",
+          description: "يبدو أن النظام يتطلب تحقق أمني إضافي. يرجى إلغاء تفعيل CAPTCHA من إعدادات Supabase أو المحاولة لاحقاً",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "خطأ في المصادقة",
+          description: mapAuthError(error),
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
