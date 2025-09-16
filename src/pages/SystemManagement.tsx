@@ -16,6 +16,7 @@ import ActivityLogs from '@/components/SystemManagement/ActivityLogs';
 import SystemStatus from '@/components/SystemManagement/SystemStatus';
 import RoleManagement from '@/components/SystemManagement/RoleManagement';
 import { SampleDataManager } from '@/components/SystemManagement/SampleDataManager';
+import { SuperAdminManagement } from '@/components/SystemManagement/SuperAdminManagement';
 
 const SystemManagement = () => {
   const [activeTab, setActiveTab] = useState("settings");
@@ -34,7 +35,7 @@ const SystemManagement = () => {
           {/* Responsive Tab Navigation */}
           <div className="dashboard-card">
             <div className="overflow-x-auto scrollbar-hide">
-              <TabsList className="grid w-max min-w-full grid-cols-3 md:grid-cols-6 gap-1 p-1 bg-muted/30 rounded-lg">
+              <TabsList className="grid w-max min-w-full grid-cols-3 md:grid-cols-7 gap-1 p-1 bg-muted/30 rounded-lg">
                 <TabsTrigger 
                   value="settings" 
                   className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all hover-scale data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
@@ -48,6 +49,13 @@ const SystemManagement = () => {
                 >
                   <Users className="h-4 w-4" />
                   <span className="hidden sm:inline">المستخدمين</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="super-admin" 
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all hover-scale data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                >
+                  <Shield className="h-4 w-4" />
+                  <span className="hidden sm:inline">المدير الرئيسي</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="roles" 
@@ -109,6 +117,10 @@ const SystemManagement = () => {
                   <UserManagement />
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="super-admin" className="mt-0">
+              <SuperAdminManagement />
             </TabsContent>
 
             <TabsContent value="roles" className="mt-0">
