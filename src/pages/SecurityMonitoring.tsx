@@ -5,9 +5,11 @@ import { SecurityReports } from '@/components/Security/SecurityReports';
 import { SecurityIncidents } from '@/components/Security/SecurityIncidents';
 import { ActiveSessions } from '@/components/Security/ActiveSessions';
 import { SecurityAlertRules } from '@/components/Security/SecurityAlertRules';
+import { SecurityAnalyticsDashboard } from '@/components/Security/SecurityAnalyticsDashboard';
+import { RealTimeSecurityMonitor } from '@/components/Security/RealTimeSecurityMonitor';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, FileText, Users, BarChart3, AlertTriangle, Monitor, Bell } from 'lucide-react';
+import { Shield, FileText, Users, BarChart3, AlertTriangle, Monitor, Bell, Activity, TrendingUp } from 'lucide-react';
 
 export default function SecurityMonitoring() {
   return (
@@ -25,39 +27,55 @@ export default function SecurityMonitoring() {
 
             {/* Security Monitoring Tabs */}
             <Tabs defaultValue="dashboard" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-7">
-                <TabsTrigger value="dashboard" className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
+              <TabsList className="grid w-full grid-cols-9 text-xs">
+                <TabsTrigger value="dashboard" className="flex items-center gap-1">
+                  <Shield className="h-3 w-3" />
                   لوحة الأمان
                 </TabsTrigger>
-                <TabsTrigger value="incidents" className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
+                <TabsTrigger value="real-time" className="flex items-center gap-1">
+                  <Activity className="h-3 w-3" />
+                  المراقبة المباشرة
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" />
+                  التحليلات المتقدمة
+                </TabsTrigger>
+                <TabsTrigger value="incidents" className="flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
                   الحوادث الأمنية
                 </TabsTrigger>
-                <TabsTrigger value="sessions" className="flex items-center gap-2">
-                  <Monitor className="h-4 w-4" />
+                <TabsTrigger value="sessions" className="flex items-center gap-1">
+                  <Monitor className="h-3 w-3" />
                   الجلسات النشطة
                 </TabsTrigger>
-                <TabsTrigger value="alert-rules" className="flex items-center gap-2">
-                  <Bell className="h-4 w-4" />
+                <TabsTrigger value="alert-rules" className="flex items-center gap-1">
+                  <Bell className="h-3 w-3" />
                   قواعد التنبيهات
                 </TabsTrigger>
-                <TabsTrigger value="audit-logs" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
+                <TabsTrigger value="audit-logs" className="flex items-center gap-1">
+                  <FileText className="h-3 w-3" />
                   سجلات التدقيق
                 </TabsTrigger>
-                <TabsTrigger value="user-access" className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
+                <TabsTrigger value="user-access" className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
                   إدارة المستخدمين
                 </TabsTrigger>
-                <TabsTrigger value="reports" className="flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4" />
+                <TabsTrigger value="reports" className="flex items-center gap-1">
+                  <BarChart3 className="h-3 w-3" />
                   التقارير الأمنية
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="dashboard" className="space-y-6">
                 <SecurityDashboard />
+              </TabsContent>
+
+              <TabsContent value="real-time" className="space-y-6">
+                <RealTimeSecurityMonitor />
+              </TabsContent>
+
+              <TabsContent value="analytics" className="space-y-6">
+                <SecurityAnalyticsDashboard />
               </TabsContent>
 
               <TabsContent value="incidents" className="space-y-6">
