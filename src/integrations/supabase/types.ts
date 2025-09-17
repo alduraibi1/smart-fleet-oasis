@@ -3361,6 +3361,48 @@ export type Database = {
         }
         Relationships: []
       }
+      security_alert_rules: {
+        Row: {
+          condition_type: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          notification_channels: string[] | null
+          rule_name: string
+          severity_level: string
+          threshold_value: number
+          time_window_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          condition_type: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          notification_channels?: string[] | null
+          rule_name: string
+          severity_level?: string
+          threshold_value?: number
+          time_window_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          condition_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          notification_channels?: string[] | null
+          rule_name?: string
+          severity_level?: string
+          threshold_value?: number
+          time_window_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       security_audit_log: {
         Row: {
           action_type: string
@@ -3400,6 +3442,63 @@ export type Database = {
           success?: boolean
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      security_incidents: {
+        Row: {
+          affected_user_id: string | null
+          assigned_to: string | null
+          created_at: string
+          description: string | null
+          id: string
+          incident_type: string
+          metadata: Json | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          source_ip: unknown | null
+          status: string
+          title: string
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          affected_user_id?: string | null
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          incident_type: string
+          metadata?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          source_ip?: unknown | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          affected_user_id?: string | null
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          incident_type?: string
+          metadata?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          source_ip?: unknown | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -3791,6 +3890,48 @@ export type Database = {
           assigned_by?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          created_at: string
+          device_info: Json | null
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          is_active: boolean
+          last_activity: string
+          location_info: Json | null
+          session_token: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_info?: Json | null
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_activity?: string
+          location_info?: Json | null
+          session_token: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_info?: Json | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_activity?: string
+          location_info?: Json | null
+          session_token?: string
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: []
@@ -4875,6 +5016,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_expired_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_old_activity_logs: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -4904,6 +5049,10 @@ export type Database = {
       detect_financial_anomalies: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      detect_security_incident: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       ensure_cost_center_for_entity: {
         Args: {

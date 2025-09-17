@@ -2,9 +2,12 @@ import { SecurityDashboard } from '@/components/Security/SecurityDashboard';
 import { AuditLogsViewer } from '@/components/Security/AuditLogsViewer';
 import { UserAccessManagement } from '@/components/Security/UserAccessManagement';
 import { SecurityReports } from '@/components/Security/SecurityReports';
+import { SecurityIncidents } from '@/components/Security/SecurityIncidents';
+import { ActiveSessions } from '@/components/Security/ActiveSessions';
+import { SecurityAlertRules } from '@/components/Security/SecurityAlertRules';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, FileText, Users, BarChart3 } from 'lucide-react';
+import { Shield, FileText, Users, BarChart3, AlertTriangle, Monitor, Bell } from 'lucide-react';
 
 export default function SecurityMonitoring() {
   return (
@@ -22,10 +25,22 @@ export default function SecurityMonitoring() {
 
             {/* Security Monitoring Tabs */}
             <Tabs defaultValue="dashboard" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-7">
                 <TabsTrigger value="dashboard" className="flex items-center gap-2">
                   <Shield className="h-4 w-4" />
                   لوحة الأمان
+                </TabsTrigger>
+                <TabsTrigger value="incidents" className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  الحوادث الأمنية
+                </TabsTrigger>
+                <TabsTrigger value="sessions" className="flex items-center gap-2">
+                  <Monitor className="h-4 w-4" />
+                  الجلسات النشطة
+                </TabsTrigger>
+                <TabsTrigger value="alert-rules" className="flex items-center gap-2">
+                  <Bell className="h-4 w-4" />
+                  قواعد التنبيهات
                 </TabsTrigger>
                 <TabsTrigger value="audit-logs" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
@@ -43,6 +58,18 @@ export default function SecurityMonitoring() {
 
               <TabsContent value="dashboard" className="space-y-6">
                 <SecurityDashboard />
+              </TabsContent>
+
+              <TabsContent value="incidents" className="space-y-6">
+                <SecurityIncidents />
+              </TabsContent>
+
+              <TabsContent value="sessions" className="space-y-6">
+                <ActiveSessions />
+              </TabsContent>
+
+              <TabsContent value="alert-rules" className="space-y-6">
+                <SecurityAlertRules />
               </TabsContent>
 
               <TabsContent value="audit-logs" className="space-y-6">
