@@ -1,16 +1,16 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useSecureAuth } from '@/hooks/useSecureAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Car, LogIn, UserPlus, User, Building, Users } from 'lucide-react';
-import { PasswordStrengthIndicator, validatePassword } from '@/components/ui/password-strength-indicator';
+import { Car, LogIn, UserPlus, User, Building, Users, Shield, AlertTriangle } from 'lucide-react';
+import { PasswordStrengthIndicator } from '@/components/Security/PasswordStrengthIndicator';
 import { AccountLockoutWarning } from '@/components/Auth/AccountLockoutWarning';
 import { SessionTimeoutWarning } from '@/components/Auth/SessionTimeoutWarning';
 import { ForgotPasswordForm } from '@/components/Auth/ForgotPasswordForm';
@@ -44,6 +44,21 @@ export default function Auth() {
     addFailedAttempt, 
     clearAttempts 
   } = useLoginAttempts(email);
+  
+  // Secure authentication hooks
+  const {
+    loading: secureLoading,
+    passwordRequirements,
+    loadPasswordRequirements,
+    validatePassword,
+    secureSignUp,
+    secureSignIn,
+  } = useSecureAuth();
+
+  // Load password requirements on component mount
+  useEffect(() => {
+    loadPasswordRequirements();
+  }, [loadPasswordRequirements]);
 
   // Redirect if already authenticated
   if (user) {
@@ -124,22 +139,17 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
+        // Use secure sign in
+        const result = await secureSignIn(email, password);
         
-        // Clear failed attempts on successful login
-        clearAttempts();
-
-        toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحباً بك في نظام إدارة تأجير المركبات",
-        });
-
-        navigate('/');
+        if (result.success) {
+          // Clear failed attempts on successful login
+          clearAttempts();
+          navigate('/');
+        } else {
+          // Add failed attempt for login errors
+          addFailedAttempt();
+        }
       } else {
         // Validate required fields for signup
         if (!fullName.trim()) {
@@ -169,45 +179,17 @@ export default function Auth() {
           return;
         }
 
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              full_name: fullName,
-              phone: phone,
-              user_type: userType
-            }
-          }
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "تم إرسال طلب التسجيل",
-          description: "سيتم مراجعة طلبك من قبل الإدارة وستصلك رسالة تأكيد قريباً",
-        });
+        // Use secure sign up with validation
+        await secureSignUp(email, password, fullName);
       }
     } catch (error: any) {
       console.error('Authentication error:', error);
-      
-      // Add failed attempt for login errors (not signup)
-      if (isLogin && error?.message?.toLowerCase().includes('invalid login credentials')) {
-        addFailedAttempt();
-      }
       
       // Special handling for CAPTCHA errors
       if (error?.message?.toLowerCase().includes('captcha')) {
         toast({
           title: "مشكلة في التحقق الأمني",
           description: "يبدو أن النظام يتطلب تحقق أمني إضافي. يرجى إلغاء تفعيل CAPTCHA من إعدادات Supabase أو المحاولة لاحقاً",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "خطأ في المصادقة",
-          description: mapAuthError(error),
           variant: "destructive",
         });
       }
@@ -327,15 +309,24 @@ export default function Auth() {
                   required
                   placeholder="••••••••"
                 />
-                {!isLogin && password && (
-                  <PasswordStrengthIndicator password={password} />
+                {!isLogin && password && passwordRequirements && (
+                  <PasswordStrengthIndicator 
+                    password={password} 
+                    requirements={passwordRequirements}
+                  />
                 )}
               </div>
 
               <Button 
                 type="submit" 
                 className="w-full btn-glow btn-scale"
-                disabled={loading || isLocked || (!isLogin && !validatePassword(password).isValid) || (!isLogin && (!fullName || !phone || !userType))}
+                disabled={
+                  loading || 
+                  secureLoading || 
+                  isLocked || 
+                  (!isLogin && passwordRequirements && !validatePassword(password, passwordRequirements).isValid) || 
+                  (!isLogin && (!fullName || !phone || !userType))
+                }
               >
                 {loading ? (
                   "جاري المعالجة..."
