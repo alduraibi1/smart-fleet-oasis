@@ -2845,6 +2845,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           department: string | null
+          email: string | null
           full_name: string
           hire_date: string | null
           id: string
@@ -2862,6 +2863,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           department?: string | null
+          email?: string | null
           full_name: string
           hire_date?: string | null
           id: string
@@ -2879,6 +2881,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           department?: string | null
+          email?: string | null
           full_name?: string
           hire_date?: string | null
           id?: string
@@ -4603,17 +4606,36 @@ export type Database = {
           },
         ]
       }
-      pending_users: {
+      pending_users_secure: {
         Row: {
           approval_status: string | null
           created_at: string | null
           email: string | null
-          email_confirmed_at: string | null
           full_name: string | null
           id: string | null
           phone: string | null
           user_type: string | null
           user_type_display: string | null
+        }
+        Insert: {
+          approval_status?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          phone?: string | null
+          user_type?: string | null
+          user_type_display?: never
+        }
+        Update: {
+          approval_status?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          phone?: string | null
+          user_type?: string | null
+          user_type_display?: never
         }
         Relationships: []
       }
