@@ -14,6 +14,7 @@ import { PasswordStrengthIndicator, validatePassword } from '@/components/ui/pas
 import { AccountLockoutWarning } from '@/components/Auth/AccountLockoutWarning';
 import { SessionTimeoutWarning } from '@/components/Auth/SessionTimeoutWarning';
 import { ForgotPasswordForm } from '@/components/Auth/ForgotPasswordForm';
+import { SuperAdminForm } from '@/components/Auth/SuperAdminForm';
 import { useLoginAttempts } from '@/hooks/useLoginAttempts';
 
 const userTypes = [
@@ -25,12 +26,14 @@ const userTypes = [
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showSuperAdminForm, setShowSuperAdminForm] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [userType, setUserType] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const [superAdminLoading, setSuperAdminLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -62,6 +65,29 @@ export default function Auth() {
             </h1>
           </div>
           <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
+        </div>
+      </div>
+    );
+  }
+
+  // Show super admin creation form
+  if (showSuperAdminForm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center space-y-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-primary-variant rounded-2xl shadow-glow mb-4">
+              <Users className="h-8 w-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent">
+              إنشاء المستخدم الإداري الأول
+            </h1>
+          </div>
+          <SuperAdminForm 
+            onBack={() => setShowSuperAdminForm(false)}
+            loading={superAdminLoading}
+            setLoading={setSuperAdminLoading}
+          />
         </div>
       </div>
     );
@@ -350,6 +376,18 @@ export default function Auth() {
                   : 'لديك حساب؟ تسجيل الدخول'
                 }
               </Button>
+              
+              <div className="pt-4 border-t border-border/50">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSuperAdminForm(true)}
+                  className="w-full text-xs text-muted-foreground hover:text-primary"
+                  disabled={loading}
+                >
+                  <Users className="h-3 w-3 mr-2" />
+                  إنشاء المستخدم الإداري الأول
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
