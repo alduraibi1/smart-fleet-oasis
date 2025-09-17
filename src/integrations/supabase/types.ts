@@ -2449,6 +2449,48 @@ export type Database = {
         }
         Relationships: []
       }
+      password_requirements: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          max_age_days: number | null
+          min_length: number
+          prevent_reuse_count: number | null
+          require_lowercase: boolean
+          require_numbers: boolean
+          require_symbols: boolean
+          require_uppercase: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_age_days?: number | null
+          min_length?: number
+          prevent_reuse_count?: number | null
+          require_lowercase?: boolean
+          require_numbers?: boolean
+          require_symbols?: boolean
+          require_uppercase?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_age_days?: number | null
+          min_length?: number
+          prevent_reuse_count?: number | null
+          require_lowercase?: boolean
+          require_numbers?: boolean
+          require_symbols?: boolean
+          require_uppercase?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       password_reset_requests: {
         Row: {
           created_at: string
@@ -3316,6 +3358,48 @@ export type Database = {
           settings?: Json
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      security_audit_log: {
+        Row: {
+          action_type: string
+          additional_data: Json | null
+          created_at: string
+          failure_reason: string | null
+          id: string
+          ip_address: unknown | null
+          resource_id: string | null
+          resource_type: string | null
+          success: boolean
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          additional_data?: Json | null
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type?: string | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          additional_data?: Json | null
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type?: string | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

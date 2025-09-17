@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LoginAttempt {
   timestamp: number;
@@ -9,10 +10,13 @@ const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
 const ATTEMPT_WINDOW = 15 * 60 * 1000; // 15 minutes
 
+// Deprecated: This hook is deprecated in favor of database-based tracking
+// Use the new track-failed-login edge function instead
 export function useLoginAttempts(email: string) {
   const [attempts, setAttempts] = useState<LoginAttempt[]>([]);
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutTimeRemaining, setLockoutTimeRemaining] = useState(0);
+  const [dbLocked, setDbLocked] = useState(false);
 
   const storageKey = `login_attempts_${email}`;
 

@@ -64,12 +64,21 @@ export function usePasswordReset() {
     }
   };
 
+  // Deprecated: Use useSecureAuth.secureChangePassword instead
   const changePassword = async (currentPassword: string, newPassword: string) => {
+    console.warn('usePasswordReset.changePassword is deprecated. Use useSecureAuth.secureChangePassword instead.');
+    
     setLoading(true);
     try {
-      // First, verify current password by signing in
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        throw new Error('المستخدم غير مسجل الدخول');
+      }
+
+      // Verify current password by attempting to sign in
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: (await supabase.auth.getUser()).data.user?.email || '',
+        email: user.email,
         password: currentPassword,
       });
 
@@ -77,7 +86,7 @@ export function usePasswordReset() {
         throw new Error('كلمة المرور الحالية غير صحيحة');
       }
 
-      // Update password
+      // Update password with proper validation
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword
       });
@@ -86,6 +95,16 @@ export function usePasswordReset() {
         throw updateError;
       }
 
+      // Log security event
+      await supabase.functions.invoke('log-security-event', {
+        body: {
+          action_type: 'password_change',
+          resource_type: 'user',
+          resource_id: user.id,
+          success: true
+        }
+      });
+
       toast({
         title: "تم تغيير كلمة المرور",
         description: "تم تحديث كلمة المرور بنجاح",
@@ -93,6 +112,24 @@ export function usePasswordReset() {
 
       return { success: true };
     } catch (error: any) {
+      // Log failed password change attempt
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.functions.invoke('log-security-event', {
+            body: {
+              action_type: 'password_change',
+              resource_type: 'user',
+              resource_id: user.id,
+              success: false,
+              failure_reason: error.message
+            }
+          });
+        }
+      } catch (logError) {
+        console.error('Failed to log security event:', logError);
+      }
+
       toast({
         title: "خطأ في التحديث",
         description: error.message || "حدث خطأ أثناء تغيير كلمة المرور",
