@@ -5031,6 +5031,10 @@ export type Database = {
         Args: { p_keep_months?: number }
         Returns: undefined
       }
+      clear_failed_login_attempts: {
+        Args: { p_email: string }
+        Returns: boolean
+      }
       create_smart_notification: {
         Args: {
           p_action_required?: boolean
