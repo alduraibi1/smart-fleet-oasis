@@ -10,12 +10,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Car, LogIn, UserPlus, User, Building, Users, Shield, AlertTriangle } from 'lucide-react';
-import { PasswordStrengthIndicator } from '@/components/Security/PasswordStrengthIndicator';
+import { PasswordStrengthIndicator } from '@/components/Auth/PasswordStrengthIndicator';
 import { AccountLockoutWarning } from '@/components/Auth/AccountLockoutWarning';
 import { SessionTimeoutWarning } from '@/components/Auth/SessionTimeoutWarning';
 import { ImprovedPasswordResetForm } from '@/components/Auth/ImprovedPasswordResetForm';
 import { SuperAdminForm } from '@/components/Auth/SuperAdminForm';
 import { useFailedLoginTracking } from '@/hooks/useFailedLoginTracking';
+import { useSecureSession } from '@/hooks/useSecureSession';
 
 const userTypes = [
   { value: 'employee', label: 'موظف', icon: User, description: 'موظف في الشركة' },
@@ -31,29 +32,15 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [userType, setUserType] = useState<string>('');
+  const [userType, setUserType] = useState<'employee' | 'partner' | 'owner'>('employee');
   const [loading, setLoading] = useState(false);
   const [superAdminLoading, setSuperAdminLoading] = useState(false);
-  const { toast } = useToast();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { user } = useAuth();
-  const { 
-    isBlocked: isLocked, 
-    lockoutTimeRemaining, 
-    remainingAttempts, 
-    trackFailedAttempt, 
-    clearAttempts 
-  } = useFailedLoginTracking(email);
-  
-  // Secure authentication hooks
-  const {
-    loading: secureLoading,
-    passwordRequirements,
-    loadPasswordRequirements,
-    validatePassword,
-    secureSignUp,
-    secureSignIn,
-  } = useSecureAuth();
+  const { loading: secureLoading, passwordRequirements, loadPasswordRequirements, validatePassword, secureSignUp, secureSignIn } = useSecureAuth();
+  const { trackFailedAttempt, isBlocked, remainingAttempts, lockoutTimeRemaining, clearAttempts } = useFailedLoginTracking(email);
+  const { sessionSecurity, sessionWarnings, initializeSecureSession } = useSecureSession();
 
   // Load password requirements on component mount
   useEffect(() => {
@@ -126,7 +113,7 @@ export default function Auth() {
     e.preventDefault();
     
     // Check if account is locked
-    if (isLocked) {
+    if (isBlocked) {
       const minutes = Math.ceil(lockoutTimeRemaining / 60);
       toast({
         title: "الحساب مقفل مؤقتاً",
@@ -143,25 +130,27 @@ export default function Auth() {
         // Use secure sign in
         const result = await secureSignIn(email, password);
         
-        if (result.success) {
-          // Clear failed attempts on successful login
-          clearAttempts();
-          navigate('/');
-        } else {
-          // Track failed attempt with specific reason
-          const reason = result.error || 'Invalid credentials';
-          const trackResult = await trackFailedAttempt(reason);
-          
-          // Show appropriate error message
-          const errorMsg = mapAuthError({ message: reason });
-          toast({
-            title: "فشل في تسجيل الدخول",
-            description: trackResult.blocked 
-              ? `تم حظر المحاولات لمدة 15 دقيقة بسبب المحاولات المتكررة الفاشلة`
-              : `${errorMsg}. ${remainingAttempts - 1} محاولات متبقية`,
-            variant: "destructive",
-          });
-        }
+      if (result.success) {
+        // Initialize secure session after successful login
+        await initializeSecureSession();
+        // Clear failed attempts on successful login
+        clearAttempts();
+        navigate('/');
+      } else {
+        // Track failed attempt with specific reason
+        const reason = result.error || 'Invalid credentials';
+        const trackResult = await trackFailedAttempt(reason);
+        
+        // Show appropriate error message
+        const errorMsg = mapAuthError({ message: reason });
+        toast({
+          title: "فشل في تسجيل الدخول",
+          description: trackResult.blocked 
+            ? `تم حظر المحاولات لمدة 15 دقيقة بسبب المحاولات المتكررة الفاشلة`
+            : `${errorMsg}. ${remainingAttempts - 1} محاولات متبقية`,
+          variant: "destructive",
+        });
+      }
       } else {
         // Validate required fields for signup
         if (!fullName.trim()) {
@@ -272,6 +261,20 @@ export default function Auth() {
                 onResetPassword={() => setShowForgotPassword(true)}
               />
             )}
+
+            {/* Session security warnings */}
+            {sessionWarnings.length > 0 && (
+              <div className="space-y-2">
+                {sessionWarnings.map((warning, index) => (
+                  <div key={index} className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-amber-800">{warning}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             
             <form onSubmit={handleAuth} className="space-y-4">
               {/* Signup additional fields */}
@@ -303,7 +306,7 @@ export default function Auth() {
 
                   <div className="space-y-2">
                     <Label htmlFor="userType">نوع المستخدم</Label>
-                    <Select value={userType} onValueChange={setUserType} required>
+                    <Select value={userType} onValueChange={(value: 'employee' | 'partner' | 'owner') => setUserType(value)} required>
                       <SelectTrigger>
                         <SelectValue placeholder="اختر نوع المستخدم" />
                       </SelectTrigger>
@@ -363,8 +366,8 @@ export default function Auth() {
                 className="w-full btn-glow btn-scale"
                 disabled={
                   loading || 
-                  secureLoading || 
-                  isLocked || 
+                  secureLoading ||
+                  isBlocked || 
                   (!isLogin && passwordRequirements && !validatePassword(password, passwordRequirements).isValid) || 
                   (!isLogin && (!fullName || !phone || !userType))
                 }
