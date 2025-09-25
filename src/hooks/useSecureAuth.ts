@@ -22,11 +22,13 @@ export function useSecureAuth() {
         .from('password_requirements')
         .select('*')
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      setPasswordRequirements(data);
-      return data;
+      if (data) {
+        setPasswordRequirements(data);
+        return data;
+      }
     } catch (error) {
       console.error('Failed to load password requirements:', error);
       // Use defaults if loading fails
@@ -140,8 +142,11 @@ export function useSecureAuth() {
       });
 
       if (error) {
-        // Log failed login attempt
-        await logFailedLoginAttempt(email, error.message);
+        // Log failed login attempt (skip captcha-related failures)
+        const msg = typeof error.message === 'string' ? error.message : '';
+        if (!msg.toLowerCase().includes('captcha')) {
+          await logFailedLoginAttempt(email, msg || 'signin_failed');
+        }
         throw error;
       }
 
@@ -151,9 +156,11 @@ export function useSecureAuth() {
 
       return { success: true, user: data.user, session: data.session };
     } catch (error: any) {
+      const rawMsg = error?.message;
+      const msg = typeof rawMsg === 'string' ? rawMsg.toLowerCase() : '';
       toast({
         title: "خطأ في تسجيل الدخول",
-        description: error.message || "خطأ في البريد الإلكتروني أو كلمة المرور",
+        description: msg.includes('captcha') ? 'فشل التحقق الأمني (Captcha). يرجى المحاولة لاحقاً أو تعطيل التحقق مؤقتاً من إعدادات Supabase.' : (rawMsg || 'خطأ في البريد الإلكتروني أو كلمة المرور'),
         variant: "destructive",
       });
       return { success: false, error };

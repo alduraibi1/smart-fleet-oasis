@@ -25,7 +25,7 @@ export function useFailedLoginTracking(email: string) {
       const { data, error } = await supabase
         .from('failed_login_attempts')
         .select('blocked_until, attempt_time')
-        .eq('ip_address', 'current') // This will be handled by RLS in the future
+        .eq('email', email)
         .gte('attempt_time', new Date(Date.now() - 15 * 60 * 1000).toISOString())
         .order('attempt_time', { ascending: false });
 

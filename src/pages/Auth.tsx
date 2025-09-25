@@ -157,7 +157,8 @@ export default function Auth() {
     // Safe error message extraction with null checks
     let errorMessage = '';
     if (error && typeof error === 'object') {
-      errorMessage = error.message || error.msg || '';
+      const m = (error as any).message ?? (error as any).msg ?? '';
+      errorMessage = typeof m === 'string' ? m : '';
     } else if (typeof error === 'string') {
       errorMessage = error;
     }
