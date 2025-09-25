@@ -2498,6 +2498,7 @@ export type Database = {
           expires_at: string
           id: string
           ip_address: unknown | null
+          otp_code: string | null
           token_hash: string
           updated_at: string
           used_at: string | null
@@ -2509,6 +2510,7 @@ export type Database = {
           expires_at: string
           id?: string
           ip_address?: unknown | null
+          otp_code?: string | null
           token_hash: string
           updated_at?: string
           used_at?: string | null
@@ -2520,6 +2522,7 @@ export type Database = {
           expires_at?: string
           id?: string
           ip_address?: unknown | null
+          otp_code?: string | null
           token_hash?: string
           updated_at?: string
           used_at?: string | null
