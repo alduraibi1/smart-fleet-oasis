@@ -6,22 +6,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Car, Key, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Car, Key, Loader2, CheckCircle, AlertTriangle, Shield, Clock } from 'lucide-react';
 import { PasswordStrengthIndicator, validatePassword } from '@/components/ui/password-strength-indicator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-export default function ResetPassword() {
+export default function ImprovedResetPassword() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [otpCode, setOtpCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(true);
   const [isValidToken, setIsValidToken] = useState(false);
   const [tokenError, setTokenError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
 
   const token = searchParams.get('token');
 
@@ -48,7 +51,7 @@ export default function ResetPassword() {
 
       const { data, error } = await supabase
         .from('password_reset_requests')
-        .select('id, expires_at, used_at, email')
+        .select('id, expires_at, used_at, email, otp_code')
         .eq('token_hash', hashString)
         .maybeSingle();
 
@@ -60,9 +63,12 @@ export default function ResetPassword() {
       } else if (data.used_at) {
         setTokenError('تم استخدام هذا الرابط من قبل');
       } else if (new Date(data.expires_at) < new Date()) {
-        setTokenError('انتهت صلاحية هذا الرابط');
+        setTokenError('انتهت صلاحية هذا الرابط (60 دقيقة). يرجى طلب رابط جديد');
       } else {
         setIsValidToken(true);
+        setResetEmail(data.email);
+        // Show OTP input if OTP code exists
+        setShowOtpInput(!!data.otp_code);
       }
     } catch (error) {
       console.error('Validation error:', error);
@@ -94,6 +100,15 @@ export default function ResetPassword() {
       return;
     }
 
+    if (showOtpInput && (!otpCode || otpCode.length !== 6)) {
+      toast({
+        title: "رمز التحقق مطلوب",
+        description: "يرجى إدخال رمز التحقق المكون من 6 أرقام",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -106,27 +121,26 @@ export default function ResetPassword() {
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
 
-      // Get user email from token
-      const { data: resetData, error: fetchError } = await supabase
-        .from('password_reset_requests')
-        .select('email')
-        .eq('token_hash', hashString)
-        .single();
-
-      if (fetchError || !resetData) {
-        throw new Error('رابط غير صالح');
-      }
-
-      // Update user password via Supabase Auth Admin API
-      const { error: updateError } = await supabase.functions.invoke('reset-password-improved', {
+      // Update user password via Supabase Auth Admin API with OTP verification
+      const { error: updateError } = await supabase.functions.invoke('reset-password', {
         body: { 
-          email: resetData.email, 
+          email: resetEmail, 
           newPassword: password,
-          tokenHash: hashString
+          tokenHash: hashString,
+          otpCode: showOtpInput ? otpCode : undefined
         }
       });
 
       if (updateError) {
+        // Handle specific error types
+        if (updateError.message?.includes('OTP')) {
+          toast({
+            title: "رمز التحقق غير صحيح",
+            description: "يرجى التحقق من رمز التحقق والمحاولة مرة أخرى",
+            variant: "destructive",
+          });
+          return;
+        }
         throw updateError;
       }
 
@@ -139,7 +153,7 @@ export default function ResetPassword() {
       setSuccess(true);
       toast({
         title: "تم تحديث كلمة المرور",
-        description: "تم تحديث كلمة المرور بنجاح، يمكنك الآن تسجيل الدخول",
+        description: "تم تحديث كلمة المرور بنجاح، يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة",
       });
 
       // Redirect to login after 3 seconds
@@ -149,9 +163,19 @@ export default function ResetPassword() {
 
     } catch (error: any) {
       console.error('Reset error:', error);
+      let errorMessage = "حدث خطأ أثناء تحديث كلمة المرور";
+      
+      if (error.message?.includes('expired')) {
+        errorMessage = "انتهت صلاحية رابط إعادة التعيين";
+      } else if (error.message?.includes('invalid')) {
+        errorMessage = "رابط إعادة التعيين غير صالح";
+      } else if (error.message?.includes('used')) {
+        errorMessage = "تم استخدام هذا الرابط من قبل";
+      }
+      
       toast({
         title: "خطأ في التحديث",
-        description: error.message || "حدث خطأ أثناء تحديث كلمة المرور",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -183,7 +207,7 @@ export default function ResetPassword() {
               <Car className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent">
-              CarRent Pro
+              الدرايبي - CarRent Pro
             </h1>
           </div>
 
@@ -195,7 +219,14 @@ export default function ResetPassword() {
               <CardTitle>رابط غير صالح</CardTitle>
               <CardDescription>{tokenError}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              <Alert className="border-amber-200 bg-amber-50">
+                <Clock className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800">
+                  <strong>ملاحظة:</strong> روابط إعادة تعيين كلمة المرور صالحة لمدة 60 دقيقة فقط من وقت الإرسال
+                </AlertDescription>
+              </Alert>
+              
               <Button
                 onClick={() => navigate('/auth')}
                 className="w-full"
@@ -218,7 +249,7 @@ export default function ResetPassword() {
               <Car className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent">
-              CarRent Pro
+              الدرايبي - CarRent Pro
             </h1>
           </div>
 
@@ -254,7 +285,7 @@ export default function ResetPassword() {
             <Car className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent">
-            CarRent Pro
+            الدرايبي - CarRent Pro
           </h1>
           <p className="text-muted-foreground">إعادة تعيين كلمة المرور</p>
         </div>
@@ -263,10 +294,22 @@ export default function ResetPassword() {
           <CardHeader>
             <CardTitle className="text-center">كلمة مرور جديدة</CardTitle>
             <CardDescription className="text-center">
-              أدخل كلمة المرور الجديدة لحسابك
+              {showOtpInput 
+                ? 'أدخل رمز التحقق من البريد الإلكتروني وكلمة المرور الجديدة'
+                : 'أدخل كلمة المرور الجديدة لحسابك'
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {showOtpInput && (
+              <Alert className="mb-6 border-primary/20 bg-primary/5">
+                <Shield className="h-4 w-4 text-primary" />
+                <AlertDescription className="text-primary">
+                  <strong>تحقق أمني:</strong> تم إرسال رمز التحقق المكون من 6 أرقام إلى بريدك الإلكتروني {resetEmail}
+                </AlertDescription>
+              </Alert>
+            )}
+
             <Alert className="mb-6">
               <Key className="h-4 w-4" />
               <AlertDescription>
@@ -275,6 +318,28 @@ export default function ResetPassword() {
             </Alert>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {showOtpInput && (
+                <div className="space-y-2">
+                  <Label htmlFor="otpCode">رمز التحقق (6 أرقام)</Label>
+                  <Input
+                    id="otpCode"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    required={showOtpInput}
+                    placeholder="123456"
+                    disabled={loading}
+                    className="text-center text-lg tracking-widest font-mono"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    تحقق من بريدك الإلكتروني للحصول على رمز التحقق
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="password">كلمة المرور الجديدة</Label>
                 <Input
@@ -300,12 +365,20 @@ export default function ResetPassword() {
                   placeholder="••••••••"
                   disabled={loading}
                 />
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-sm text-destructive">كلمة المرور وتأكيدها غير متطابقين</p>
+                )}
               </div>
 
               <Button 
                 type="submit" 
                 className="w-full btn-glow"
-                disabled={loading || !validatePassword(password).isValid || password !== confirmPassword}
+                disabled={
+                  loading || 
+                  !validatePassword(password).isValid || 
+                  password !== confirmPassword ||
+                  (showOtpInput && otpCode.length !== 6)
+                }
               >
                 {loading ? (
                   <>
@@ -320,6 +393,12 @@ export default function ResetPassword() {
                 )}
               </Button>
             </form>
+
+            <div className="mt-6 pt-4 border-t border-border/50">
+              <p className="text-xs text-muted-foreground text-center">
+                بمجرد تحديث كلمة المرور، سيتم إبطال جميع جلسات الدخول الأخرى لحمايتك
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>

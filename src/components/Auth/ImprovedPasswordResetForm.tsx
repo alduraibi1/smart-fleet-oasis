@@ -51,7 +51,7 @@ export function ImprovedPasswordResetForm({ onBack }: ImprovedPasswordResetFormP
     setLoading(true);
 
     try {
-      const { error } = await supabase.functions.invoke('send-password-reset', {
+      const { error } = await supabase.functions.invoke('send-password-reset-improved', {
         body: { email }
       });
 
@@ -91,7 +91,7 @@ export function ImprovedPasswordResetForm({ onBack }: ImprovedPasswordResetFormP
     
     setLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('send-password-reset', {
+      const { error } = await supabase.functions.invoke('send-password-reset-improved', {
         body: { email }
       });
 
