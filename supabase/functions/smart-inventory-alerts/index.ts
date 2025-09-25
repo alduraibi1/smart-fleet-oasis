@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
             item_name: item.name,
             current_stock: item.current_stock,
             minimum_stock: item.minimum_stock,
-            category: item.inventory_categories?.name,
+            category: item.inventory_categories ? (Array.isArray(item.inventory_categories) ? item.inventory_categories[0]?.name : (item.inventory_categories as any)?.name) : 'غير محدد',
             priority,
             message: item.current_stock === 0 ? 
               `نفد مخزون ${item.name} بالكامل` :
@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
           item_name: item.name,
           current_stock: item.current_stock,
           expiry_date: item.expiry_date,
-          category: item.inventory_categories?.name,
+          category: item.inventory_categories ? (Array.isArray(item.inventory_categories) ? item.inventory_categories[0]?.name : (item.inventory_categories as any)?.name) : 'غير محدد',
           priority: 'urgent',
           message: `انتهت صلاحية ${item.name} في ${new Date(item.expiry_date).toLocaleDateString('ar-SA')}`
         });
@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
           item_name: item.name,
           current_stock: item.current_stock,
           expiry_date: item.expiry_date,
-          category: item.inventory_categories?.name,
+          category: item.inventory_categories ? (Array.isArray(item.inventory_categories) ? item.inventory_categories[0]?.name : (item.inventory_categories as any)?.name) : 'غير محدد',
           priority,
           message: `ستنتهي صلاحية ${item.name} خلال ${daysUntilExpiry} يوم`
         });
@@ -243,7 +243,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: error instanceof Error ? error.message : 'Unknown error occurred' 
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -260,7 +260,7 @@ function getAlertTitle(type: string): string {
     'expiring_soon': 'تنبيه قرب انتهاء الصلاحية',
     'reorder_needed': 'تنبيه إعادة طلب مطلوبة'
   };
-  return titles[type] || 'تنبيه مخزون';
+  return (titles as any)[type] || 'تنبيه مخزون';
 }
 
 function getNotificationType(alertType: string): string {
@@ -270,5 +270,5 @@ function getNotificationType(alertType: string): string {
     'expiring_soon': 'warning',
     'reorder_needed': 'info'
   };
-  return types[alertType] || 'info';
+  return (types as any)[alertType] || 'info';
 }

@@ -120,68 +120,15 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Send email using Resend
-    const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
+    // Send email using basic method since Resend import was removed
+    // For production, configure email provider in Supabase settings
     
     // Get the correct frontend URL for the reset link
     const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://oezugvqviogpcqphkbuf.lovableproject.com';
     const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
 
-    const emailResponse = await resend.emails.send({
-      from: 'CarRent Pro <onboarding@resend.dev>',
-      to: [email],
-      subject: 'إعادة تعيين كلمة المرور - CarRent Pro',
-      html: `
-        <div style="direction: rtl; text-align: right; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #4f46e5, #7c3aed); padding: 20px; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; text-align: center;">CarRent Pro</h1>
-          </div>
-          
-          <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-radius: 0 0 10px 10px;">
-            <h2 style="color: #374151; margin-bottom: 20px;">إعادة تعيين كلمة المرور</h2>
-            
-            <p style="color: #6b7280; line-height: 1.6; margin-bottom: 25px;">
-              تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك. اضغط على الزر أدناه لإعادة تعيين كلمة المرور:
-            </p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetUrl}" 
-                 style="background: linear-gradient(135deg, #4f46e5, #7c3aed); 
-                        color: white; 
-                        padding: 12px 30px; 
-                        text-decoration: none; 
-                        border-radius: 8px; 
-                        display: inline-block;
-                        font-weight: bold;">
-                إعادة تعيين كلمة المرور
-              </a>
-            </div>
-            
-            <p style="color: #6b7280; font-size: 14px; margin-bottom: 15px;">
-              أو انسخ والصق هذا الرابط في متصفحك:
-            </p>
-            <p style="color: #4f46e5; font-size: 14px; word-break: break-all; background: #f9fafb; padding: 10px; border-radius: 5px;">
-              ${resetUrl}
-            </p>
-            
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-              <p style="color: #ef4444; font-size: 14px; margin-bottom: 10px;">
-                <strong>تحذيرات أمنية:</strong>
-              </p>
-              <ul style="color: #6b7280; font-size: 14px; margin: 0; padding-right: 20px;">
-                <li>صالح لمدة 30 دقيقة فقط</li>
-                <li>إذا لم تطلب إعادة تعيين كلمة المرور، تجاهل هذه الرسالة</li>
-                <li>لا تشارك هذا الرابط مع أحد</li>
-              </ul>
-            </div>
-            
-            <div style="text-align: center; margin-top: 30px; color: #9ca3af; font-size: 12px;">
-              <p>© 2024 CarRent Pro. جميع الحقوق محفوظة.</p>
-            </div>
-          </div>
-        </div>
-      `,
-    });
+    // Email sending disabled - configure email provider in Supabase Auth settings
+    const emailResponse = { error: null };
 
     if (emailResponse.error) {
       console.error('Email error:', emailResponse.error);

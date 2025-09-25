@@ -2,7 +2,6 @@
 // Deno Edge Function: sync-tracker-devices
 // Enhanced version with improved Arabic normalization and fuzzy matching
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 type DeviceInput = {
@@ -578,7 +577,7 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error("[sync-tracker] Error during auto sync:", error);
-    summary.errors.push(`Auto sync failed: ${error.message}`);
+    summary.errors.push(`Auto sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return new Response(JSON.stringify({ success: false, summary }), {
       status: 500,
       headers: { "content-type": "application/json", ...corsHeaders },

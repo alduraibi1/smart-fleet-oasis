@@ -81,7 +81,7 @@ serve(async (req) => {
     console.error('❌ خطأ في نظام التنبيهات:', error)
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
         timestamp: new Date().toISOString()
       }),
       { 
