@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useSecureAuth } from '@/hooks/useSecureAuth';
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Car, LogIn, UserPlus, User, Building, Users, Shield, AlertTriangle } from 'lucide-react';
+import { Car, LogIn, UserPlus, User, Building, Users, Shield, AlertTriangle, Mail, Phone, Lock } from 'lucide-react';
 import { PasswordStrengthIndicator } from '@/components/Auth/PasswordStrengthIndicator';
 import { AccountLockoutWarning } from '@/components/Auth/AccountLockoutWarning';
 import { SessionTimeoutWarning } from '@/components/Auth/SessionTimeoutWarning';
@@ -18,6 +18,11 @@ import { SuperAdminForm } from '@/components/Auth/SuperAdminForm';
 import { useFailedLoginTracking } from '@/hooks/useFailedLoginTracking';
 import { useSecureSession } from '@/hooks/useSecureSession';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { AuthSkeleton } from '@/components/ui/skeleton-loader';
+import { SmoothTransition, AnimatedContainer } from '@/components/ui/smooth-transition';
+import { EnhancedInput } from '@/components/ui/enhanced-input';
+import { InteractiveButton } from '@/components/ui/interactive-button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const userTypes = [
   { value: 'employee', label: 'موظف', icon: User, description: 'موظف في الشركة' },
@@ -36,6 +41,8 @@ export default function Auth() {
   const [userType, setUserType] = useState<'employee' | 'partner' | 'owner'>('employee');
   const [loading, setLoading] = useState(false);
   const [superAdminLoading, setSuperAdminLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isFormValid, setIsFormValid] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -63,15 +70,9 @@ export default function Auth() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-primary-variant rounded-2xl shadow-glow mb-4">
-            <Car className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent">
-            CarRent Pro
-          </h1>
-          <LoadingSpinner />
-        </div>
+        <AnimatedContainer>
+          <AuthSkeleton />
+        </AnimatedContainer>
       </div>
     );
   }
@@ -86,17 +87,26 @@ export default function Auth() {
   if (showForgotPassword) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-8">
-          <div className="text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-primary-variant rounded-2xl shadow-glow mb-4">
+        <SmoothTransition type="slideUp" className="w-full max-w-md space-y-8">
+          <motion.div 
+            className="text-center space-y-4"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <motion.div 
+              className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-primary-variant rounded-2xl shadow-glow mb-4"
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              whileTap={{ scale: 0.95 }}
+            >
               <Car className="h-8 w-8 text-white" />
-            </div>
+            </motion.div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent">
               CarRent Pro
             </h1>
-          </div>
+          </motion.div>
           <ImprovedPasswordResetForm onBack={() => setShowForgotPassword(false)} />
-        </div>
+        </SmoothTransition>
       </div>
     );
   }
