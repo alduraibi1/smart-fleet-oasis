@@ -154,17 +154,40 @@ export default function Auth() {
   }
 
   const mapAuthError = (error: any): string => {
-    const msg = (error?.message || '').toLowerCase();
+    // Safe error message extraction with null checks
+    let errorMessage = '';
+    if (error && typeof error === 'object') {
+      errorMessage = error.message || error.msg || '';
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    
+    const msg = errorMessage.toLowerCase();
+    
     if (msg.includes('captcha verification process failed') || msg.includes('captcha')) {
       return 'مشكلة في التحقق الأمني. يرجى المحاولة لاحقاً أو التواصل مع الإدارة';
     }
-    if (msg.includes('invalid login credentials')) return 'بيانات الدخول غير صحيحة';
-    if (msg.includes('email address is invalid')) return 'صيغة البريد الإلكتروني غير صحيحة';
-    if (msg.includes('user already registered') || msg.includes('already exists')) return 'البريد الإلكتروني مسجل مسبقاً';
-    if (msg.includes('rate limit')) return 'تم تجاوز الحد المسموح من المحاولات، حاول لاحقاً';
-    if (msg.includes('otp')) return 'انتهت صلاحية رمز التحقق أو غير صالح';
-    if (msg.includes('unexpected_failure')) return 'خطأ في الخادم، يرجى المحاولة لاحقاً';
-    return error?.message || 'حدث خطأ غير متوقع';
+    if (msg.includes('invalid login credentials') || msg.includes('invalid_credentials')) {
+      return 'بيانات الدخول غير صحيحة';
+    }
+    if (msg.includes('email address is invalid') || msg.includes('invalid_email')) {
+      return 'صيغة البريد الإلكتروني غير صحيحة';
+    }
+    if (msg.includes('user already registered') || msg.includes('already exists')) {
+      return 'البريد الإلكتروني مسجل مسبقاً';
+    }
+    if (msg.includes('rate limit') || msg.includes('too_many_requests')) {
+      return 'تم تجاوز الحد المسموح من المحاولات، حاول لاحقاً';
+    }
+    if (msg.includes('otp')) {
+      return 'انتهت صلاحية رمز التحقق أو غير صالح';
+    }
+    if (msg.includes('unexpected_failure') || msg.includes('server_error')) {
+      return 'خطأ في الخادم، يرجى المحاولة لاحقاً';
+    }
+    
+    // Return the original error message or a fallback
+    return errorMessage || 'حدث خطأ غير متوقع';
   };
 
   const handleAuth = async (e: React.FormEvent) => {

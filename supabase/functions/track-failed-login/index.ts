@@ -41,10 +41,18 @@ serve(async (req) => {
       });
     }
 
-    // Get client IP address
-    const clientIP = req.headers.get('x-forwarded-for') || 
-                    req.headers.get('x-real-ip') || 
-                    '0.0.0.0';
+    // Get client IP address - extract first valid IP from forwarded header
+    const getClientIP = () => {
+      const forwarded = req.headers.get('x-forwarded-for');
+      if (forwarded) {
+        // Extract first IP from comma-separated list and remove spaces
+        const firstIP = forwarded.split(',')[0].trim();
+        return firstIP;
+      }
+      return req.headers.get('x-real-ip') || '0.0.0.0';
+    };
+    
+    const clientIP = getClientIP();
 
     // Insert failed login attempt
     const { error: insertError } = await supabase
