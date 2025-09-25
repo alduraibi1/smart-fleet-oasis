@@ -13,9 +13,9 @@ import { Car, LogIn, UserPlus, User, Building, Users, Shield, AlertTriangle } fr
 import { PasswordStrengthIndicator } from '@/components/Security/PasswordStrengthIndicator';
 import { AccountLockoutWarning } from '@/components/Auth/AccountLockoutWarning';
 import { SessionTimeoutWarning } from '@/components/Auth/SessionTimeoutWarning';
-import { ForgotPasswordForm } from '@/components/Auth/ForgotPasswordForm';
+import { ImprovedPasswordResetForm } from '@/components/Auth/ImprovedPasswordResetForm';
 import { SuperAdminForm } from '@/components/Auth/SuperAdminForm';
-import { useLoginAttempts } from '@/hooks/useLoginAttempts';
+import { useFailedLoginTracking } from '@/hooks/useFailedLoginTracking';
 
 const userTypes = [
   { value: 'employee', label: 'موظف', icon: User, description: 'موظف في الشركة' },
@@ -38,12 +38,12 @@ export default function Auth() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { 
-    isLocked, 
+    isBlocked: isLocked, 
     lockoutTimeRemaining, 
     remainingAttempts, 
-    addFailedAttempt, 
+    trackFailedAttempt, 
     clearAttempts 
-  } = useLoginAttempts(email);
+  } = useFailedLoginTracking(email);
   
   // Secure authentication hooks
   const {
@@ -79,7 +79,7 @@ export default function Auth() {
               CarRent Pro
             </h1>
           </div>
-          <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
+          <ImprovedPasswordResetForm onBack={() => setShowForgotPassword(false)} />
         </div>
       </div>
     );
@@ -127,9 +127,10 @@ export default function Auth() {
     
     // Check if account is locked
     if (isLocked) {
+      const minutes = Math.ceil(lockoutTimeRemaining / 60);
       toast({
         title: "الحساب مقفل مؤقتاً",
-        description: "يرجى الانتظار قبل المحاولة مرة أخرى",
+        description: `تم حظر المحاولات لمدة ${minutes} دقيقة بسبب المحاولات المتكررة الفاشلة`,
         variant: "destructive",
       });
       return;
@@ -147,8 +148,19 @@ export default function Auth() {
           clearAttempts();
           navigate('/');
         } else {
-          // Add failed attempt for login errors
-          addFailedAttempt();
+          // Track failed attempt with specific reason
+          const reason = result.error || 'Invalid credentials';
+          const trackResult = await trackFailedAttempt(reason);
+          
+          // Show appropriate error message
+          const errorMsg = mapAuthError({ message: reason });
+          toast({
+            title: "فشل في تسجيل الدخول",
+            description: trackResult.blocked 
+              ? `تم حظر المحاولات لمدة 15 دقيقة بسبب المحاولات المتكررة الفاشلة`
+              : `${errorMsg}. ${remainingAttempts - 1} محاولات متبقية`,
+            variant: "destructive",
+          });
         }
       } else {
         // Validate required fields for signup
@@ -180,16 +192,45 @@ export default function Auth() {
         }
 
         // Use secure sign up with validation
-        await secureSignUp(email, password, fullName);
+        const result = await secureSignUp(email, password, fullName);
+        if (result.success) {
+          toast({
+            title: "تم إنشاء الحساب بنجاح",
+            description: "يرجى انتظار موافقة الإدارة على حسابك",
+          });
+          // Switch to login view
+          setIsLogin(true);
+        } else {
+          const errorMsg = mapAuthError({ message: result.error });
+          toast({
+            title: "فشل في إنشاء الحساب",
+            description: errorMsg,
+            variant: "destructive",
+          });
+        }
       }
     } catch (error: any) {
       console.error('Authentication error:', error);
       
-      // Special handling for CAPTCHA errors
-      if (error?.message?.toLowerCase().includes('captcha')) {
+      // For login attempts, track the failure if it's a credential error
+      if (isLogin && error?.message) {
+        const reason = error.message;
+        const trackResult = await trackFailedAttempt(reason);
+        
+        const errorMsg = mapAuthError(error);
         toast({
-          title: "مشكلة في التحقق الأمني",
-          description: "يبدو أن النظام يتطلب تحقق أمني إضافي. يرجى إلغاء تفعيل CAPTCHA من إعدادات Supabase أو المحاولة لاحقاً",
+          title: "فشل في تسجيل الدخول",
+          description: trackResult.blocked 
+            ? `تم حظر المحاولات لمدة 15 دقيقة`
+            : `${errorMsg}. ${Math.max(0, remainingAttempts - 1)} محاولات متبقية`,
+          variant: "destructive",
+        });
+      } else {
+        // For signup errors or other issues
+        const errorMsg = mapAuthError(error);
+        toast({
+          title: isLogin ? "فشل في تسجيل الدخول" : "فشل في إنشاء الحساب",
+          description: errorMsg,
           variant: "destructive",
         });
       }
