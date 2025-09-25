@@ -4,8 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useSecureAuth } from '@/hooks/useSecureAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -321,25 +319,33 @@ export default function Auth() {
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="fullName">الاسم الكامل</Label>
-                    <Input
+                    <EnhancedInput
                       id="fullName"
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       required
                       placeholder="أدخل اسمك الكامل"
+                      leftIcon={<User className="h-4 w-4" />}
+                      showValidation={!!fullName}
+                      isValid={fullName ? !formErrors.fullName : undefined}
+                      validationMessage={formErrors.fullName}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="phone">رقم الهاتف</Label>
-                    <Input
+                    <EnhancedInput
                       id="phone"
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       required
                       placeholder="05xxxxxxxx"
+                      leftIcon={<Phone className="h-4 w-4" />}
+                      showValidation={!!phone}
+                      isValid={phone ? !formErrors.phone : undefined}
+                      validationMessage={formErrors.phone}
                     />
                   </div>
 
@@ -372,25 +378,30 @@ export default function Auth() {
 
               <div className="space-y-2">
                 <Label htmlFor="email">البريد الإلكتروني</Label>
-                <Input
+                <EnhancedInput
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="example@company.com"
+                  leftIcon={<Mail className="h-4 w-4" />}
+                  showValidation={!!email}
+                  isValid={email ? !formErrors.email : undefined}
+                  validationMessage={formErrors.email}
                 />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="password">كلمة المرور</Label>
-                <Input
+                <EnhancedInput
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
+                  leftIcon={<Lock className="h-4 w-4" />}
                 />
                 {!isLogin && password && passwordRequirements && (
                   <PasswordStrengthIndicator 
@@ -400,20 +411,22 @@ export default function Auth() {
                 )}
               </div>
 
-              <Button 
+              <InteractiveButton 
                 type="submit" 
-                className="w-full btn-glow btn-scale"
+                variant="premium"
+                className="w-full"
+                loading={loading}
+                loadingText="جاري المعالجة..."
                 disabled={
                   loading || 
                   secureLoading ||
                   isBlocked || 
                   (!isLogin && passwordRequirements && !validatePassword(password, passwordRequirements).isValid) || 
-                  (!isLogin && (!fullName || !phone || !userType))
+                  !isFormValid
                 }
+                animation="scale"
               >
-                {loading ? (
-                  "جاري المعالجة..."
-                ) : isLogin ? (
+                {isLogin ? (
                   <>
                     <LogIn className="h-4 w-4 mr-2" />
                     تسجيل الدخول
@@ -424,43 +437,49 @@ export default function Auth() {
                     إنشاء حساب
                   </>
                 )}
-              </Button>
+              </InteractiveButton>
             </form>
 
             <div className="space-y-2">
               {isLogin && (
-                <Button
+                <InteractiveButton
                   variant="ghost"
                   onClick={() => setShowForgotPassword(true)}
-                  className="w-full text-sm text-primary hover:text-primary-variant"
+                  className="w-full"
                   disabled={loading}
+                  animation="slide"
                 >
                   نسيت كلمة المرور؟
-                </Button>
+                </InteractiveButton>
               )}
               
-              <Button
-                variant="ghost"
-                onClick={() => setIsLogin(!isLogin)}
-                className="w-full text-sm"
+              <InteractiveButton
+                variant="outline"
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setFormErrors({});
+                }}
+                className="w-full"
                 disabled={loading}
+                animation="scale"
               >
                 {isLogin 
                   ? 'لا تملك حساب؟ إنشاء حساب جديد'
                   : 'لديك حساب؟ تسجيل الدخول'
                 }
-              </Button>
+              </InteractiveButton>
               
               <div className="pt-4 border-t border-border/50">
-                <Button
-                  variant="outline"
+                <InteractiveButton
+                  variant="ghost"
                   onClick={() => setShowSuperAdminForm(true)}
-                  className="w-full text-xs text-muted-foreground hover:text-primary"
+                  className="w-full text-xs"
                   disabled={loading}
+                  animation="scale"
                 >
                   <Users className="h-3 w-3 mr-2" />
                   إنشاء المستخدم الإداري الأول
-                </Button>
+                </InteractiveButton>
               </div>
             </div>
           </CardContent>
