@@ -64,6 +64,27 @@ export default function Auth() {
     loadPasswordRequirements();
   }, [loadPasswordRequirements]);
 
+  // Form validation effect
+  useEffect(() => {
+    const validateForm = () => {
+      if (isLogin) {
+        // For login: only email and password are required
+        return email.trim() !== '' && password.trim() !== '';
+      } else {
+        // For signup: all fields are required
+        return (
+          email.trim() !== '' && 
+          password.trim() !== '' && 
+          fullName.trim() !== '' && 
+          phone.trim() !== '' && 
+          userType && ['employee', 'owner', 'partner'].includes(userType)
+        );
+      }
+    };
+
+    setIsFormValid(validateForm());
+  }, [isLogin, email, password, fullName, phone, userType]);
+
   // Show loading while auth is initializing
   if (authLoading) {
     return (
