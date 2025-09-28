@@ -142,9 +142,14 @@ export function useSecureAuth() {
       });
 
       if (error) {
-        // Log failed login attempt (skip captcha-related failures)
+        // Log failed login attempt (skip captcha-related failures and server errors)
         const msg = typeof error.message === 'string' ? error.message : '';
-        if (!msg.toLowerCase().includes('captcha')) {
+        const isSystemError = msg.toLowerCase().includes('captcha') || 
+                             msg.toLowerCase().includes('unexpected_failure') ||
+                             msg.toLowerCase().includes('500') ||
+                             msg.toLowerCase().includes('server');
+        
+        if (!isSystemError) {
           await logFailedLoginAttempt(email, msg || 'signin_failed');
         }
         throw error;

@@ -115,17 +115,24 @@ export function useFailedLoginTracking(email: string) {
   const clearAttempts = useCallback(async () => {
     try {
       // Clear from database
-      await supabase.rpc('clear_failed_login_attempts', { p_email: email });
-      
-      // Clear local state
+      const { error } = await supabase.rpc('clear_failed_login_attempts', {
+        p_email: email
+      });
+
+      if (error) throw error;
+
+      // Reset local state immediately
       setState({
         isBlocked: false,
         remainingAttempts: 5,
         blockDurationMinutes: 0,
         lockoutTimeRemaining: 0
       });
+
+      return { success: true };
     } catch (error) {
-      console.error('Error clearing failed attempts:', error);
+      console.error('Failed to clear attempts:', error);
+      return { success: false, error };
     }
   }, [email]);
 

@@ -216,7 +216,7 @@ export default function Auth() {
         // Initialize secure session after successful login
         await initializeSecureSession();
         // Clear failed attempts on successful login
-        clearAttempts();
+        await clearAttempts();
         navigate('/');
       } else {
         // Track failed attempt with specific reason
@@ -283,27 +283,48 @@ export default function Auth() {
     } catch (error: any) {
       console.error('Authentication error:', error);
       
-      // For login attempts, track the failure if it's a credential error
-      if (isLogin && error?.message) {
-        const reason = error.message;
-        const trackResult = await trackFailedAttempt(reason);
+      // Clear failed attempts for system errors that aren't user's fault
+      const msg = error?.message || '';
+      const isSystemError = typeof msg === 'string' && (
+        msg.toLowerCase().includes('captcha') || 
+        msg.toLowerCase().includes('unexpected_failure') ||
+        msg.toLowerCase().includes('500') ||
+        msg.toLowerCase().includes('server')
+      );
+      
+      if (isSystemError) {
+        // Clear failed attempts for system-level errors
+        await clearAttempts();
         
-        const errorMsg = mapAuthError(error);
+        // Show user-friendly message for system errors
         toast({
-          title: "فشل في تسجيل الدخول",
-          description: trackResult.blocked 
-            ? `تم حظر المحاولات لمدة 15 دقيقة`
-            : `${errorMsg}. ${Math.max(0, remainingAttempts - 1)} محاولات متبقية`,
+          title: "خطأ في النظام",
+          description: "يرجى المحاولة مرة أخرى. إذا استمرت المشكلة، يرجى تعطيل التحقق الأمني (Captcha) من إعدادات Supabase مؤقتاً.",
           variant: "destructive",
         });
       } else {
-        // For signup errors or other issues
-        const errorMsg = mapAuthError(error);
-        toast({
-          title: isLogin ? "فشل في تسجيل الدخول" : "فشل في إنشاء الحساب",
-          description: errorMsg,
-          variant: "destructive",
-        });
+        // For login attempts, track the failure if it's a credential error
+        if (isLogin && error?.message) {
+          const reason = error.message;
+          const trackResult = await trackFailedAttempt(reason);
+          
+          const errorMsg = mapAuthError(error);
+          toast({
+            title: "فشل في تسجيل الدخول",
+            description: trackResult.blocked 
+              ? `تم حظر المحاولات لمدة 15 دقيقة`
+              : `${errorMsg}. ${Math.max(0, remainingAttempts - 1)} محاولات متبقية`,
+            variant: "destructive",
+          });
+        } else {
+          // For signup errors or other issues
+          const errorMsg = mapAuthError(error);
+          toast({
+            title: isLogin ? "فشل في تسجيل الدخول" : "فشل في إنشاء الحساب",
+            description: errorMsg,
+            variant: "destructive",
+          });
+        }
       }
     } finally {
       setLoading(false);
