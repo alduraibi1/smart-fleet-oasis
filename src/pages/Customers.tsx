@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CustomerStats } from '@/components/Customers/CustomerStats';
 import { CustomerSearchAndFilter } from '@/components/Customers/CustomerSearchAndFilter';
 import { EnhancedCustomerTable } from '@/components/Customers/EnhancedCustomerTable';
@@ -7,20 +6,58 @@ import { AddCustomerDialog } from '@/components/Customers/AddCustomerDialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Customer } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Customers = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [filters, setFilters] = useState({});
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
+  const { toast } = useToast();
 
-  // Mock stats data
-  const mockStats = {
-    totalCustomers: 245,
-    activeCustomers: 198,
-    newCustomersThisMonth: 23,
-    averageRating: 4.2
+  // جلب بيانات العملاء من قاعدة البيانات
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setCustomers(data as any || []);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء جلب بيانات العملاء',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // حساب الإحصائيات من البيانات الحقيقية
+  const stats = {
+    totalCustomers: customers.length,
+    activeCustomers: customers.filter(c => c.is_active).length,
+    newCustomersThisMonth: customers.filter(c => {
+      const createdDate = new Date(c.created_at);
+      const now = new Date();
+      return createdDate.getMonth() === now.getMonth() && 
+             createdDate.getFullYear() === now.getFullYear();
+    }).length,
+    averageRating: customers.length > 0 
+      ? customers.reduce((sum, c) => sum + (c.rating || 0), 0) / customers.length 
+      : 0
   };
 
   const handleFiltersChange = (newFilters: any) => {
@@ -39,8 +76,29 @@ const Customers = () => {
     console.log('View customer:', customer.id);
   };
 
-  const handleDelete = (customer: Customer) => {
-    console.log('Delete customer:', customer.id);
+  const handleDelete = async (customer: Customer) => {
+    try {
+      const { error } = await supabase
+        .from('customers')
+        .delete()
+        .eq('id', customer.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'تم الحذف',
+        description: 'تم حذف العميل بنجاح'
+      });
+      
+      fetchCustomers();
+    } catch (error) {
+      console.error('Error deleting customer:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء حذف العميل',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleBlacklist = (customer: Customer) => {
@@ -90,10 +148,10 @@ const Customers = () => {
       {/* Stats Section */}
       <div className="stats-container mb-6">
         <CustomerStats 
-          totalCustomers={mockStats.totalCustomers}
-          activeCustomers={mockStats.activeCustomers}
-          newCustomersThisMonth={mockStats.newCustomersThisMonth}
-          averageRating={mockStats.averageRating}
+          totalCustomers={stats.totalCustomers}
+          activeCustomers={stats.activeCustomers}
+          newCustomersThisMonth={stats.newCustomersThisMonth}
+          averageRating={stats.averageRating}
         />
       </div>
 
@@ -103,7 +161,7 @@ const Customers = () => {
           filters={filters}
           onFiltersChange={handleFiltersChange}
           onClearFilters={handleClearFilters}
-          totalResults={mockStats.totalCustomers}
+          totalResults={stats.totalCustomers}
         />
       </div>
 
@@ -125,7 +183,12 @@ const Customers = () => {
       {/* Add Customer Dialog */}
       <AddCustomerDialog 
         open={isAddDialogOpen} 
-        onOpenChange={setIsAddDialogOpen} 
+        onOpenChange={(open) => {
+          setIsAddDialogOpen(open);
+          if (!open) {
+            fetchCustomers();
+          }
+        }}
       />
     </div>
   );
