@@ -11,15 +11,22 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: UserRole;
   requiredPermission?: string;
+  bypassAuth?: boolean; // وضع التطوير - تخطي المصادقة
 }
 
 export default function ProtectedRoute({ 
   children, 
   requiredRole, 
-  requiredPermission 
+  requiredPermission,
+  bypassAuth = true // تفعيل وضع التطوير افتراضياً
 }: ProtectedRouteProps) {
   const { user, loading, hasRole, hasPermissionSync } = useAuth();
   const navigate = useNavigate();
+
+  // تخطي المصادقة في وضع التطوير
+  if (bypassAuth) {
+    return <>{children}</>;
+  }
 
   useEffect(() => {
     if (!loading && !user) {
