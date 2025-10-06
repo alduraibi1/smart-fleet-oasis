@@ -1,5 +1,4 @@
-
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 type DuplicateResult = {
@@ -25,7 +24,7 @@ export function useCustomerDuplicateCheck(excludeId?: string) {
     }
   };
 
-  const checkPhone = (value: string) => {
+  const checkPhone = useCallback((value: string) => {
     phoneValueRef.current = value?.trim() || '';
     clearTimer(phoneTimerRef);
     
@@ -80,9 +79,9 @@ export function useCustomerDuplicateCheck(excludeId?: string) {
         });
       }
     }, 400);
-  };
+  }, [excludeId]);
 
-  const checkNationalId = (value: string) => {
+  const checkNationalId = useCallback((value: string) => {
     idValueRef.current = value?.trim() || '';
     clearTimer(idTimerRef);
     
@@ -136,7 +135,7 @@ export function useCustomerDuplicateCheck(excludeId?: string) {
         });
       }
     }, 400);
-  };
+  }, [excludeId]);
 
   useEffect(() => {
     return () => {

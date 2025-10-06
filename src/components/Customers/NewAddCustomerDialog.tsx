@@ -33,7 +33,7 @@ export function NewAddCustomerDialog({
   const { toast } = useToast();
   const { settings } = useSystemSettings();
   const addCustomerMutation = useAddCustomer();
-  const { phoneDuplicate, idDuplicate } = useCustomerDuplicateCheck(editingCustomer?.id);
+  const { phoneDuplicate, idDuplicate, checkPhone, checkNationalId } = useCustomerDuplicateCheck(editingCustomer?.id);
   
   const [formData, setFormData] = useState<CustomerFormData>({
     ...defaultCustomerFormData,
@@ -49,6 +49,20 @@ export function NewAddCustomerDialog({
       }));
     }
   }, [settings?.defaultCreditLimit, editingCustomer]);
+
+  // التحقق من تكرار رقم الهاتف
+  useEffect(() => {
+    if (formData.phone) {
+      checkPhone(formData.phone);
+    }
+  }, [formData.phone, checkPhone]);
+
+  // التحقق من تكرار رقم الهوية
+  useEffect(() => {
+    if (formData.national_id) {
+      checkNationalId(formData.national_id);
+    }
+  }, [formData.national_id, checkNationalId]);
 
   const handleInputChange = (field: keyof CustomerFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -86,10 +100,16 @@ export function NewAddCustomerDialog({
     }
 
     try {
+      // تنظيف البيانات قبل الحفظ
+      const cleanedPhone = formData.phone.replace(/\D/g, '');
+      const cleanedNationalId = formData.national_id.trim();
+      
       const customerData = {
         ...formData,
+        phone: cleanedPhone,
+        national_id: cleanedNationalId,
         // تحويل الحقول المطلوبة
-        nationalId: formData.national_id,
+        nationalId: cleanedNationalId,
         licenseNumber: formData.license_number,
         licenseExpiry: formData.license_expiry ? new Date(formData.license_expiry) : new Date(),
         totalRentals: 0,
