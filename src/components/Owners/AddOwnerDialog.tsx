@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SmartInput } from "@/components/ui/smart-input";
+import { IdentityVerificationInput } from "@/components/ui/identity-verification-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { User, Phone, Mail, MapPin, CreditCard } from "lucide-react";
+import { User, MapPin } from "lucide-react";
 import { Owner } from "@/hooks/useOwners";
+import { useOwnerDuplicateCheck } from "@/hooks/useOwnerDuplicateCheck";
 
 interface AddOwnerDialogProps {
   open: boolean;
@@ -26,6 +27,46 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
     address: "",
     is_active: true,
   });
+  
+  const [isPhoneValid, setIsPhoneValid] = useState(false);
+  const [isNationalIdValid, setIsNationalIdValid] = useState(false);
+  const { phoneDuplicate, idDuplicate, checkPhone, checkNationalId } = useOwnerDuplicateCheck();
+
+  // Check phone for duplicates when valid
+  useEffect(() => {
+    if (formData.phone && isPhoneValid) {
+      checkPhone(formData.phone);
+    }
+  }, [formData.phone, isPhoneValid, checkPhone]);
+
+  // Check national ID for duplicates when valid
+  useEffect(() => {
+    if (formData.national_id && isNationalIdValid) {
+      checkNationalId(formData.national_id);
+    }
+  }, [formData.national_id, isNationalIdValid, checkNationalId]);
+
+  // Show toast when duplicate phone is detected
+  useEffect(() => {
+    if (phoneDuplicate.isDuplicate && phoneDuplicate.owner) {
+      toast({
+        title: "⚠️ رقم هاتف مكرر",
+        description: `رقم الهاتف مستخدم من قبل: ${phoneDuplicate.owner.name}`,
+        variant: "destructive",
+      });
+    }
+  }, [phoneDuplicate.isDuplicate, phoneDuplicate.owner, toast]);
+
+  // Show toast when duplicate national ID is detected
+  useEffect(() => {
+    if (idDuplicate.isDuplicate && idDuplicate.owner) {
+      toast({
+        title: "⚠️ رقم هوية مكرر",
+        description: `رقم الهوية مستخدم من قبل: ${idDuplicate.owner.name}`,
+        variant: "destructive",
+      });
+    }
+  }, [idDuplicate.isDuplicate, idDuplicate.owner, toast]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +81,25 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
       return;
     }
 
+    // Check for duplicates
+    if (phoneDuplicate.isDuplicate) {
+      toast({
+        title: "خطأ في البيانات",
+        description: `رقم الهاتف مستخدم من قبل: ${phoneDuplicate.owner?.name}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (idDuplicate.isDuplicate) {
+      toast({
+        title: "خطأ في البيانات",
+        description: `رقم الهوية مستخدم من قبل: ${idDuplicate.owner?.name}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (formData.email && !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       toast({
         title: "خطأ في البيانات",
@@ -49,16 +109,14 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
       return;
     }
 
-    if (formData.phone && !formData.phone.match(/^\+?[\d\s-()]{10,}$/)) {
-      toast({
-        title: "خطأ في البيانات",
-        description: "رقم الهاتف غير صحيح",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Clean data before saving
+    const cleanedData = {
+      ...formData,
+      phone: formData.phone.replace(/\D/g, ''),
+      national_id: formData.national_id.trim(),
+    };
 
-    onAdd(formData);
+    onAdd(cleanedData);
     onOpenChange(false);
     resetForm();
   };
@@ -100,7 +158,7 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
             />
           </div>
 
-          <SmartInput
+          <IdentityVerificationInput
             label="البريد الإلكتروني"
             validationType="email"
             value={formData.email}
@@ -108,20 +166,37 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
             showValidationIcon
           />
 
-          <SmartInput
+          <IdentityVerificationInput
             label="رقم الهاتف"
             validationType="mobileNumber"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            onValidationChange={(isValid) => setIsPhoneValid(isValid)}
+            isDuplicate={phoneDuplicate.isDuplicate}
+            isChecking={phoneDuplicate.checking}
+            duplicateCustomer={phoneDuplicate.owner ? {
+              id: phoneDuplicate.owner.id,
+              name: phoneDuplicate.owner.name,
+              phone: phoneDuplicate.owner.phone
+            } : undefined}
             showValidationIcon
             showSuggestions
           />
 
-          <SmartInput
-            label="رقم الهوية/الإقامة"
+          <IdentityVerificationInput
+            label="رقم الهوية"
             validationType="nationalId"
+            nationality="سعودي"
             value={formData.national_id}
             onChange={(e) => setFormData({ ...formData, national_id: e.target.value })}
+            onValidationChange={(isValid) => setIsNationalIdValid(isValid)}
+            isDuplicate={idDuplicate.isDuplicate}
+            isChecking={idDuplicate.checking}
+            duplicateCustomer={idDuplicate.owner ? {
+              id: idDuplicate.owner.id,
+              name: idDuplicate.owner.name,
+              national_id: idDuplicate.owner.national_id
+            } : undefined}
             showValidationIcon
             showSuggestions
           />
