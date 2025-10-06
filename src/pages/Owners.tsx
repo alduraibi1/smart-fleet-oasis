@@ -6,43 +6,28 @@ import { OwnerTable } from '@/components/Owners/OwnerTable';
 import { AddOwnerDialog } from '@/components/Owners/AddOwnerDialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { Owner } from '@/hooks/useOwners';
+import { useOwners, Owner } from '@/hooks/useOwners';
 
 const Owners = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [owners, setOwners] = useState<Owner[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  // Mock stats data
-  const mockStats = {
-    total: 45,
-    active: 38,
-    inactive: 7,
-    total_vehicles: 103,
-    avg_vehicles_per_owner: 2.3
-  };
+  const { owners, loading, stats, addOwner, updateOwner, deleteOwner, fetchOwners } = useOwners();
 
   const handleFiltersChange = (filters: any) => {
     console.log('Filters changed:', filters);
+    fetchOwners(filters);
   };
 
-  const handleUpdate = (id: string, owner: Partial<Owner>) => {
-    setOwners(prev => prev.map(o => o.id === id ? { ...o, ...owner } : o));
+  const handleUpdate = async (id: string, owner: Partial<Owner>) => {
+    await updateOwner(id, owner);
   };
 
-  const handleDelete = (id: string) => {
-    setOwners(prev => prev.filter(o => o.id !== id));
+  const handleDelete = async (id: string) => {
+    await deleteOwner(id);
   };
 
-  const handleAdd = (owner: Omit<Owner, 'id' | 'created_at' | 'updated_at' | 'vehicle_count'>) => {
-    const newOwner: Owner = {
-      ...owner,
-      id: Date.now().toString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      vehicle_count: 0
-    };
-    setOwners(prev => [...prev, newOwner]);
+  const handleAdd = async (owner: Omit<Owner, 'id' | 'created_at' | 'updated_at' | 'vehicle_count'>) => {
+    await addOwner(owner);
+    setIsAddDialogOpen(false);
   };
 
   return (
@@ -68,7 +53,7 @@ const Owners = () => {
       {/* Stats Section */}
       <div className="stats-container mb-6">
         <OwnerStats 
-          stats={mockStats}
+          stats={stats}
           loading={loading}
         />
       </div>
