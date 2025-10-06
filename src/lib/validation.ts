@@ -101,25 +101,25 @@ export const SaudiValidation = {
     return { isValid: true, errorMessage: '' };
   },
 
-  // Saudi mobile number validation (starts with 5, 10 digits total)
+  // Saudi mobile number validation (starts with 05, 10 digits total)
   mobileNumber: {
     validate: (value: string): boolean => {
       const cleaned = value.replace(/\D/g, '');
-      return cleaned.length === 10 && cleaned.startsWith('5');
+      return cleaned.length === 10 && cleaned.startsWith('05');
     },
     
     format: (value: string): string => {
       const cleaned = value.replace(/\D/g, '');
-      if (cleaned.length <= 3) return cleaned;
-      if (cleaned.length <= 6) return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
-      return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6, 10)}`;
+      if (cleaned.length <= 4) return cleaned;
+      if (cleaned.length <= 7) return `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
+      return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7, 10)}`;
     },
     
     getErrorMessage: (value: string): string => {
       const cleaned = value.replace(/\D/g, '');
       
       if (cleaned.length === 0) return '';
-      if (!cleaned.startsWith('5')) return 'رقم الجوال يجب أن يبدأ بـ 5';
+      if (!cleaned.startsWith('05')) return 'رقم الجوال يجب أن يبدأ بـ 05';
       if (cleaned.length < 10) return 'رقم الجوال يجب أن يكون 10 أرقام';
       if (cleaned.length > 10) return 'رقم الجوال يجب أن يكون 10 أرقام فقط';
       
@@ -372,16 +372,22 @@ export const SmartSuggestions = {
     const suggestions: string[] = [];
     const cleaned = value.replace(/\D/g, '');
     
-    if (cleaned.startsWith('05')) {
-      suggestions.push(`هل تقصد: ${cleaned.slice(1)}؟`);
+    // إذا بدأ بـ 5 فقط (نسي الصفر)
+    if (cleaned.startsWith('5') && !cleaned.startsWith('05') && cleaned.length === 9) {
+      suggestions.push(`هل تقصد: 0${cleaned}؟`);
     }
     
-    if (cleaned.startsWith('9665')) {
-      suggestions.push(`هل تقصد: ${cleaned.slice(4)}؟`);
+    // إذا أدخل الرمز الدولي +966
+    if (cleaned.startsWith('966')) {
+      const localNumber = cleaned.slice(3);
+      if (localNumber.startsWith('5')) {
+        suggestions.push(`هل تقصد: 0${localNumber}؟`);
+      }
     }
     
+    // إذا كان الطول 9 أرقام ولا يبدأ بـ 5
     if (cleaned.length === 9 && !cleaned.startsWith('5')) {
-      suggestions.push(`هل تقصد: 5${cleaned.slice(1)}؟`);
+      suggestions.push(`تأكد من إدخال رقم الجوال بالصيغة: 05xxxxxxxx`);
     }
     
     return suggestions;
