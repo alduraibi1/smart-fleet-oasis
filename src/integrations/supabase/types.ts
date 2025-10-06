@@ -672,6 +672,7 @@ export type Database = {
           email_secondary: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
+          emergency_contact_phone_secondary: string | null
           emergency_contact_relation: string | null
           gender: string | null
           has_insurance: boolean | null
@@ -734,6 +735,7 @@ export type Database = {
           email_secondary?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          emergency_contact_phone_secondary?: string | null
           emergency_contact_relation?: string | null
           gender?: string | null
           has_insurance?: boolean | null
@@ -796,6 +798,7 @@ export type Database = {
           email_secondary?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          emergency_contact_phone_secondary?: string | null
           emergency_contact_relation?: string | null
           gender?: string | null
           has_insurance?: boolean | null
