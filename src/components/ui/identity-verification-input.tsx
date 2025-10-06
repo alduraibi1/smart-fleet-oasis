@@ -21,7 +21,7 @@ export interface IdentityVerificationInputProps extends SmartInputProps {
   } | null
   onSuggestionClick?: (suggestion: string) => void
   verificationType?: 'customer' | 'owner'
-  ownerFieldType?: 'national_id' | 'commercial_registration' | 'tax_number'
+  ownerFieldType?: 'phone' | 'national_id' | 'commercial_registration' | 'tax_number'
 }
 
 const IdentityVerificationInput = React.forwardRef<HTMLInputElement, IdentityVerificationInputProps>(
@@ -70,6 +70,7 @@ const IdentityVerificationInput = React.forwardRef<HTMLInputElement, IdentityVer
       // Duplicate warnings for owners
       if (isDuplicate && verificationType === 'owner' && duplicateOwner) {
         const fieldLabels = {
+          phone: 'رقم الهاتف',
           national_id: 'رقم الهوية',
           commercial_registration: 'السجل التجاري',
           tax_number: 'الرقم الضريبي'
@@ -139,6 +140,7 @@ const IdentityVerificationInput = React.forwardRef<HTMLInputElement, IdentityVer
       if (isDuplicate) {
         if (verificationType === 'owner') {
           const fieldLabels = {
+            phone: 'رقم الهاتف',
             national_id: 'رقم الهوية',
             commercial_registration: 'السجل التجاري',
             tax_number: 'الرقم الضريبي'

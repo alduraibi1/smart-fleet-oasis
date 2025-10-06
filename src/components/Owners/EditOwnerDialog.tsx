@@ -282,6 +282,7 @@ export const EditOwnerDialog = ({ open, onOpenChange, owner, onUpdate }: EditOwn
               owner_type: phoneDuplicate.owner.owner_type
             } : undefined}
             verificationType="owner"
+            ownerFieldType="phone"
             showValidationIcon
             showSuggestions
           />

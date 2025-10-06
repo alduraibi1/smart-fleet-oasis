@@ -347,11 +347,14 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
             onValidationChange={(isValid) => setIsPhoneValid(isValid)}
             isDuplicate={phoneDuplicate.isDuplicate}
             isChecking={phoneDuplicate.checking}
-            duplicateCustomer={phoneDuplicate.owner ? {
+            duplicateOwner={phoneDuplicate.owner ? {
               id: phoneDuplicate.owner.id,
               name: phoneDuplicate.owner.name,
-              phone: phoneDuplicate.owner.phone
+              phone: phoneDuplicate.owner.phone,
+              owner_type: phoneDuplicate.owner.owner_type
             } : undefined}
+            verificationType="owner"
+            ownerFieldType="phone"
             showValidationIcon
             showSuggestions
           />
