@@ -35,7 +35,8 @@ export function BasicInfoSection({ formData, onInputChange }: BasicInfoSectionPr
   // Trigger phone duplicate check when valid and non-empty
   React.useEffect(() => {
     const value = (formData.phone || '').toString().trim();
-    if (isPhoneValid && value) {
+    // Only check if field is valid AND has a value (not empty)
+    if (isPhoneValid && value.length > 0) {
       checkPhone(value);
     }
   }, [formData.phone, isPhoneValid, checkPhone]);
@@ -43,7 +44,8 @@ export function BasicInfoSection({ formData, onInputChange }: BasicInfoSectionPr
   // Trigger national ID duplicate check when valid and non-empty
   React.useEffect(() => {
     const value = (formData.national_id || '').toString().trim();
-    if (isIdValid && value) {
+    // Only check if field is valid AND has a value (not empty)
+    if (isIdValid && value.length > 0) {
       checkNationalId(value);
     }
   }, [formData.national_id, isIdValid, checkNationalId]);

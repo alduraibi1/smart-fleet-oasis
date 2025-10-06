@@ -84,7 +84,8 @@ const SmartInput = React.forwardRef<HTMLInputElement, SmartInputProps>(
       setSuggestions([])
     }
 
-    onValidationChange?.(status === 'valid' || status === 'empty', error)
+    // Only consider valid if the field actually has a valid value (not empty)
+    onValidationChange?.(status === 'valid', error)
   }, [value, internalValue, validationType, nationality, onValidationChange, showSuggestions])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -28,13 +28,18 @@ const IdentityVerificationInput = React.forwardRef<HTMLInputElement, IdentityVer
     const [errorMessage, setErrorMessage] = React.useState("")
 
     const handleValidationChange = (isValid: boolean, error: string) => {
-      if (props.value?.toString().trim().length === 0) {
+      const currentValue = props.value?.toString().trim() || ''
+      
+      if (currentValue.length === 0) {
         setValidationStatus('empty')
+        setErrorMessage('')
+        // Empty field is not valid for duplicate checking purposes
+        props.onValidationChange?.(false, '')
       } else {
         setValidationStatus(isValid ? 'valid' : 'invalid')
+        setErrorMessage(error)
+        props.onValidationChange?.(isValid, error)
       }
-      setErrorMessage(error)
-      props.onValidationChange?.(isValid, error)
     }
 
     const getSuggestions = (): Suggestion[] => {
