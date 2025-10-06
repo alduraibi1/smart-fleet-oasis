@@ -9,7 +9,9 @@ import {
   CreditCard, 
   Calendar, 
   Car,
-  Activity
+  Activity,
+  Building2,
+  FileText
 } from "lucide-react";
 import { Owner } from "@/hooks/useOwners";
 
@@ -35,38 +37,88 @@ export const OwnerDetailsDialog = ({ open, onOpenChange, owner }: OwnerDetailsDi
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl flex items-center gap-2">
-            <User className="h-5 w-5" />
-            تفاصيل المالك
+            {owner.owner_type === 'individual' ? (
+              <>
+                <User className="h-5 w-5" />
+                تفاصيل المالك
+              </>
+            ) : (
+              <>
+                <Building2 className="h-5 w-5" />
+                تفاصيل المؤسسة
+              </>
+            )}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Owner Type Badge */}
+          <div className="flex items-center gap-2">
+            <Badge variant={owner.owner_type === 'individual' ? 'default' : 'secondary'} className="text-sm">
+              {owner.owner_type === 'individual' ? (
+                <>
+                  <User className="h-3 w-3 mr-1" />
+                  فرد
+                </>
+              ) : (
+                <>
+                  <Building2 className="h-3 w-3 mr-1" />
+                  مؤسسة
+                </>
+              )}
+            </Badge>
+            <Badge variant={owner.is_active ? "default" : "secondary"}>
+              {owner.is_active ? "نشط" : "غير نشط"}
+            </Badge>
+          </div>
+
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center justify-between">
-                المعلومات الأساسية
-                <Badge variant={owner.is_active ? "default" : "secondary"}>
-                  {owner.is_active ? "نشط" : "غير نشط"}
-                </Badge>
-              </CardTitle>
+              <CardTitle className="text-lg">المعلومات الأساسية</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
+                  {owner.owner_type === 'individual' ? (
+                    <User className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                  )}
                   <div>
-                    <p className="text-sm text-muted-foreground">الاسم</p>
+                    <p className="text-sm text-muted-foreground">
+                      {owner.owner_type === 'individual' ? 'اسم المالك' : 'اسم المؤسسة'}
+                    </p>
                     <p className="font-medium">{owner.name}</p>
                   </div>
                 </div>
 
-                {owner.national_id && (
+                {owner.owner_type === 'individual' && owner.national_id && (
                   <div className="flex items-center gap-2">
                     <CreditCard className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm text-muted-foreground">رقم الهوية</p>
                       <p className="font-medium">{owner.national_id}</p>
+                    </div>
+                  </div>
+                )}
+
+                {owner.owner_type === 'company' && owner.commercial_registration && (
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">السجل التجاري</p>
+                      <p className="font-medium">{owner.commercial_registration}</p>
+                    </div>
+                  </div>
+                )}
+
+                {owner.owner_type === 'company' && owner.tax_number && (
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">الرقم الضريبي</p>
+                      <p className="font-medium">{owner.tax_number}</p>
                     </div>
                   </div>
                 )}
@@ -93,7 +145,7 @@ export const OwnerDetailsDialog = ({ open, onOpenChange, owner }: OwnerDetailsDi
               </div>
 
               {owner.address && (
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-2 pt-2 border-t">
                   <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
                   <div>
                     <p className="text-sm text-muted-foreground">العنوان</p>
@@ -152,9 +204,11 @@ export const OwnerDetailsDialog = ({ open, onOpenChange, owner }: OwnerDetailsDi
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  لديه {owner.vehicle_count} مركبة مسجلة في النظام
+                  {owner.owner_type === 'individual' 
+                    ? `لديه ${owner.vehicle_count} مركبة مسجلة في النظام`
+                    : `لدى المؤسسة ${owner.vehicle_count} مركبة مسجلة في النظام`
+                  }
                 </p>
-                {/* يمكن إضافة قائمة بالمركبات هنا لاحقاً */}
               </CardContent>
             </Card>
           )}
