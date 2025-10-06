@@ -26,7 +26,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
-import { Pencil } from 'lucide-react';
+import { Pencil, AlertCircle } from 'lucide-react';
+import { useVehicleDuplicateCheck } from '@/hooks/useVehicleDuplicateCheck';
+import { handleSaveError } from '@/lib/duplicateErrorHandler';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface EditVehicleDialogProps {
   vehicle: Vehicle;
@@ -37,6 +41,8 @@ interface EditVehicleDialogProps {
 export const EditVehicleDialog = ({ vehicle, onUpdate, trigger }: EditVehicleDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const { plateDuplicate, vinDuplicate, checkPlateNumber, checkVIN } = useVehicleDuplicateCheck(vehicle.id);
 
   const form = useForm({
     defaultValues: {
@@ -59,13 +65,42 @@ export const EditVehicleDialog = ({ vehicle, onUpdate, trigger }: EditVehicleDia
   });
 
   const onSubmit = async (data: any) => {
+    // التحقق من التكرارات قبل الحفظ
+    if (plateDuplicate.isDuplicate) {
+      toast({
+        title: "بيانات مكررة",
+        description: "رقم اللوحة مستخدم مسبقاً",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (vinDuplicate.isDuplicate) {
+      toast({
+        title: "بيانات مكررة",
+        description: "رقم الشاسيه (VIN) مستخدم مسبقاً",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
     try {
       await onUpdate(vehicle.id, data);
       setOpen(false);
       form.reset();
+      toast({
+        title: "تم بنجاح",
+        description: "تم تحديث بيانات المركبة بنجاح",
+      });
     } catch (error) {
       console.error('Error updating vehicle:', error);
+      const errorInfo = handleSaveError(error);
+      toast({
+        title: errorInfo.title,
+        description: errorInfo.message,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -96,8 +131,26 @@ export const EditVehicleDialog = ({ vehicle, onUpdate, trigger }: EditVehicleDia
                   <FormItem>
                     <FormLabel>رقم اللوحة</FormLabel>
                     <FormControl>
-                      <Input placeholder="رقم اللوحة" {...field} />
+                      <Input 
+                        placeholder="رقم اللوحة" 
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          checkPlateNumber(e.target.value);
+                        }}
+                      />
                     </FormControl>
+                    {plateDuplicate.checking && (
+                      <p className="text-sm text-muted-foreground">جاري التحقق...</p>
+                    )}
+                    {plateDuplicate.isDuplicate && (
+                      <Alert variant="destructive" className="mt-2">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          رقم اللوحة مستخدم مسبقاً
+                        </AlertDescription>
+                      </Alert>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -299,8 +352,26 @@ export const EditVehicleDialog = ({ vehicle, onUpdate, trigger }: EditVehicleDia
                   <FormItem>
                     <FormLabel>رقم الشاسيه</FormLabel>
                     <FormControl>
-                      <Input placeholder="رقم الشاسيه" {...field} />
+                      <Input 
+                        placeholder="رقم الشاسيه" 
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          checkVIN(e.target.value);
+                        }}
+                      />
                     </FormControl>
+                    {vinDuplicate.checking && (
+                      <p className="text-sm text-muted-foreground">جاري التحقق...</p>
+                    )}
+                    {vinDuplicate.isDuplicate && (
+                      <Alert variant="destructive" className="mt-2">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          رقم الشاسيه مستخدم مسبقاً
+                        </AlertDescription>
+                      </Alert>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -329,7 +400,10 @@ export const EditVehicleDialog = ({ vehicle, onUpdate, trigger }: EditVehicleDia
               >
                 إلغاء
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button 
+                type="submit" 
+                disabled={loading || plateDuplicate.isDuplicate || vinDuplicate.isDuplicate || plateDuplicate.checking || vinDuplicate.checking}
+              >
                 {loading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
               </Button>
             </div>

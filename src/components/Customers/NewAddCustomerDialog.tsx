@@ -14,6 +14,8 @@ import { PreferencesSection } from './CustomerFormSections/PreferencesSection';
 import { EmergencyContactSection } from './CustomerFormSections/EmergencyContactSection';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { useToast } from '@/hooks/use-toast';
+import { useCustomerDuplicateCheck } from '@/hooks/useCustomerDuplicateCheck';
+import { handleSaveError } from '@/lib/duplicateErrorHandler';
 
 interface NewAddCustomerDialogProps {
   open: boolean;
@@ -31,6 +33,7 @@ export function NewAddCustomerDialog({
   const { toast } = useToast();
   const { settings } = useSystemSettings();
   const addCustomerMutation = useAddCustomer();
+  const { phoneDuplicate, idDuplicate } = useCustomerDuplicateCheck(editingCustomer?.id);
   
   const [formData, setFormData] = useState<CustomerFormData>({
     ...defaultCustomerFormData,
@@ -58,6 +61,25 @@ export function NewAddCustomerDialog({
       toast({
         title: "خطأ في البيانات",
         description: "يرجى ملء جميع الحقول المطلوبة",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // التحقق من التكرارات قبل الحفظ
+    if (phoneDuplicate.isDuplicate) {
+      toast({
+        title: "بيانات مكررة",
+        description: "رقم الهاتف مستخدم مسبقاً",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (idDuplicate.isDuplicate) {
+      toast({
+        title: "بيانات مكررة",
+        description: "رقم الهوية مستخدم مسبقاً",
         variant: "destructive",
       });
       return;
@@ -93,9 +115,10 @@ export function NewAddCustomerDialog({
       setFormData(defaultCustomerFormData);
     } catch (error) {
       console.error('Error adding customer:', error);
+      const errorInfo = handleSaveError(error);
       toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء إضافة العميل",
+        title: errorInfo.title,
+        description: errorInfo.message,
         variant: "destructive",
       });
     }
@@ -178,7 +201,13 @@ export function NewAddCustomerDialog({
             </Button>
             <Button 
               type="submit" 
-              disabled={addCustomerMutation.isPending}
+              disabled={
+                addCustomerMutation.isPending || 
+                phoneDuplicate.isDuplicate || 
+                idDuplicate.isDuplicate || 
+                phoneDuplicate.checking || 
+                idDuplicate.checking
+              }
             >
               {addCustomerMutation.isPending ? 'جاري الحفظ...' : 'حفظ'}
             </Button>
