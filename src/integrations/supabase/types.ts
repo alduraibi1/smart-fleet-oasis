@@ -4358,6 +4358,7 @@ export type Database = {
           account_id: string | null
           address: string | null
           bank_account: string | null
+          commercial_registration: string | null
           commission_rate: number | null
           created_at: string
           email: string | null
@@ -4367,10 +4368,12 @@ export type Database = {
           last_payment_date: string | null
           name: string
           national_id: string | null
+          owner_type: string | null
           paid_commission: number | null
           payment_frequency: string | null
           pending_commission: number | null
           phone: string | null
+          tax_number: string | null
           total_commission: number | null
           total_revenue: number | null
           updated_at: string
@@ -4379,6 +4382,7 @@ export type Database = {
           account_id?: string | null
           address?: string | null
           bank_account?: string | null
+          commercial_registration?: string | null
           commission_rate?: number | null
           created_at?: string
           email?: string | null
@@ -4388,10 +4392,12 @@ export type Database = {
           last_payment_date?: string | null
           name: string
           national_id?: string | null
+          owner_type?: string | null
           paid_commission?: number | null
           payment_frequency?: string | null
           pending_commission?: number | null
           phone?: string | null
+          tax_number?: string | null
           total_commission?: number | null
           total_revenue?: number | null
           updated_at?: string
@@ -4400,6 +4406,7 @@ export type Database = {
           account_id?: string | null
           address?: string | null
           bank_account?: string | null
+          commercial_registration?: string | null
           commission_rate?: number | null
           created_at?: string
           email?: string | null
@@ -4409,10 +4416,12 @@ export type Database = {
           last_payment_date?: string | null
           name?: string
           national_id?: string | null
+          owner_type?: string | null
           paid_commission?: number | null
           payment_frequency?: string | null
           pending_commission?: number | null
           phone?: string | null
+          tax_number?: string | null
           total_commission?: number | null
           total_revenue?: number | null
           updated_at?: string
@@ -5002,6 +5011,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      check_commercial_registration_duplicate: {
+        Args: { p_commercial_registration: string; p_exclude_id?: string }
+        Returns: boolean
+      }
       check_insurance_expiry: {
         Args: Record<PropertyKey, never>
         Returns: number
@@ -5025,6 +5038,10 @@ export type Database = {
           severity: string
           threshold_value: number
         }[]
+      }
+      check_tax_number_duplicate: {
+        Args: { p_exclude_id?: string; p_tax_number: string }
+        Returns: boolean
       }
       check_vin_duplicate: {
         Args: { p_exclude_id?: string; p_vin: string }

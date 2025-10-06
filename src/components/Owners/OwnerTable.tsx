@@ -24,7 +24,9 @@ import {
   Phone, 
   Mail, 
   MapPin,
-  CreditCard
+  CreditCard,
+  User,
+  Building2
 } from "lucide-react";
 import { Owner } from "@/hooks/useOwners";
 import { EditOwnerDialog } from "./EditOwnerDialog";
@@ -76,9 +78,10 @@ export const OwnerTable = ({ owners, loading, onUpdate, onDelete }: OwnerTablePr
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>النوع</TableHead>
               <TableHead>اسم المالك</TableHead>
               <TableHead>معلومات الاتصال</TableHead>
-              <TableHead>رقم الهوية</TableHead>
+              <TableHead>رقم الهوية/السجل</TableHead>
               <TableHead>المركبات</TableHead>
               <TableHead>الحالة</TableHead>
               <TableHead>تاريخ التسجيل</TableHead>
@@ -88,6 +91,21 @@ export const OwnerTable = ({ owners, loading, onUpdate, onDelete }: OwnerTablePr
           <TableBody>
             {owners.map((owner) => (
               <TableRow key={owner.id}>
+                <TableCell>
+                  <Badge variant={owner.owner_type === 'individual' ? 'default' : 'secondary'} className="flex items-center gap-1 w-fit">
+                    {owner.owner_type === 'individual' ? (
+                      <>
+                        <User className="h-3 w-3" />
+                        فرد
+                      </>
+                    ) : (
+                      <>
+                        <Building2 className="h-3 w-3" />
+                        مؤسسة
+                      </>
+                    )}
+                  </Badge>
+                </TableCell>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     <div>
@@ -119,11 +137,20 @@ export const OwnerTable = ({ owners, loading, onUpdate, onDelete }: OwnerTablePr
                   </div>
                 </TableCell>
                 <TableCell>
-                  {owner.national_id && (
-                    <div className="flex items-center gap-1">
-                      <CreditCard className="h-3 w-3" />
-                      {owner.national_id}
-                    </div>
+                  {owner.owner_type === 'individual' ? (
+                    owner.national_id && (
+                      <div className="flex items-center gap-1">
+                        <CreditCard className="h-3 w-3" />
+                        {owner.national_id}
+                      </div>
+                    )
+                  ) : (
+                    owner.commercial_registration && (
+                      <div className="flex items-center gap-1">
+                        <Building2 className="h-3 w-3" />
+                        {owner.commercial_registration}
+                      </div>
+                    )
                   )}
                 </TableCell>
                 <TableCell>

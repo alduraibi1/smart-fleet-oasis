@@ -13,6 +13,7 @@ interface OwnerFiltersProps {
 export const OwnerFilters = ({ onFiltersChange }: OwnerFiltersProps) => {
   const [search, setSearch] = useState("");
   const [isActive, setIsActive] = useState<string>("all");
+  const [ownerType, setOwnerType] = useState<string>("all");
 
   const handleSearch = () => {
     const filters: OwnerFiltersType = {};
@@ -25,12 +26,17 @@ export const OwnerFilters = ({ onFiltersChange }: OwnerFiltersProps) => {
       filters.is_active = isActive === "active";
     }
 
+    if (ownerType !== "all") {
+      filters.owner_type = ownerType as 'individual' | 'company';
+    }
+
     onFiltersChange(filters);
   };
 
   const handleClear = () => {
     setSearch("");
     setIsActive("all");
+    setOwnerType("all");
     onFiltersChange({});
   };
 
@@ -51,7 +57,20 @@ export const OwnerFilters = ({ onFiltersChange }: OwnerFiltersProps) => {
             </div>
           </div>
 
-          <div className="w-full md:w-48">
+          <div className="w-full md:w-40">
+            <Select value={ownerType} onValueChange={setOwnerType}>
+              <SelectTrigger>
+                <SelectValue placeholder="النوع" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع الأنواع</SelectItem>
+                <SelectItem value="individual">أفراد</SelectItem>
+                <SelectItem value="company">مؤسسات</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-full md:w-40">
             <Select value={isActive} onValueChange={setIsActive}>
               <SelectTrigger>
                 <SelectValue placeholder="الحالة" />

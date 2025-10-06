@@ -4,10 +4,13 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface Owner {
   id: string;
+  owner_type: 'individual' | 'company';
   name: string;
   email?: string;
   phone?: string;
   national_id?: string;
+  commercial_registration?: string;
+  tax_number?: string;
   address?: string;
   is_active: boolean;
   created_at: string;
@@ -19,6 +22,8 @@ export interface OwnerStats {
   total: number;
   active: number;
   inactive: number;
+  individuals: number;
+  companies: number;
   total_vehicles: number;
   avg_vehicles_per_owner: number;
 }
@@ -26,6 +31,7 @@ export interface OwnerStats {
 export interface OwnerFilters {
   search?: string;
   is_active?: boolean;
+  owner_type?: 'individual' | 'company';
 }
 
 export const useOwners = () => {
@@ -35,6 +41,8 @@ export const useOwners = () => {
     total: 0,
     active: 0,
     inactive: 0,
+    individuals: 0,
+    companies: 0,
     total_vehicles: 0,
     avg_vehicles_per_owner: 0,
   });
@@ -53,10 +61,13 @@ export const useOwners = () => {
 
       // Apply filters
       if (filters?.search) {
-        query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,phone.ilike.%${filters.search}%,national_id.ilike.%${filters.search}%`);
+        query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,phone.ilike.%${filters.search}%,national_id.ilike.%${filters.search}%,commercial_registration.ilike.%${filters.search}%`);
       }
       if (filters?.is_active !== undefined) {
         query = query.eq('is_active', filters.is_active);
+      }
+      if (filters?.owner_type) {
+        query = query.eq('owner_type', filters.owner_type);
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
@@ -89,6 +100,8 @@ export const useOwners = () => {
       total: ownerData.length,
       active: ownerData.filter(o => o.is_active).length,
       inactive: ownerData.filter(o => !o.is_active).length,
+      individuals: ownerData.filter(o => o.owner_type === 'individual').length,
+      companies: ownerData.filter(o => o.owner_type === 'company').length,
       total_vehicles: totalVehicles,
       avg_vehicles_per_owner: ownerData.length > 0 ? totalVehicles / ownerData.length : 0,
     };
