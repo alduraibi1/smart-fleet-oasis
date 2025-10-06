@@ -28,6 +28,7 @@ export function useCustomerDuplicateCheck(excludeId?: string) {
   const checkPhone = (value: string) => {
     phoneValueRef.current = value?.trim() || '';
     clearTimer(phoneTimerRef);
+    
     // debounce
     phoneTimerRef.current = window.setTimeout(async () => {
       const current = phoneValueRef.current;
@@ -35,31 +36,56 @@ export function useCustomerDuplicateCheck(excludeId?: string) {
         setPhoneDuplicate({ isDuplicate: false, checking: false });
         return;
       }
-      setPhoneDuplicate(prev => ({ ...prev, checking: true, error: null }));
-      const query = supabase
-        .from('customers')
-        .select('id,name,phone')
-        .eq('phone', current)
-        .limit(1);
-
-      const { data, error } = await query;
-      if (error) {
-        setPhoneDuplicate({ isDuplicate: false, checking: false, error: error.message });
+      
+      // Validate phone format before checking (10 digits starting with 05)
+      const cleaned = current.replace(/\D/g, '');
+      if (cleaned.length !== 10 || !cleaned.startsWith('05')) {
+        setPhoneDuplicate({ isDuplicate: false, checking: false });
         return;
       }
-      const match = (data || []).find(c => (excludeId ? c.id !== excludeId : true));
-      setPhoneDuplicate({
-        isDuplicate: !!match,
-        customer: match ? { id: match.id, name: match.name, phone: match.phone } : null,
-        checking: false,
-        error: null
-      });
+      
+      setPhoneDuplicate(prev => ({ ...prev, checking: true, error: null }));
+      
+      try {
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        );
+        
+        const queryPromise = supabase
+          .from('customers')
+          .select('id,name,phone')
+          .eq('phone', cleaned)
+          .limit(1);
+
+        const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+        
+        if (error) {
+          setPhoneDuplicate({ isDuplicate: false, checking: false, error: error.message });
+          return;
+        }
+        
+        const match = (data || []).find(c => (excludeId ? c.id !== excludeId : true));
+        setPhoneDuplicate({
+          isDuplicate: !!match,
+          customer: match ? { id: match.id, name: match.name, phone: match.phone } : null,
+          checking: false,
+          error: null
+        });
+      } catch (error) {
+        setPhoneDuplicate({ 
+          isDuplicate: false, 
+          checking: false, 
+          error: error instanceof Error ? error.message : 'خطأ في التحقق' 
+        });
+      }
     }, 400);
   };
 
   const checkNationalId = (value: string) => {
     idValueRef.current = value?.trim() || '';
     clearTimer(idTimerRef);
+    
     // debounce
     idTimerRef.current = window.setTimeout(async () => {
       const current = idValueRef.current;
@@ -67,25 +93,48 @@ export function useCustomerDuplicateCheck(excludeId?: string) {
         setIdDuplicate({ isDuplicate: false, checking: false });
         return;
       }
-      setIdDuplicate(prev => ({ ...prev, checking: true, error: null }));
-      const query = supabase
-        .from('customers')
-        .select('id,name,national_id')
-        .eq('national_id', current)
-        .limit(1);
-
-      const { data, error } = await query;
-      if (error) {
-        setIdDuplicate({ isDuplicate: false, checking: false, error: error.message });
+      
+      // Only check if ID has minimum length
+      if (current.length < 10) {
+        setIdDuplicate({ isDuplicate: false, checking: false });
         return;
       }
-      const match = (data || []).find(c => (excludeId ? c.id !== excludeId : true));
-      setIdDuplicate({
-        isDuplicate: !!match,
-        customer: match ? { id: match.id, name: match.name, national_id: match.national_id } : null,
-        checking: false,
-        error: null
-      });
+      
+      setIdDuplicate(prev => ({ ...prev, checking: true, error: null }));
+      
+      try {
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        );
+        
+        const queryPromise = supabase
+          .from('customers')
+          .select('id,name,national_id')
+          .eq('national_id', current)
+          .limit(1);
+
+        const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+        
+        if (error) {
+          setIdDuplicate({ isDuplicate: false, checking: false, error: error.message });
+          return;
+        }
+        
+        const match = (data || []).find(c => (excludeId ? c.id !== excludeId : true));
+        setIdDuplicate({
+          isDuplicate: !!match,
+          customer: match ? { id: match.id, name: match.name, national_id: match.national_id } : null,
+          checking: false,
+          error: null
+        });
+      } catch (error) {
+        setIdDuplicate({ 
+          isDuplicate: false, 
+          checking: false, 
+          error: error instanceof Error ? error.message : 'خطأ في التحقق' 
+        });
+      }
     }, 400);
   };
 
