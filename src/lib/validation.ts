@@ -108,7 +108,7 @@ export const SaudiValidation = {
       const cleaned = value.replace(/\D/g, '');
       
       if (cleaned.length === 0) return '';
-      if (!cleaned.startsWith('05')) return 'رقم الجوال يجب أن يبدأ بـ 05';
+      if (!cleaned.startsWith('05')) return 'رقم الجوال يجب أن يبدأ بـ 05 (صفر خمسة)';
       if (cleaned.length < 10) return 'رقم الجوال يجب أن يكون 10 أرقام';
       if (cleaned.length > 10) return 'رقم الجوال يجب أن يكون 10 أرقام فقط';
       

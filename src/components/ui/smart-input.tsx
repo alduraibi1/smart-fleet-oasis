@@ -214,7 +214,7 @@ const SmartInput = React.forwardRef<HTMLInputElement, SmartInputProps>(
                 nationalId: nationality === 'سعودي' ? "رقم الهوية السعودية: يبدأ بـ 1 ويتكون من 10 أرقام" :
                            nationality && nationality !== 'سعودي' ? "رقم الإقامة: يبدأ بـ 2 ويتكون من 10 أرقام" :
                            "رقم الهوية السعودية: يبدأ بـ 1 (مواطن) | رقم الإقامة: يبدأ بـ 2 (مقيم)",
-                mobileNumber: "يجب أن يبدأ بـ 5 ويتكون من 10 أرقام",
+                mobileNumber: "يجب أن يبدأ بـ 05 (صفر خمسة) ويتكون من 10 أرقام",
                 plateNumber: "الشكل الجديد: 3 أحرف + 4 أرقام",
                 vin: "17 حرف/رقم (لا يحتوي على I, O, Q)",
                 iban: "SA + 22 رقم (إجمالي 24 رقم/حرف)",
