@@ -331,33 +331,44 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
             />
           </div>
 
-          <IdentityVerificationInput
-            label={formData.owner_type === 'company' ? 'البريد الإلكتروني *' : 'البريد الإلكتروني'}
-            validationType="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            showValidationIcon
-          />
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="email" className="text-sm">
+              {formData.owner_type === 'company' ? 'البريد الإلكتروني *' : 'البريد الإلكتروني'}
+            </Label>
+            <IdentityVerificationInput
+              id="email"
+              validationType="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              showValidationIcon
+            />
+          </div>
 
-          <IdentityVerificationInput
-            label="رقم الهاتف *"
-            validationType="mobileNumber"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            onValidationChange={(isValid) => setIsPhoneValid(isValid)}
-            isDuplicate={phoneDuplicate.isDuplicate}
-            isChecking={phoneDuplicate.checking}
-            duplicateOwner={phoneDuplicate.owner ? {
-              id: phoneDuplicate.owner.id,
-              name: phoneDuplicate.owner.name,
-              phone: phoneDuplicate.owner.phone,
-              owner_type: phoneDuplicate.owner.owner_type
-            } : undefined}
-            verificationType="owner"
-            ownerFieldType="phone"
-            showValidationIcon
-            showSuggestions
-          />
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="phone" className="text-sm">رقم الهاتف *</Label>
+            <IdentityVerificationInput
+              id="phone"
+              validationType="mobileNumber"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              required
+              placeholder="05xxxxxxxx"
+              showValidationIcon
+              showSuggestions
+              onValidationChange={(isValid) => setIsPhoneValid(isValid)}
+              isDuplicate={phoneDuplicate.isDuplicate}
+              isChecking={phoneDuplicate.checking}
+              duplicateOwner={phoneDuplicate.owner ? {
+                id: phoneDuplicate.owner.id,
+                name: phoneDuplicate.owner.name,
+                phone: phoneDuplicate.owner.phone,
+                owner_type: phoneDuplicate.owner.owner_type
+              } : undefined}
+              verificationType="owner"
+              ownerFieldType="phone"
+              onSuggestionClick={(value) => setFormData({ ...formData, phone: value })}
+            />
+          </div>
 
           {formData.owner_type === 'individual' && (
               <IdentityVerificationInput

@@ -267,25 +267,31 @@ export const EditOwnerDialog = ({ open, onOpenChange, owner, onUpdate }: EditOwn
             />
           </div>
 
-          <IdentityVerificationInput
-            label="رقم الهاتف"
-            validationType="mobileNumber"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            onValidationChange={(isValid) => setIsPhoneValid(isValid)}
-            isDuplicate={phoneDuplicate.isDuplicate}
-            isChecking={phoneDuplicate.checking}
-            duplicateOwner={phoneDuplicate.owner ? {
-              id: phoneDuplicate.owner.id,
-              name: phoneDuplicate.owner.name,
-              phone: phoneDuplicate.owner.phone,
-              owner_type: phoneDuplicate.owner.owner_type
-            } : undefined}
-            verificationType="owner"
-            ownerFieldType="phone"
-            showValidationIcon
-            showSuggestions
-          />
+          <div className="space-y-2">
+            <Label htmlFor="phone">رقم الهاتف</Label>
+            <IdentityVerificationInput
+              id="phone"
+              validationType="mobileNumber"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              required
+              placeholder="05xxxxxxxx"
+              showValidationIcon
+              showSuggestions
+              onValidationChange={(isValid) => setIsPhoneValid(isValid)}
+              isDuplicate={phoneDuplicate.isDuplicate}
+              isChecking={phoneDuplicate.checking}
+              duplicateOwner={phoneDuplicate.owner ? {
+                id: phoneDuplicate.owner.id,
+                name: phoneDuplicate.owner.name,
+                phone: phoneDuplicate.owner.phone,
+                owner_type: phoneDuplicate.owner.owner_type
+              } : undefined}
+              verificationType="owner"
+              ownerFieldType="phone"
+              onSuggestionClick={(value) => setFormData({ ...formData, phone: value })}
+            />
+          </div>
 
           {formData.owner_type === 'individual' && (
             <IdentityVerificationInput
