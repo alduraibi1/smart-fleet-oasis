@@ -142,7 +142,7 @@ const SmartInput = React.forwardRef<HTMLInputElement, SmartInputProps>(
       nationalId: nationality === 'سعودي' ? "مثال: 1234567890 (للسعوديين)" : 
                    nationality && nationality !== 'سعودي' ? "مثال: 2234567890 (للمقيمين)" :
                    "مثال: 1234567890 (سعودي) أو 2234567890 (مقيم)",
-      mobileNumber: "مثال: 512 345 678",
+      mobileNumber: "مثال: 0512345678",
       plateNumber: "مثال: أ ب ج 1234", 
       vin: "مثال: WVW1J7A37CE123456",
       iban: "مثال: SA00 0000 0000 0000 0000 00",
@@ -165,7 +165,10 @@ const SmartInput = React.forwardRef<HTMLInputElement, SmartInputProps>(
         
         <div className="relative">
           <Input
-            type={type}
+            type={validationType === 'mobileNumber' ? 'tel' : type}
+            inputMode={validationType === 'mobileNumber' ? 'numeric' : undefined}
+            pattern={validationType === 'mobileNumber' ? '[0-9]*' : undefined}
+            autoComplete={validationType === 'mobileNumber' ? 'tel' : undefined}
             className={cn(
               "transition-all duration-300",
               getValidationColor(),
@@ -214,7 +217,7 @@ const SmartInput = React.forwardRef<HTMLInputElement, SmartInputProps>(
                 nationalId: nationality === 'سعودي' ? "رقم الهوية السعودية: يبدأ بـ 1 ويتكون من 10 أرقام" :
                            nationality && nationality !== 'سعودي' ? "رقم الإقامة: يبدأ بـ 2 ويتكون من 10 أرقام" :
                            "رقم الهوية السعودية: يبدأ بـ 1 (مواطن) | رقم الإقامة: يبدأ بـ 2 (مقيم)",
-                mobileNumber: "يجب أن يبدأ بـ 05 (صفر خمسة) ويتكون من 10 أرقام",
+                mobileNumber: "مثال: 05xxxxxxxx",
                 plateNumber: "الشكل الجديد: 3 أحرف + 4 أرقام",
                 vin: "17 حرف/رقم (لا يحتوي على I, O, Q)",
                 iban: "SA + 22 رقم (إجمالي 24 رقم/حرف)",

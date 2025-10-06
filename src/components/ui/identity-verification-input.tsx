@@ -109,17 +109,36 @@ const IdentityVerificationInput = React.forwardRef<HTMLInputElement, IdentityVer
       if (validationType === 'mobileNumber' && validationStatus === 'invalid' && props.value) {
         const value = props.value.toString().replace(/\D/g, '')
         if (value.length > 0) {
-          if (!value.startsWith('5')) {
+          // إذا بدأ بـ 966، اقترح التحويل إلى 05
+          if (value.startsWith('966')) {
+            const localNumber = '0' + value.slice(3);
             suggestions.push({
               type: 'tip',
-              message: 'رقم الجوال يجب أن يبدأ بـ 5',
-              action: () => onSuggestionClick?.('5' + value.slice(1))
+              message: `هل تقصد: ${localNumber}؟`,
+              action: () => onSuggestionClick?.(localNumber)
             })
           }
-          if (value.length < 9) {
+          // إذا بدأ بـ 5 فقط (بدون 0)
+          else if (value.startsWith('5') && !value.startsWith('05')) {
+            suggestions.push({
+              type: 'tip',
+              message: 'رقم الجوال يجب أن يبدأ بـ 05 (صفر خمسة)',
+              action: () => onSuggestionClick?.('0' + value)
+            })
+          }
+          // إذا لم يبدأ بـ 05
+          else if (!value.startsWith('05') && !value.startsWith('5')) {
+            suggestions.push({
+              type: 'tip',
+              message: 'رقم الجوال يجب أن يبدأ بـ 05',
+            })
+          }
+          
+          if (value.length < 10 && (value.startsWith('05') || value.startsWith('5'))) {
+            const missingDigits = value.startsWith('05') ? 10 - value.length : 10 - value.length - 1;
             suggestions.push({
               type: 'info',
-              message: `أدخل ${9 - value.length} أرقام إضافية`
+              message: `أدخل ${missingDigits} أرقام إضافية`
             })
           }
         }

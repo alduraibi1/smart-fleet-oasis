@@ -98,10 +98,20 @@ export const SaudiValidation = {
     },
     
     format: (value: string): string => {
-      const cleaned = value.replace(/\D/g, '');
-      if (cleaned.length <= 4) return cleaned;
-      if (cleaned.length <= 7) return `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
-      return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7, 10)}`;
+      let cleaned = value.replace(/\D/g, '');
+      
+      // إذا بدأ بـ 966 (الكود الدولي)، حوله إلى 05
+      if (cleaned.startsWith('966')) {
+        cleaned = '0' + cleaned.slice(3);
+      }
+      
+      // إذا بدأ بـ 5 فقط (بدون 0)، أضف 0
+      if (cleaned.startsWith('5') && !cleaned.startsWith('05')) {
+        cleaned = '0' + cleaned;
+      }
+      
+      // اقطع إلى 10 أرقام كحد أقصى بدون مسافات
+      return cleaned.slice(0, 10);
     },
     
     getErrorMessage: (value: string): string => {
