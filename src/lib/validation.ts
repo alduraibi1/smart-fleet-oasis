@@ -11,25 +11,15 @@ export const SaudiValidation = {
   nationalId: {
     validate: (value: string): boolean => {
       const cleaned = value.replace(/\D/g, '');
+      
+      // التحقق من الطول فقط (10 أرقام)
       if (cleaned.length !== 10) return false;
       
+      // التحقق من أن يبدأ بـ 1 (سعودي) أو 2 (مقيم)
       const firstDigit = cleaned[0];
       if (firstDigit !== '1' && firstDigit !== '2') return false;
       
-      // Correct Saudi ID checksum validation algorithm
-      let sum = 0;
-      for (let i = 0; i < 10; i++) {
-        const digit = parseInt(cleaned[i]);
-        if (i % 2 === 0) {
-          const doubled = digit * 2;
-          const doubledStr = `00${doubled}`.slice(-2);
-          sum += parseInt(doubledStr[0]) + parseInt(doubledStr[1]);
-        } else {
-          sum += digit;
-        }
-      }
-      
-      return sum % 10 === 0;
+      return true;
     },
     
     format: (value: string): string => {
@@ -74,7 +64,7 @@ export const SaudiValidation = {
     
     if (cleaned.length === 0) return { isValid: true, errorMessage: '' };
     
-    // Basic format validation first
+    // التحقق من الطول (10 أرقام)
     if (cleaned.length !== 10) {
       return { isValid: false, errorMessage: 'رقم الهوية/الإقامة يجب أن يكون 10 أرقام' };
     }
@@ -82,7 +72,7 @@ export const SaudiValidation = {
     const firstDigit = cleaned[0];
     const isSaudi = nationality === 'سعودي';
     
-    // Check nationality-ID consistency
+    // التحقق من توافق الجنسية مع رقم الهوية/الإقامة
     if (nationality) {
       if (isSaudi && firstDigit !== '1') {
         return { isValid: false, errorMessage: 'رقم الهوية السعودية يجب أن يبدأ بـ 1' };
@@ -90,12 +80,11 @@ export const SaudiValidation = {
       if (!isSaudi && firstDigit !== '2') {
         return { isValid: false, errorMessage: 'رقم الإقامة يجب أن يبدأ بـ 2 للمقيمين' };
       }
-    }
-    
-    // Validate checksum
-    if (!SaudiValidation.nationalId.validate(cleaned)) {
-      const docType = firstDigit === '1' ? 'رقم الهوية السعودية' : 'رقم الإقامة';
-      return { isValid: false, errorMessage: `${docType} غير صحيح` };
+    } else {
+      // إذا لم يتم تحديد الجنسية، التحقق من أن يبدأ بـ 1 أو 2
+      if (firstDigit !== '1' && firstDigit !== '2') {
+        return { isValid: false, errorMessage: 'رقم الهوية يجب أن يبدأ بـ 1 (سعودي) أو 2 (مقيم)' };
+      }
     }
     
     return { isValid: true, errorMessage: '' };
