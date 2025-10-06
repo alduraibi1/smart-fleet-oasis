@@ -27,6 +27,10 @@ import {
 } from '@/components/ui/select';
 import { Vehicle } from '@/types/vehicle';
 import { useToast } from '@/hooks/use-toast';
+import { useVehicleDuplicateCheck } from '@/hooks/useVehicleDuplicateCheck';
+import { handleSaveError } from '@/lib/duplicateErrorHandler';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface AddVehicleDialogProps {
   open: boolean;
@@ -37,6 +41,7 @@ interface AddVehicleDialogProps {
 const AddVehicleDialog = ({ open, onOpenChange, onVehicleAdded }: AddVehicleDialogProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { plateDuplicate, vinDuplicate, checkPlateNumber, checkVIN } = useVehicleDuplicateCheck();
 
   const form = useForm({
     defaultValues: {
@@ -60,6 +65,25 @@ const AddVehicleDialog = ({ open, onOpenChange, onVehicleAdded }: AddVehicleDial
   });
 
   const onSubmit = async (data: any) => {
+    // التحقق من التكرارات قبل الحفظ
+    if (plateDuplicate.isDuplicate) {
+      toast({
+        title: "بيانات مكررة",
+        description: "رقم اللوحة مستخدم مسبقاً",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (vinDuplicate.isDuplicate) {
+      toast({
+        title: "بيانات مكررة",
+        description: "رقم الشاسيه (VIN) مستخدم مسبقاً",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
     try {
       await onVehicleAdded({
@@ -77,9 +101,10 @@ const AddVehicleDialog = ({ open, onOpenChange, onVehicleAdded }: AddVehicleDial
       });
     } catch (error) {
       console.error('Error adding vehicle:', error);
+      const errorInfo = handleSaveError(error);
       toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء إضافة المركبة",
+        title: errorInfo.title,
+        description: errorInfo.message,
         variant: "destructive",
       });
     } finally {
@@ -104,8 +129,26 @@ const AddVehicleDialog = ({ open, onOpenChange, onVehicleAdded }: AddVehicleDial
                   <FormItem>
                     <FormLabel>رقم اللوحة *</FormLabel>
                     <FormControl>
-                      <Input placeholder="مثال: أ ب ج 1234" {...field} />
+                      <Input 
+                        placeholder="مثال: أ ب ج 1234" 
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          checkPlateNumber(e.target.value);
+                        }}
+                      />
                     </FormControl>
+                    {plateDuplicate.checking && (
+                      <p className="text-sm text-muted-foreground">جاري التحقق...</p>
+                    )}
+                    {plateDuplicate.isDuplicate && (
+                      <Alert variant="destructive" className="mt-2">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          رقم اللوحة مستخدم مسبقاً
+                        </AlertDescription>
+                      </Alert>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -330,8 +373,26 @@ const AddVehicleDialog = ({ open, onOpenChange, onVehicleAdded }: AddVehicleDial
                   <FormItem>
                     <FormLabel>رقم الشاسيه (VIN)</FormLabel>
                     <FormControl>
-                      <Input placeholder="رقم الشاسيه" {...field} />
+                      <Input 
+                        placeholder="رقم الشاسيه" 
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          checkVIN(e.target.value);
+                        }}
+                      />
                     </FormControl>
+                    {vinDuplicate.checking && (
+                      <p className="text-sm text-muted-foreground">جاري التحقق...</p>
+                    )}
+                    {vinDuplicate.isDuplicate && (
+                      <Alert variant="destructive" className="mt-2">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          رقم الشاسيه مستخدم مسبقاً
+                        </AlertDescription>
+                      </Alert>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -393,7 +454,10 @@ const AddVehicleDialog = ({ open, onOpenChange, onVehicleAdded }: AddVehicleDial
               >
                 إلغاء
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button 
+                type="submit" 
+                disabled={loading || plateDuplicate.isDuplicate || vinDuplicate.isDuplicate || plateDuplicate.checking || vinDuplicate.checking}
+              >
                 {loading ? 'جاري الحفظ...' : 'حفظ المركبة'}
               </Button>
             </div>

@@ -5003,6 +5003,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      check_phone_duplicate: {
+        Args: { p_exclude_id?: string; p_phone: string }
+        Returns: boolean
+      }
+      check_plate_duplicate: {
+        Args: { p_exclude_id?: string; p_plate_number: string }
+        Returns: boolean
+      }
       check_profitability_thresholds: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -5014,6 +5022,10 @@ export type Database = {
           severity: string
           threshold_value: number
         }[]
+      }
+      check_vin_duplicate: {
+        Args: { p_exclude_id?: string; p_vin: string }
+        Returns: boolean
       }
       cleanup_expired_password_resets: {
         Args: Record<PropertyKey, never>

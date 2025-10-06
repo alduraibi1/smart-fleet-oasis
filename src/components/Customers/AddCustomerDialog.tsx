@@ -14,6 +14,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, MapPin, FileText, Phone, Shield, FolderOpen } from 'lucide-react';
 import { convertFormDataToDatabase } from '@/utils/customerUtils';
+import { useCustomerDuplicateCheck } from '@/hooks/useCustomerDuplicateCheck';
+import { handleSaveError } from '@/lib/duplicateErrorHandler';
 
 interface AddCustomerDialogProps {
   open: boolean;
@@ -24,6 +26,7 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<CustomerFormData>(defaultCustomerFormData);
+  const { phoneDuplicate, idDuplicate } = useCustomerDuplicateCheck();
 
   const handleInputChange = (field: keyof CustomerFormData, value: any) => {
     setFormData(prev => ({
@@ -40,6 +43,25 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
       toast({
         title: "خطأ في البيانات",
         description: "يرجى تعبئة جميع الحقول المطلوبة",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // التحقق من التكرارات قبل الحفظ
+    if (phoneDuplicate.isDuplicate) {
+      toast({
+        title: "بيانات مكررة",
+        description: "رقم الهاتف مستخدم مسبقاً",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (idDuplicate.isDuplicate) {
+      toast({
+        title: "بيانات مكررة",
+        description: "رقم الهوية مستخدم مسبقاً",
         variant: "destructive",
       });
       return;
@@ -69,9 +91,10 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
       onOpenChange(false);
     } catch (error: any) {
       console.error('Error adding customer:', error);
+      const errorInfo = handleSaveError(error);
       toast({
-        title: "خطأ في إضافة العميل",
-        description: error.message || "حدث خطأ غير متوقع",
+        title: errorInfo.title,
+        description: errorInfo.message,
         variant: "destructive",
       });
     } finally {
@@ -169,7 +192,13 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={
+                loading || 
+                phoneDuplicate.isDuplicate || 
+                idDuplicate.isDuplicate || 
+                phoneDuplicate.checking || 
+                idDuplicate.checking
+              }
               className="min-w-[100px]"
             >
               {loading ? "جاري الإضافة..." : "إضافة العميل"}
