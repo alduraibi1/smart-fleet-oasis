@@ -15,6 +15,10 @@ const duplicateFieldNames: Record<string, string> = {
   'customers_national_id_key': 'رقم الهوية',
   'vehicles_plate_number_unique': 'رقم اللوحة',
   'vehicles_vin_unique': 'رقم الشاسيه (VIN)',
+  'vehicle_owners_commercial_registration_key': 'السجل التجاري',
+  'vehicle_owners_tax_number_key': 'الرقم الضريبي',
+  'vehicle_owners_national_id_key': 'رقم الهوية',
+  'vehicle_owners_phone_key': 'رقم الهاتف',
 };
 
 /**
@@ -46,6 +50,8 @@ function extractFieldFromError(error: PostgresError): string | null {
       'national_id': 'رقم الهوية',
       'plate_number': 'رقم اللوحة',
       'vin': 'رقم الشاسيه',
+      'commercial_registration': 'السجل التجاري',
+      'tax_number': 'الرقم الضريبي',
     };
     return fieldMap[match[1]] || match[1];
   }
