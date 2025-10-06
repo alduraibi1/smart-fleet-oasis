@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 type DuplicateResult = {
   isDuplicate: boolean;
-  owner?: { id: string; name: string; phone?: string; national_id?: string; commercial_registration?: string; tax_number?: string } | null;
+  owner?: { id: string; name: string; phone?: string; national_id?: string; commercial_registration?: string; tax_number?: string; owner_type?: string } | null;
   checking: boolean;
   error?: string | null;
 };
@@ -53,7 +53,7 @@ export function useOwnerDuplicateCheck(excludeId?: string) {
       try {
         const { data, error } = await supabase
           .from('vehicle_owners')
-          .select('id,name,phone')
+          .select('id,name,phone,owner_type')
           .eq('phone', cleaned)
           .limit(1);
         
@@ -65,7 +65,7 @@ export function useOwnerDuplicateCheck(excludeId?: string) {
         const match = (data || []).find(c => (excludeId ? c.id !== excludeId : true));
         setPhoneDuplicate({
           isDuplicate: !!match,
-          owner: match ? { id: match.id, name: match.name, phone: match.phone } : null,
+          owner: match ? { id: match.id, name: match.name, phone: match.phone, owner_type: match.owner_type } : null,
           checking: false,
           error: null
         });
@@ -95,7 +95,7 @@ export function useOwnerDuplicateCheck(excludeId?: string) {
       try {
         const { data, error } = await supabase
           .from('vehicle_owners')
-          .select('id,name,national_id')
+          .select('id,name,phone,national_id,owner_type')
           .eq('national_id', current)
           .limit(1);
         
@@ -107,7 +107,7 @@ export function useOwnerDuplicateCheck(excludeId?: string) {
         const match = (data || []).find(c => (excludeId ? c.id !== excludeId : true));
         setIdDuplicate({
           isDuplicate: !!match,
-          owner: match ? { id: match.id, name: match.name, national_id: match.national_id } : null,
+          owner: match ? { id: match.id, name: match.name, phone: match.phone, national_id: match.national_id, owner_type: match.owner_type } : null,
           checking: false,
           error: null
         });
@@ -137,7 +137,7 @@ export function useOwnerDuplicateCheck(excludeId?: string) {
       try {
         const { data, error } = await supabase
           .from('vehicle_owners')
-          .select('id,name,commercial_registration')
+          .select('id,name,phone,commercial_registration,owner_type')
           .eq('commercial_registration', current)
           .eq('owner_type', 'company')
           .limit(1);
@@ -150,7 +150,7 @@ export function useOwnerDuplicateCheck(excludeId?: string) {
         const match = (data || []).find(c => (excludeId ? c.id !== excludeId : true));
         setCommercialRegDuplicate({
           isDuplicate: !!match,
-          owner: match ? { id: match.id, name: match.name, commercial_registration: match.commercial_registration } : null,
+          owner: match ? { id: match.id, name: match.name, phone: match.phone, commercial_registration: match.commercial_registration, owner_type: match.owner_type } : null,
           checking: false,
           error: null
         });
@@ -180,7 +180,7 @@ export function useOwnerDuplicateCheck(excludeId?: string) {
       try {
         const { data, error } = await supabase
           .from('vehicle_owners')
-          .select('id,name,tax_number')
+          .select('id,name,phone,tax_number,owner_type')
           .eq('tax_number', current)
           .eq('owner_type', 'company')
           .limit(1);
@@ -193,7 +193,7 @@ export function useOwnerDuplicateCheck(excludeId?: string) {
         const match = (data || []).find(c => (excludeId ? c.id !== excludeId : true));
         setTaxNumberDuplicate({
           isDuplicate: !!match,
-          owner: match ? { id: match.id, name: match.name, tax_number: match.tax_number } : null,
+          owner: match ? { id: match.id, name: match.name, phone: match.phone, tax_number: match.tax_number, owner_type: match.owner_type } : null,
           checking: false,
           error: null
         });

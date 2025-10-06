@@ -357,76 +357,69 @@ export const AddOwnerDialog = ({ open, onOpenChange, onAdd }: AddOwnerDialogProp
           />
 
           {formData.owner_type === 'individual' && (
-            <IdentityVerificationInput
-              label="رقم الهوية *"
-              validationType="nationalId"
-              nationality="سعودي"
-              value={formData.national_id}
-              onChange={(e) => setFormData({ ...formData, national_id: e.target.value })}
-              onValidationChange={(isValid) => setIsNationalIdValid(isValid)}
-              isDuplicate={idDuplicate.isDuplicate}
-              isChecking={idDuplicate.checking}
-              duplicateCustomer={idDuplicate.owner ? {
-                id: idDuplicate.owner.id,
-                name: idDuplicate.owner.name,
-                national_id: idDuplicate.owner.national_id
-              } : undefined}
-              showValidationIcon
-              showSuggestions
-            />
+              <IdentityVerificationInput
+                label="رقم الهوية *"
+                validationType="nationalId"
+                nationality="سعودي"
+                value={formData.national_id}
+                onChange={(e) => setFormData({ ...formData, national_id: e.target.value })}
+                onValidationChange={(isValid) => setIsNationalIdValid(isValid)}
+                isDuplicate={idDuplicate.isDuplicate}
+                isChecking={idDuplicate.checking}
+                duplicateOwner={idDuplicate.owner ? {
+                  id: idDuplicate.owner.id,
+                  name: idDuplicate.owner.name,
+                  phone: idDuplicate.owner.phone,
+                  owner_type: idDuplicate.owner.owner_type
+                } : undefined}
+                verificationType="owner"
+                ownerFieldType="national_id"
+                showValidationIcon
+                showSuggestions
+              />
           )}
 
           {formData.owner_type === 'company' && (
             <>
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="commercial_registration" className="text-sm">
-                  السجل التجاري *
-                </Label>
-                <Input
-                  id="commercial_registration"
-                  value={formData.commercial_registration}
-                  onChange={(e) => {
-                    setFormData({ ...formData, commercial_registration: e.target.value });
-                    setIsCommercialRegValid(e.target.value.trim().length > 0);
-                  }}
-                  placeholder="أدخل رقم السجل التجاري"
-                  required
-                  className="text-sm"
-                />
-                {commercialRegDuplicate.isDuplicate && (
-                  <p className="text-xs text-destructive">
-                    السجل التجاري مستخدم من قبل: {commercialRegDuplicate.owner?.name}
-                  </p>
-                )}
-                {commercialRegDuplicate.checking && (
-                  <p className="text-xs text-muted-foreground">جاري التحقق...</p>
-                )}
-              </div>
+              <IdentityVerificationInput
+                label="السجل التجاري *"
+                value={formData.commercial_registration}
+                onChange={(e) => setFormData({ ...formData, commercial_registration: e.target.value })}
+                onValidationChange={(isValid) => setIsCommercialRegValid(isValid)}
+                isDuplicate={commercialRegDuplicate.isDuplicate}
+                isChecking={commercialRegDuplicate.checking}
+                duplicateOwner={commercialRegDuplicate.owner ? {
+                  id: commercialRegDuplicate.owner.id,
+                  name: commercialRegDuplicate.owner.name,
+                  phone: commercialRegDuplicate.owner.phone,
+                  owner_type: commercialRegDuplicate.owner.owner_type
+                } : undefined}
+                verificationType="owner"
+                ownerFieldType="commercial_registration"
+                placeholder="أدخل رقم السجل التجاري"
+                showValidationIcon
+                showSuggestions
+              />
 
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="tax_number" className="text-sm">
-                  الرقم الضريبي *
-                </Label>
-                <Input
-                  id="tax_number"
-                  value={formData.tax_number}
-                  onChange={(e) => {
-                    setFormData({ ...formData, tax_number: e.target.value });
-                    setIsTaxNumberValid(e.target.value.trim().length > 0);
-                  }}
-                  placeholder="أدخل الرقم الضريبي (15 رقم)"
-                  required
-                  className="text-sm"
-                />
-                {taxNumberDuplicate.isDuplicate && (
-                  <p className="text-xs text-destructive">
-                    الرقم الضريبي مستخدم من قبل: {taxNumberDuplicate.owner?.name}
-                  </p>
-                )}
-                {taxNumberDuplicate.checking && (
-                  <p className="text-xs text-muted-foreground">جاري التحقق...</p>
-                )}
-              </div>
+              <IdentityVerificationInput
+                label="الرقم الضريبي *"
+                value={formData.tax_number}
+                onChange={(e) => setFormData({ ...formData, tax_number: e.target.value })}
+                onValidationChange={(isValid) => setIsTaxNumberValid(isValid)}
+                isDuplicate={taxNumberDuplicate.isDuplicate}
+                isChecking={taxNumberDuplicate.checking}
+                duplicateOwner={taxNumberDuplicate.owner ? {
+                  id: taxNumberDuplicate.owner.id,
+                  name: taxNumberDuplicate.owner.name,
+                  phone: taxNumberDuplicate.owner.phone,
+                  owner_type: taxNumberDuplicate.owner.owner_type
+                } : undefined}
+                verificationType="owner"
+                ownerFieldType="tax_number"
+                placeholder="أدخل الرقم الضريبي (15 رقم)"
+                showValidationIcon
+                showSuggestions
+              />
             </>
           )}
 

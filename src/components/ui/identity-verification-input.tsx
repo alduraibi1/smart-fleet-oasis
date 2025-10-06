@@ -10,7 +10,18 @@ export interface IdentityVerificationInputProps extends SmartInputProps {
   isDuplicate?: boolean
   isChecking?: boolean
   duplicateCustomer?: { id: string; name: string; phone?: string; national_id?: string } | null
+  duplicateOwner?: { 
+    id: string; 
+    name: string; 
+    phone?: string; 
+    national_id?: string;
+    commercial_registration?: string;
+    tax_number?: string;
+    owner_type?: string;
+  } | null
   onSuggestionClick?: (suggestion: string) => void
+  verificationType?: 'customer' | 'owner'
+  ownerFieldType?: 'national_id' | 'commercial_registration' | 'tax_number'
 }
 
 const IdentityVerificationInput = React.forwardRef<HTMLInputElement, IdentityVerificationInputProps>(
@@ -18,9 +29,12 @@ const IdentityVerificationInput = React.forwardRef<HTMLInputElement, IdentityVer
     isDuplicate = false,
     isChecking = false,
     duplicateCustomer,
+    duplicateOwner,
     onSuggestionClick,
     validationType,
     nationality,
+    verificationType = 'customer',
+    ownerFieldType = 'national_id',
     className,
     ...props 
   }, ref) => {
@@ -45,10 +59,24 @@ const IdentityVerificationInput = React.forwardRef<HTMLInputElement, IdentityVer
     const getSuggestions = (): Suggestion[] => {
       const suggestions: Suggestion[] = []
 
-      if (isDuplicate && duplicateCustomer) {
+      // Duplicate warnings for customers
+      if (isDuplicate && verificationType === 'customer' && duplicateCustomer) {
         suggestions.push({
           type: 'warning',
           message: `هذا ${validationType === 'nationalId' ? 'رقم الهوية' : 'الرقم'} مستخدم من قبل: ${duplicateCustomer.name}`,
+        })
+      }
+
+      // Duplicate warnings for owners
+      if (isDuplicate && verificationType === 'owner' && duplicateOwner) {
+        const fieldLabels = {
+          national_id: 'رقم الهوية',
+          commercial_registration: 'السجل التجاري',
+          tax_number: 'الرقم الضريبي'
+        }
+        suggestions.push({
+          type: 'warning',
+          message: `${fieldLabels[ownerFieldType]} مستخدم من قبل: ${duplicateOwner.name} (${duplicateOwner.phone || 'بدون رقم'})`,
         })
       }
 
@@ -108,7 +136,17 @@ const IdentityVerificationInput = React.forwardRef<HTMLInputElement, IdentityVer
 
     const getBadgeMessage = () => {
       if (isChecking) return 'جاري التحقق من التكرار...'
-      if (isDuplicate) return 'مكرر'
+      if (isDuplicate) {
+        if (verificationType === 'owner') {
+          const fieldLabels = {
+            national_id: 'رقم الهوية',
+            commercial_registration: 'السجل التجاري',
+            tax_number: 'الرقم الضريبي'
+          }
+          return `${fieldLabels[ownerFieldType]} مكرر`
+        }
+        return 'مكرر'
+      }
       if (validationStatus === 'valid') return 'صحيح'
       if (validationStatus === 'invalid') return 'خطأ في التنسيق'
       return undefined
