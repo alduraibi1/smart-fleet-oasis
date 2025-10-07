@@ -486,6 +486,15 @@ const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
               <ImportPreviewStep 
                 previewData={previewData}
                 validationErrors={validationErrors}
+                onDataUpdate={(index, updatedData) => {
+                  const newPreviewData = [...previewData];
+                  newPreviewData[index] = updatedData;
+                  setPreviewData(newPreviewData);
+                  toast({
+                    title: "تم تحديث البيانات",
+                    description: `تم تحديث بيانات الصف ${index + 1}`,
+                  });
+                }}
               />
 
               <div className="flex gap-4 justify-end">
