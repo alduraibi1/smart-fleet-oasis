@@ -24,6 +24,7 @@ const HR = lazy(() => import('@/pages/HR'));
 const Suppliers = lazy(() => import('@/pages/Suppliers'));
 const Inventory = lazy(() => import('@/pages/Inventory'));
 const SystemManagement = lazy(() => import('@/pages/SystemManagement'));
+const ElmSync = lazy(() => import('@/pages/ElmSync'));
 const Auth = lazy(() => import('@/pages/Auth'));
 const ImprovedResetPassword = lazy(() => import('@/pages/ImprovedResetPassword'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
@@ -94,6 +95,7 @@ function App() {
                           
                           {/* Core Management Routes */}
                           <Route path="vehicles" element={<Vehicles />} />
+                          <Route path="elm-sync" element={<ElmSync />} />
                           <Route path="customers" element={<Customers />} />
                           <Route path="customers-v2" element={<CustomersV2 />} />
                           <Route path="contracts" element={<Contracts />} />

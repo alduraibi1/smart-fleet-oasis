@@ -1098,6 +1098,93 @@ export type Database = {
         }
         Relationships: []
       }
+      elm_sync_config: {
+        Row: {
+          api_endpoint: string | null
+          api_key_encrypted: string | null
+          created_at: string | null
+          id: string
+          is_enabled: boolean | null
+          last_sync: string | null
+          next_sync: string | null
+          notification_settings: Json | null
+          sync_interval_hours: number | null
+          sync_mode: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          api_endpoint?: string | null
+          api_key_encrypted?: string | null
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          last_sync?: string | null
+          next_sync?: string | null
+          notification_settings?: Json | null
+          sync_interval_hours?: number | null
+          sync_mode?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          api_endpoint?: string | null
+          api_key_encrypted?: string | null
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          last_sync?: string | null
+          next_sync?: string | null
+          notification_settings?: Json | null
+          sync_interval_hours?: number | null
+          sync_mode?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      elm_sync_logs: {
+        Row: {
+          changes_summary: Json | null
+          created_at: string | null
+          error_details: Json | null
+          id: string
+          records_added: number | null
+          records_failed: number | null
+          records_processed: number | null
+          records_updated: number | null
+          sync_date: string
+          sync_status: string | null
+          sync_type: string
+          triggered_by: string | null
+        }
+        Insert: {
+          changes_summary?: Json | null
+          created_at?: string | null
+          error_details?: Json | null
+          id?: string
+          records_added?: number | null
+          records_failed?: number | null
+          records_processed?: number | null
+          records_updated?: number | null
+          sync_date?: string
+          sync_status?: string | null
+          sync_type: string
+          triggered_by?: string | null
+        }
+        Update: {
+          changes_summary?: Json | null
+          created_at?: string | null
+          error_details?: Json | null
+          id?: string
+          records_added?: number | null
+          records_failed?: number | null
+          records_processed?: number | null
+          records_updated?: number | null
+          sync_date?: string
+          sync_status?: string | null
+          sync_type?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       external_tracking_config: {
         Row: {
           api_endpoint: string | null

@@ -9,10 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
 import { useVehicles } from '@/hooks/useVehicles';
 import TrackerSyncButton from '@/components/Vehicles/TrackerSyncButton';
+import { ExportVehiclesDialog } from '@/components/Vehicles/ExportVehiclesDialog';
+import { Button } from '@/components/ui/button';
+import { FileSpreadsheet } from 'lucide-react';
 
 const Vehicles = () => {
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   const [filters, setFilters] = useState<VehicleFiltersType>({});
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   const {
     vehicles,
@@ -80,9 +84,13 @@ const Vehicles = () => {
           onDeleteVehicle={handleVehicleDeleted}
         />
 
-        {/* Tracker Sync */}
-        <div className="dashboard-card">
+        {/* Tracker Sync & Export */}
+        <div className="dashboard-card flex gap-2">
           <TrackerSyncButton />
+          <Button onClick={() => setExportDialogOpen(true)} variant="outline" className="gap-2">
+            <FileSpreadsheet className="h-4 w-4" />
+            تصدير
+          </Button>
         </div>
 
         {/* Filters */}
@@ -127,6 +135,12 @@ const Vehicles = () => {
           </Tabs>
         </div>
       </div>
+
+      <ExportVehiclesDialog 
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        vehicles={vehicles}
+      />
     </div>
   );
 };
