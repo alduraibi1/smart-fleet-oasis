@@ -5145,6 +5145,10 @@ export type Database = {
         Args: { p_exclude_id?: string; p_tax_number: string }
         Returns: boolean
       }
+      check_vehicle_expirations: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       check_vin_duplicate: {
         Args: { p_exclude_id?: string; p_vin: string }
         Returns: boolean
