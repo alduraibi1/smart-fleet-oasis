@@ -34,9 +34,9 @@ const Vehicles = () => {
     fetchVehicles(newFilters);
   };
 
-  const handleVehicleAdded = async (vehicleData: any) => {
+  const handleVehicleAdded = async (vehicleData: any, images?: File[], inspectionData?: any) => {
     try {
-      await addVehicle(vehicleData);
+      await addVehicle(vehicleData, images, inspectionData);
     } catch (error) {
       console.error('Error adding vehicle:', error);
     }
