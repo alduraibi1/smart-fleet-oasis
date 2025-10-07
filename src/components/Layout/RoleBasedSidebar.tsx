@@ -1,5 +1,5 @@
 
-import { Car, Users, FileText, BarChart3, Settings, Wrench, Package, Building2, Home, Calculator, RefreshCw } from "lucide-react";
+import { Car, Users, FileText, BarChart3, Settings, Wrench, Package, Building2, Home, Calculator } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -35,12 +35,6 @@ const menuItems = [
     title: "المركبات",
     icon: Car,
     url: "/vehicles",
-    category: "operations"
-  },
-  {
-    title: "مزامنة علم",
-    icon: RefreshCw,
-    url: "/elm-sync",
     category: "operations"
   },
   {
