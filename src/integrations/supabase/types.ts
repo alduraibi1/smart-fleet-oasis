@@ -4550,13 +4550,18 @@ export type Database = {
           fuel_type: string
           id: string
           inspection_expiry: string | null
+          inspection_status: string | null
           insurance_expiry: string | null
+          insurance_status: string | null
           mileage: number
           model: string
           notes: string | null
           owner_id: string | null
           plate_number: string
           registration_expiry: string | null
+          registration_type: string | null
+          renewal_fees: number | null
+          renewal_status: string | null
           seating_capacity: number
           status: string
           tracker_id: string | null
@@ -4578,13 +4583,18 @@ export type Database = {
           fuel_type?: string
           id?: string
           inspection_expiry?: string | null
+          inspection_status?: string | null
           insurance_expiry?: string | null
+          insurance_status?: string | null
           mileage?: number
           model: string
           notes?: string | null
           owner_id?: string | null
           plate_number: string
           registration_expiry?: string | null
+          registration_type?: string | null
+          renewal_fees?: number | null
+          renewal_status?: string | null
           seating_capacity?: number
           status?: string
           tracker_id?: string | null
@@ -4606,13 +4616,18 @@ export type Database = {
           fuel_type?: string
           id?: string
           inspection_expiry?: string | null
+          inspection_status?: string | null
           insurance_expiry?: string | null
+          insurance_status?: string | null
           mileage?: number
           model?: string
           notes?: string | null
           owner_id?: string | null
           plate_number?: string
           registration_expiry?: string | null
+          registration_type?: string | null
+          renewal_fees?: number | null
+          renewal_status?: string | null
           seating_capacity?: number
           status?: string
           tracker_id?: string | null

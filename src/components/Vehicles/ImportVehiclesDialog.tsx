@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Upload, Download, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import * as XLSX from 'xlsx';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ImportVehiclesDialogProps {
   open: boolean;
@@ -16,14 +17,37 @@ interface ImportVehiclesDialogProps {
 }
 
 interface VehicleImportData {
+  // Basic fields
   plate_number: string;
   brand: string;
   model: string;
   year: number;
-  color: string;
-  tracker_id?: string;
-  daily_rate: number;
+  color?: string;
+  
+  // Technical details
+  vin?: string;
+  chassis_number?: string;
+  engine_number?: string;
+  fuel_type?: string;
+  transmission?: string;
+  seating_capacity?: number;
+  daily_rate?: number;
+  mileage?: number;
+  status?: string;
+  
+  // Elm specific fields
+  registration_type?: string;
   owner_name?: string;
+  inspection_expiry?: string;
+  inspection_status?: string;
+  insurance_status?: string;
+  insurance_expiry?: string;
+  renewal_fees?: number;
+  renewal_status?: string;
+  registration_expiry?: string;
+  
+  // Legacy fields
+  tracker_id?: string;
   owner_phone?: string;
   insurance_company?: string;
   insurance_policy?: string;
@@ -42,26 +66,31 @@ const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
   const { toast } = useToast();
 
   const downloadTemplate = () => {
+    // Elm format template
     const templateData = [{
-      'رقم اللوحة': 'أ ب ج 123',
-      'الماركة': 'تويوتا',
-      'الموديل': 'كامري',
-      'السنة': 2023,
+      'رقم اللوحة': 'ABC-1234',
+      'نوع التسجيل': 'خاص',
+      'الماركة': 'Toyota',
+      'الطراز': 'Camry',
+      'المالك': 'محمد أحمد',
+      'سنة الصنع': 2023,
+      'الرقم التسلسلي': 'VIN123456789',
+      'رقم الهيكل': '123456789',
       'اللون': 'أبيض',
-      'معرف الجهاز': 'TRK001',
-      'السعر اليومي': 150,
-      'اسم المالك': 'أحمد محمد',
-      'هاتف المالك': '966501234567',
-      'شركة التأمين': 'شركة التأمين الوطنية',
-      'رقم الوثيقة': 'INS123456',
-      'تاريخ بداية التأمين': '2024-01-01',
-      'تاريخ انتهاء التأمين': '2024-12-31'
+      'وضع المركبة': 'available',
+      'تاريخ انتهاء الفحص': '2025-12-31',
+      'حالة الفحص': 'صالح',
+      'حالة التأمين': 'صالح',
+      'تاريخ انتهاء التامين': '2025-12-31',
+      'رسوم التجديد': 500,
+      'حالة التجديد': 'مجدد',
+      'تاريخ انتهاء رخصة السير': '2025-12-31'
     }];
 
     const ws = XLSX.utils.json_to_sheet(templateData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'قالب المركبات');
-    XLSX.writeFile(wb, 'قالب_استيراد_المركبات.xlsx');
+    XLSX.utils.book_append_sheet(wb, ws, 'قالب مركبات علم');
+    XLSX.writeFile(wb, 'elm_vehicles_template.xlsx');
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,19 +112,32 @@ const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
         const mappedData: VehicleImportData[] = jsonData.map((row: any) => ({
+          // Basic fields (Elm format)
           plate_number: row['رقم اللوحة'] || row['plate_number'] || '',
           brand: row['الماركة'] || row['brand'] || '',
-          model: row['الموديل'] || row['model'] || '',
-          year: parseInt(row['السنة'] || row['year']) || new Date().getFullYear(),
+          model: row['الطراز'] || row['الموديل'] || row['model'] || '',
+          year: parseInt(row['سنة الصنع'] || row['السنة'] || row['year']) || new Date().getFullYear(),
           color: row['اللون'] || row['color'] || '',
-          tracker_id: row['معرف الجهاز'] || row['tracker_id'] || '',
+          
+          // Technical details
+          vin: row['الرقم التسلسلي'] || row['vin'] || '',
+          chassis_number: row['رقم الهيكل'] || row['chassis_number'] || '',
+          status: row['وضع المركبة'] || row['status'] || 'available',
+          
+          // Elm specific fields
+          registration_type: row['نوع التسجيل'] || row['registration_type'] || '',
+          owner_name: row['المالك'] || row['اسم المالك'] || row['owner_name'] || '',
+          inspection_expiry: row['تاريخ انتهاء الفحص'] || row['inspection_expiry'] || '',
+          inspection_status: row['حالة الفحص'] || row['inspection_status'] || '',
+          insurance_status: row['حالة التأمين'] || row['insurance_status'] || '',
+          insurance_expiry: row['تاريخ انتهاء التامين'] || row['تاريخ انتهاء التأمين'] || row['insurance_expiry'] || row['insurance_end'] || '',
+          renewal_fees: parseFloat(row['رسوم التجديد'] || row['renewal_fees']) || 0,
+          renewal_status: row['حالة التجديد'] || row['renewal_status'] || '',
+          registration_expiry: row['تاريخ انتهاء رخصة السير'] || row['registration_expiry'] || '',
+          
+          // Legacy fields
           daily_rate: parseFloat(row['السعر اليومي'] || row['daily_rate']) || 0,
-          owner_name: row['اسم المالك'] || row['owner_name'] || '',
-          owner_phone: row['هاتف المالك'] || row['owner_phone'] || '',
-          insurance_company: row['شركة التأمين'] || row['insurance_company'] || '',
-          insurance_policy: row['رقم الوثيقة'] || row['insurance_policy'] || '',
-          insurance_start: row['تاريخ بداية التأمين'] || row['insurance_start'] || '',
-          insurance_end: row['تاريخ انتهاء التأمين'] || row['insurance_end'] || ''
+          tracker_id: row['معرف الجهاز'] || row['tracker_id'] || ''
         }));
 
         setPreviewData(mappedData.slice(0, 5)); // عرض أول 5 صفوف للمعاينة
@@ -153,8 +195,78 @@ const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
                 continue;
               }
 
-              // يمكنك هنا إضافة منطق الحفظ في قاعدة البيانات
-              // await supabase.from('vehicles').insert([vehicleData])
+              // Parse dates from Excel or string format
+              const parseDate = (dateStr: any) => {
+                if (!dateStr) return null;
+                try {
+                  // Handle Excel date format (number)
+                  if (typeof dateStr === 'number') {
+                    const date = new Date((dateStr - 25569) * 86400 * 1000);
+                    return date.toISOString().split('T')[0];
+                  }
+                  // Handle string dates
+                  const parsed = new Date(dateStr);
+                  if (!isNaN(parsed.getTime())) {
+                    return parsed.toISOString().split('T')[0];
+                  }
+                  return null;
+                } catch {
+                  return null;
+                }
+              };
+              
+              // Map status values
+              const mapStatus = (status: string) => {
+                const statusMap: Record<string, string> = {
+                  'متاح': 'available',
+                  'مؤجر': 'rented',
+                  'صيانة': 'maintenance',
+                  'خارج الخدمة': 'out_of_service'
+                };
+                return statusMap[status] || status || 'available';
+              };
+              
+              // Map inspection/insurance status
+              const mapValidityStatus = (status: string) => {
+                const statusMap: Record<string, string> = {
+                  'صالح': 'valid',
+                  'منتهي': 'expired',
+                  'قريب الانتهاء': 'near_expiry'
+                };
+                return statusMap[status] || status || 'valid';
+              };
+              
+              // Import to database (enabled!)
+              const { error } = await supabase
+                .from('vehicles')
+                .insert({
+                  plate_number: vehicleData.plate_number,
+                  brand: vehicleData.brand,
+                  model: vehicleData.model,
+                  year: vehicleData.year,
+                  color: vehicleData.color,
+                  vin: vehicleData.vin,
+                  chassis_number: vehicleData.chassis_number,
+                  fuel_type: vehicleData.fuel_type || 'gasoline',
+                  transmission: vehicleData.transmission || 'automatic',
+                  seating_capacity: parseInt(vehicleData.seating_capacity?.toString() || '5'),
+                  daily_rate: vehicleData.daily_rate || 0,
+                  mileage: parseInt(vehicleData.mileage?.toString() || '0'),
+                  status: mapStatus(vehicleData.status || 'available'),
+                  // Elm specific fields
+                  registration_type: vehicleData.registration_type,
+                  inspection_expiry: parseDate(vehicleData.inspection_expiry),
+                  inspection_status: mapValidityStatus(vehicleData.inspection_status || 'valid'),
+                  insurance_status: mapValidityStatus(vehicleData.insurance_status || 'valid'),
+                  insurance_expiry: parseDate(vehicleData.insurance_expiry),
+                  renewal_fees: vehicleData.renewal_fees || 0,
+                  renewal_status: vehicleData.renewal_status,
+                  registration_expiry: parseDate(vehicleData.registration_expiry)
+                });
+              
+              if (error) {
+                throw new Error(error.message);
+              }
               
               successCount++;
             } catch (error) {

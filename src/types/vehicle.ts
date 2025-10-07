@@ -104,7 +104,16 @@ export interface Vehicle {
   seating_capacity: number;
   seatingCapacity?: number;
   features?: string[];
+  
+  // Elm Integration Fields
+  registration_type?: string;
   registration_expiry?: string;
+  inspection_expiry?: string;
+  inspection_status?: 'valid' | 'expired' | 'near_expiry';
+  insurance_status?: 'valid' | 'expired' | 'near_expiry';
+  insurance_expiry?: string;
+  renewal_fees?: number;
+  renewal_status?: 'active' | 'pending' | 'overdue';
   
   // Owner
   owner_id?: string;
