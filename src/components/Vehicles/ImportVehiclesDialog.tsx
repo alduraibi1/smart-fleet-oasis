@@ -55,6 +55,54 @@ interface VehicleImportData {
   insurance_end?: string;
 }
 
+// Elm field mapping - يربط أسماء الأعمدة العربية بأسماء الحقول في قاعدة البيانات
+const elmFieldMapping: Record<string, string> = {
+  // Arabic column names from Elm
+  'رقم اللوحة': 'plate_number',
+  'نوع التسجيل': 'registration_type',
+  'الماركة': 'brand',
+  'الطراز': 'model',
+  'المالك': 'owner_name',
+  'سنة الصنع': 'year',
+  'الرقم التسلسلي': 'vin',
+  'رقم الهيكل': 'chassis_number',
+  'اللون': 'color',
+  'وضع المركبة': 'status',
+  'تاريخ انتهاء الفحص': 'inspection_expiry',
+  'حالة الفحص': 'inspection_status',
+  'حالة التأمين': 'insurance_status',
+  'تاريخ انتهاء التامين': 'insurance_expiry',
+  'رسوم التجديد': 'renewal_fees',
+  'حالة التجديد': 'renewal_status',
+  'تاريخ انتهاء رخصة السير': 'registration_expiry',
+  
+  // English alternatives (for flexibility)
+  'plate_number': 'plate_number',
+  'registration_type': 'registration_type',
+  'brand': 'brand',
+  'model': 'model',
+  'owner': 'owner_name',
+  'owner_name': 'owner_name',
+  'year': 'year',
+  'vin': 'vin',
+  'chassis_number': 'chassis_number',
+  'color': 'color',
+  'status': 'status',
+  'inspection_expiry': 'inspection_expiry',
+  'inspection_status': 'inspection_status',
+  'insurance_status': 'insurance_status',
+  'insurance_expiry': 'insurance_expiry',
+  'renewal_fees': 'renewal_fees',
+  'renewal_status': 'renewal_status',
+  'registration_expiry': 'registration_expiry',
+  
+  // Legacy field support
+  'الموديل': 'model',
+  'السنة': 'year',
+  'اسم المالك': 'owner_name',
+  'تاريخ انتهاء التأمين': 'insurance_expiry'
+};
+
 const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
   open,
   onOpenChange,
@@ -101,6 +149,48 @@ const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
     }
   };
 
+  // Helper function to map field using elmFieldMapping
+  const mapRowData = (row: any): VehicleImportData => {
+    const mappedRow: any = {};
+    
+    // Map all fields using the elmFieldMapping
+    Object.keys(row).forEach(key => {
+      const normalizedKey = key.trim();
+      const targetField = elmFieldMapping[normalizedKey];
+      if (targetField) {
+        mappedRow[targetField] = row[key];
+      }
+    });
+    
+    // Ensure required fields have defaults
+    return {
+      plate_number: mappedRow.plate_number || '',
+      brand: mappedRow.brand || '',
+      model: mappedRow.model || '',
+      year: parseInt(mappedRow.year) || new Date().getFullYear(),
+      color: mappedRow.color,
+      vin: mappedRow.vin,
+      chassis_number: mappedRow.chassis_number,
+      status: mappedRow.status,
+      registration_type: mappedRow.registration_type,
+      owner_name: mappedRow.owner_name,
+      inspection_expiry: mappedRow.inspection_expiry,
+      inspection_status: mappedRow.inspection_status,
+      insurance_status: mappedRow.insurance_status,
+      insurance_expiry: mappedRow.insurance_expiry,
+      renewal_fees: parseFloat(mappedRow.renewal_fees) || 0,
+      renewal_status: mappedRow.renewal_status,
+      registration_expiry: mappedRow.registration_expiry,
+      daily_rate: parseFloat(mappedRow.daily_rate) || 0,
+      tracker_id: mappedRow.tracker_id,
+      fuel_type: mappedRow.fuel_type,
+      transmission: mappedRow.transmission,
+      seating_capacity: parseInt(mappedRow.seating_capacity),
+      mileage: parseInt(mappedRow.mileage),
+      engine_number: mappedRow.engine_number
+    };
+  };
+
   const previewFile = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -111,36 +201,8 @@ const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-        const mappedData: VehicleImportData[] = jsonData.map((row: any) => ({
-          // Basic fields (Elm format)
-          plate_number: row['رقم اللوحة'] || row['plate_number'] || '',
-          brand: row['الماركة'] || row['brand'] || '',
-          model: row['الطراز'] || row['الموديل'] || row['model'] || '',
-          year: parseInt(row['سنة الصنع'] || row['السنة'] || row['year']) || new Date().getFullYear(),
-          color: row['اللون'] || row['color'] || '',
-          
-          // Technical details
-          vin: row['الرقم التسلسلي'] || row['vin'] || '',
-          chassis_number: row['رقم الهيكل'] || row['chassis_number'] || '',
-          status: row['وضع المركبة'] || row['status'] || 'available',
-          
-          // Elm specific fields
-          registration_type: row['نوع التسجيل'] || row['registration_type'] || '',
-          owner_name: row['المالك'] || row['اسم المالك'] || row['owner_name'] || '',
-          inspection_expiry: row['تاريخ انتهاء الفحص'] || row['inspection_expiry'] || '',
-          inspection_status: row['حالة الفحص'] || row['inspection_status'] || '',
-          insurance_status: row['حالة التأمين'] || row['insurance_status'] || '',
-          insurance_expiry: row['تاريخ انتهاء التامين'] || row['تاريخ انتهاء التأمين'] || row['insurance_expiry'] || row['insurance_end'] || '',
-          renewal_fees: parseFloat(row['رسوم التجديد'] || row['renewal_fees']) || 0,
-          renewal_status: row['حالة التجديد'] || row['renewal_status'] || '',
-          registration_expiry: row['تاريخ انتهاء رخصة السير'] || row['registration_expiry'] || '',
-          
-          // Legacy fields
-          daily_rate: parseFloat(row['السعر اليومي'] || row['daily_rate']) || 0,
-          tracker_id: row['معرف الجهاز'] || row['tracker_id'] || ''
-        }));
-
-        setPreviewData(mappedData.slice(0, 5)); // عرض أول 5 صفوف للمعاينة
+        const mappedData: VehicleImportData[] = jsonData.map((row: any) => mapRowData(row));
+        setPreviewData(mappedData.slice(0, 5));
       } catch (error) {
         toast({
           title: "خطأ في قراءة الملف",
@@ -351,22 +413,44 @@ const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
                   <thead>
                     <tr className="bg-muted">
                       <th className="border p-2">رقم اللوحة</th>
+                      <th className="border p-2">نوع التسجيل</th>
                       <th className="border p-2">الماركة</th>
-                      <th className="border p-2">الموديل</th>
+                      <th className="border p-2">الطراز</th>
                       <th className="border p-2">السنة</th>
-                      <th className="border p-2">اللون</th>
-                      <th className="border p-2">السعر اليومي</th>
+                      <th className="border p-2">حالة الفحص</th>
+                      <th className="border p-2">حالة التأمين</th>
                     </tr>
                   </thead>
                   <tbody>
                     {previewData.map((item, index) => (
                       <tr key={index}>
                         <td className="border p-2">{item.plate_number}</td>
+                        <td className="border p-2">{item.registration_type || '-'}</td>
                         <td className="border p-2">{item.brand}</td>
                         <td className="border p-2">{item.model}</td>
                         <td className="border p-2">{item.year}</td>
-                        <td className="border p-2">{item.color}</td>
-                        <td className="border p-2">{item.daily_rate}</td>
+                        <td className="border p-2">
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            item.inspection_status === 'صالح' || item.inspection_status === 'valid' 
+                              ? 'bg-green-100 text-green-800' 
+                              : item.inspection_status === 'منتهي' || item.inspection_status === 'expired'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {item.inspection_status || '-'}
+                          </span>
+                        </td>
+                        <td className="border p-2">
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            item.insurance_status === 'صالح' || item.insurance_status === 'valid' 
+                              ? 'bg-green-100 text-green-800' 
+                              : item.insurance_status === 'منتهي' || item.insurance_status === 'expired'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {item.insurance_status || '-'}
+                          </span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
