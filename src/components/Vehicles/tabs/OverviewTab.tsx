@@ -1,7 +1,8 @@
-import { Car, DollarSign, Clock, FileText, Image as ImageIcon, Users, Fuel, Gauge } from 'lucide-react';
+import { Car, DollarSign, Clock, FileText, Image as ImageIcon, Users, Fuel, Gauge, Shield, CheckCircle2, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { Vehicle } from '@/types/vehicle';
 
 interface OverviewTabProps {
@@ -52,27 +53,105 @@ export default function OverviewTab({ vehicle, statusBadge, getFuelTypeLabel }: 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              معلومات التأجير
+              <TrendingUp className="h-5 w-5" />
+              التسعير والإيجار
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-primary">₪{vehicle.daily_rate}</p>
-                <p className="text-sm text-muted-foreground">السعر اليومي</p>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">الأدنى</p>
+                <p className="text-lg font-bold text-muted-foreground">
+                  {vehicle.min_daily_rate ? `₪${vehicle.min_daily_rate}` : '-'}
+                </p>
               </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <Gauge className="h-4 w-4" />
-                  <p className="text-2xl font-bold">{vehicle.mileage?.toLocaleString() || 0}</p>
-                </div>
-                <p className="text-sm text-muted-foreground">كيلومتر</p>
+              <div className="border-x">
+                <p className="text-sm text-primary mb-1">الافتراضي</p>
+                <p className="text-2xl font-bold text-primary">₪{vehicle.daily_rate}</p>
               </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">الأقصى</p>
+                <p className="text-lg font-bold text-muted-foreground">
+                  {vehicle.max_daily_rate ? `₪${vehicle.max_daily_rate}` : '-'}
+                </p>
+              </div>
+            </div>
+            
+            <Separator />
+            
+            <div className="flex items-center justify-center gap-2">
+              <Gauge className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xl font-bold">{vehicle.mileage?.toLocaleString() || 0}</span>
+              <span className="text-sm text-muted-foreground">كيلومتر</span>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Insurance & Inspection Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            التأمين والفحص والترخيص
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label className="text-muted-foreground">التأمين</Label>
+              {vehicle.insurance_company ? (
+                <div className="space-y-1">
+                  <p className="font-medium">{vehicle.insurance_company}</p>
+                  {vehicle.insurance_policy_number && (
+                    <p className="text-sm text-muted-foreground">
+                      رقم الوثيقة: {vehicle.insurance_policy_number}
+                    </p>
+                  )}
+                  {vehicle.insurance_expiry && (
+                    <div className="flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3 text-green-600" />
+                      <p className="text-sm">
+                        ينتهي: {new Date(vehicle.insurance_expiry).toLocaleDateString('ar')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">غير محدد</p>
+              )}
+            </div>
+            
+            <div>
+              <Label className="text-muted-foreground">الفحص الدوري</Label>
+              {vehicle.inspection_expiry ? (
+                <div className="flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3 text-green-600" />
+                  <p className="text-sm">
+                    ينتهي: {new Date(vehicle.inspection_expiry).toLocaleDateString('ar')}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">غير محدد</p>
+              )}
+            </div>
+            
+            <div>
+              <Label className="text-muted-foreground">رخصة السير</Label>
+              {vehicle.registration_expiry ? (
+                <div className="flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3 text-green-600" />
+                  <p className="text-sm">
+                    ينتهي: {new Date(vehicle.registration_expiry).toLocaleDateString('ar')}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">غير محدد</p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Current Rental Info */}
       {vehicle.currentRental && (

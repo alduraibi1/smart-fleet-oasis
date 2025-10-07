@@ -10,6 +10,7 @@ import DetailsTab from './tabs/DetailsTab';
 import OwnerTab from './tabs/OwnerTab';
 import DocumentsTab from './tabs/DocumentsTab';
 import MaintenanceTab from './tabs/MaintenanceTab';
+import InspectionTab from './tabs/InspectionTab';
 import LocationTab from './tabs/LocationTab';
 import FinancialTab from './tabs/FinancialTab';
 import ImagesTab from './tabs/ImagesTab';
@@ -97,12 +98,13 @@ export default function EnhancedVehicleDetailsDialog({ vehicle, trigger }: Enhan
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
             <TabsTrigger value="details">التفاصيل</TabsTrigger>
             <TabsTrigger value="owner">المالك</TabsTrigger>
             <TabsTrigger value="documents">المستندات</TabsTrigger>
             <TabsTrigger value="maintenance">الصيانة</TabsTrigger>
+            <TabsTrigger value="inspection">الفحص</TabsTrigger>
             <TabsTrigger value="location">الموقع</TabsTrigger>
             <TabsTrigger value="financial">المالية</TabsTrigger>
             <TabsTrigger value="images">الصور</TabsTrigger>
@@ -141,6 +143,10 @@ export default function EnhancedVehicleDetailsDialog({ vehicle, trigger }: Enhan
               vehicle={vehicle}
               getMaintenanceStatus={getMaintenanceStatus}
             />
+          </TabsContent>
+
+          <TabsContent value="inspection">
+            <InspectionTab vehicle={vehicle} />
           </TabsContent>
 
           <TabsContent value="location">
