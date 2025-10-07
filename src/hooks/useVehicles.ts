@@ -26,7 +26,8 @@ export const useVehicles = () => {
         .select(`
           *,
           owner:vehicle_owners(*),
-          inspectionPoints:vehicle_inspection_points(*)
+          inspectionPoints:vehicle_inspection_points(*),
+          images:vehicle_images(*)
         `);
 
       // Apply filters
@@ -68,6 +69,7 @@ export const useVehicles = () => {
         inspectionPoints: Array.isArray(vehicle.inspectionPoints) 
           ? vehicle.inspectionPoints[0] 
           : vehicle.inspectionPoints,
+        images: Array.isArray(vehicle.images) ? vehicle.images : [],
       })) as Vehicle[];
 
       setVehicles(vehiclesData);
@@ -262,9 +264,12 @@ export const useVehicles = () => {
       // رفع الصور الجديدة إن وجدت
       if (images && images.length > 0) {
         try {
-          for (const image of images) {
+          const { data: userData } = await supabase.auth.getUser();
+          const currentUserId = userData?.user?.id;
+
+          const uploadPromises = images.map(async (image, index) => {
             const fileExt = image.name.split('.').pop();
-            const fileName = `${id}/${Date.now()}-${Math.random()}.${fileExt}`;
+            const fileName = `${id}/${Date.now()}-${index}.${fileExt}`;
             
             const { error: uploadError } = await supabase.storage
               .from('vehicle-images')
@@ -273,9 +278,31 @@ export const useVehicles = () => {
                 upsert: false
               });
 
-            if (uploadError) {
-              console.error('Error uploading image:', uploadError);
-            }
+            if (uploadError) throw uploadError;
+
+            // الحصول على الرابط العام للصورة
+            const { data: { publicUrl } } = supabase.storage
+              .from('vehicle-images')
+              .getPublicUrl(fileName);
+
+            return {
+              vehicle_id: id,
+              url: publicUrl,
+              type: index === 0 ? 'exterior' : 'other',
+              upload_date: new Date().toISOString(),
+              uploaded_by: currentUserId,
+            };
+          });
+
+          const imageRecords = await Promise.all(uploadPromises);
+
+          // حفظ بيانات الصور في جدول vehicle_images
+          const { error: imagesError } = await supabase
+            .from('vehicle_images')
+            .insert(imageRecords);
+
+          if (imagesError) {
+            console.error('Error saving image records:', imagesError);
           }
         } catch (uploadError) {
           console.error('Error uploading images:', uploadError);
