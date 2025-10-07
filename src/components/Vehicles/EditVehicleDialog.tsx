@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Vehicle } from '@/types/vehicle';
+import { Vehicle, VehicleInspectionPoints } from '@/types/vehicle';
 import {
   Dialog,
   DialogContent,
@@ -27,22 +27,28 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useForm } from 'react-hook-form';
-import { Pencil, AlertCircle, Car, FileText, Shield } from 'lucide-react';
+import { Pencil, AlertCircle, Car, FileText, Shield, Image as ImageIcon, ClipboardCheck } from 'lucide-react';
 import { useVehicleDuplicateCheck } from '@/hooks/useVehicleDuplicateCheck';
 import { handleSaveError } from '@/lib/duplicateErrorHandler';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PricingRangeSection } from './PricingRangeSection';
+import { ImageUploadSection } from './ImageUploadSection';
+import { VehicleInspectionChecklist } from './VehicleInspectionChecklist';
 
 interface EditVehicleDialogProps {
   vehicle: Vehicle;
-  onUpdate: (id: string, data: Partial<Vehicle>) => Promise<void>;
+  onUpdate: (id: string, data: Partial<Vehicle>, images?: File[], inspectionData?: Partial<VehicleInspectionPoints>) => Promise<void>;
   trigger?: React.ReactNode;
 }
 
 export const EditVehicleDialog = ({ vehicle, onUpdate, trigger }: EditVehicleDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [newImages, setNewImages] = useState<File[]>([]);
+  const [inspectionData, setInspectionData] = useState<Partial<VehicleInspectionPoints> | undefined>(
+    vehicle.inspectionPoints || undefined
+  );
   const { toast } = useToast();
   const { plateDuplicate, vinDuplicate, checkPlateNumber, checkVIN } = useVehicleDuplicateCheck(vehicle.id);
 
@@ -111,14 +117,19 @@ export const EditVehicleDialog = ({ vehicle, onUpdate, trigger }: EditVehicleDia
     
     setLoading(true);
     try {
-      await onUpdate(vehicle.id, {
-        ...data,
-        registration_expiry: data.registration_expiry || undefined,
-        inspection_expiry: data.inspection_expiry || undefined,
-        insurance_expiry: data.insurance_expiry || undefined,
-        insurance_company: data.insurance_company || undefined,
-        insurance_policy_number: data.insurance_policy_number || undefined,
-      });
+      await onUpdate(
+        vehicle.id, 
+        {
+          ...data,
+          registration_expiry: data.registration_expiry || undefined,
+          inspection_expiry: data.inspection_expiry || undefined,
+          insurance_expiry: data.insurance_expiry || undefined,
+          insurance_company: data.insurance_company || undefined,
+          insurance_policy_number: data.insurance_policy_number || undefined,
+        },
+        newImages.length > 0 ? newImages : undefined,
+        inspectionData
+      );
       setOpen(false);
       toast({
         title: "تم بنجاح",
@@ -528,6 +539,39 @@ export const EditVehicleDialog = ({ vehicle, onUpdate, trigger }: EditVehicleDia
               maxDailyRate={form.watch('max_daily_rate')}
               onChange={handlePricingChange}
             />
+
+            <Separator />
+
+            {/* تحديث الصور */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold">إضافة صور جديدة</h3>
+              </div>
+              <ImageUploadSection
+                vehicleId={vehicle.id}
+                onImagesChange={setNewImages}
+              />
+              {vehicle.images && vehicle.images.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  الصور الحالية: {vehicle.images.length} صورة
+                </p>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* تحديث نقاط الفحص */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <ClipboardCheck className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold">تحديث نقاط الفحص الشاملة</h3>
+              </div>
+              <VehicleInspectionChecklist
+                initialData={vehicle.inspectionPoints}
+                onInspectionChange={setInspectionData}
+              />
+            </div>
 
             <Separator />
 

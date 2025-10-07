@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Vehicle, VehicleFilters, VehicleStats } from '@/types/vehicle';
+import { Vehicle, VehicleFilters, VehicleStats, VehicleInspectionPoints } from '@/types/vehicle';
 import { useToast } from '@/hooks/use-toast';
 
 export const useVehicles = () => {
@@ -243,7 +243,12 @@ export const useVehicles = () => {
   };
 
   // Update vehicle
-  const updateVehicle = async (id: string, vehicleData: Partial<Vehicle>): Promise<void> => {
+  const updateVehicle = async (
+    id: string, 
+    vehicleData: Partial<Vehicle>, 
+    images?: File[], 
+    inspectionData?: Partial<VehicleInspectionPoints>
+  ): Promise<void> => {
     try {
       const { data, error } = await supabase
         .from('vehicles')
@@ -253,6 +258,53 @@ export const useVehicles = () => {
         .single();
 
       if (error) throw error;
+
+      // رفع الصور الجديدة إن وجدت
+      if (images && images.length > 0) {
+        try {
+          for (const image of images) {
+            const fileExt = image.name.split('.').pop();
+            const fileName = `${id}/${Date.now()}-${Math.random()}.${fileExt}`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from('vehicle-images')
+              .upload(fileName, image, {
+                cacheControl: '3600',
+                upsert: false
+              });
+
+            if (uploadError) {
+              console.error('Error uploading image:', uploadError);
+            }
+          }
+        } catch (uploadError) {
+          console.error('Error uploading images:', uploadError);
+          toast({
+            title: "تحذير",
+            description: "تم تحديث المركبة لكن حدث خطأ أثناء رفع بعض الصور",
+            variant: "destructive",
+          });
+        }
+      }
+
+      // تحديث نقاط الفحص إن وجدت
+      if (inspectionData && Object.keys(inspectionData).length > 0) {
+        try {
+          const { error: inspectionError } = await supabase
+            .from('vehicle_inspection_points')
+            .upsert({
+              vehicle_id: id,
+              ...inspectionData,
+              updated_at: new Date().toISOString(),
+            });
+
+          if (inspectionError) {
+            console.error('Error updating inspection:', inspectionError);
+          }
+        } catch (inspectionError) {
+          console.error('Error updating inspection:', inspectionError);
+        }
+      }
 
       const updatedVehicle = data as Vehicle;
       const updatedVehicles = vehicles.map(v => v.id === id ? { ...v, ...updatedVehicle } : v);

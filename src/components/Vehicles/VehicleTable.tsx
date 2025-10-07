@@ -26,7 +26,7 @@ import { VehicleRegistrationExpiry } from './VehicleRegistrationExpiry';
 
 interface VehicleTableProps {
   vehicles: Vehicle[];
-  onUpdateVehicle?: (id: string, data: Partial<Vehicle>) => Promise<void>;
+  onUpdateVehicle?: (id: string, data: Partial<Vehicle>, images?: File[], inspectionData?: any) => Promise<void>;
   onDeleteVehicle?: (id: string) => Promise<void>;
 }
 

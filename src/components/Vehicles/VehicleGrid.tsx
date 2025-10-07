@@ -28,7 +28,7 @@ import { VehicleRegistrationExpiry } from './VehicleRegistrationExpiry';
 
 interface VehicleGridProps {
   vehicles: Vehicle[];
-  onUpdateVehicle?: (id: string, vehicleData: Partial<Vehicle>) => Promise<void>;
+  onUpdateVehicle?: (id: string, vehicleData: Partial<Vehicle>, images?: File[], inspectionData?: any) => Promise<void>;
   onDeleteVehicle?: (id: string) => Promise<void>;
 }
 
@@ -41,9 +41,9 @@ const VehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleGrid
     setDialogAction(action);
   };
 
-  const handleVehicleUpdate = async (id: string, data: Partial<Vehicle>) => {
+  const handleVehicleUpdate = async (id: string, data: Partial<Vehicle>, images?: File[], inspectionData?: any) => {
     if (onUpdateVehicle) {
-      await onUpdateVehicle(id, data);
+      await onUpdateVehicle(id, data, images, inspectionData);
     }
     setSelectedVehicle(null);
     setDialogAction(null);
