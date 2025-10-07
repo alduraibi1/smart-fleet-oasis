@@ -13,7 +13,7 @@ interface VehicleActionsProps {
   vehicles: Vehicle[];
   viewMode: 'grid' | 'table';
   onViewModeChange: (mode: 'grid' | 'table') => void;
-  onVehicleAdded: (vehicleData: Partial<Vehicle>) => Promise<void>;
+  onVehicleAdded: (vehicleData: Partial<Vehicle>, images?: File[], inspectionData?: any) => Promise<void>;
   onUpdateVehicle: (id: string, data: Partial<Vehicle>) => Promise<void>;
   onDeleteVehicle: (id: string) => Promise<void>;
 }
@@ -64,8 +64,8 @@ export default function VehicleActions({
     window.print();
   };
 
-  const handleVehicleAdded = async (vehicleData: Partial<Vehicle>) => {
-    await onVehicleAdded(vehicleData);
+  const handleVehicleAdded = async (vehicleData: Partial<Vehicle>, images?: File[], inspectionData?: any) => {
+    await onVehicleAdded(vehicleData, images, inspectionData);
     setIsAddDialogOpen(false);
   };
 
