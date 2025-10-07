@@ -25,7 +25,8 @@ export const useVehicles = () => {
         .from('vehicles')
         .select(`
           *,
-          owner:vehicle_owners(*)
+          owner:vehicle_owners(*),
+          inspectionPoints:vehicle_inspection_points(*)
         `);
 
       // Apply filters
@@ -64,6 +65,9 @@ export const useVehicles = () => {
       const vehiclesData = (data || []).map(vehicle => ({
         ...vehicle,
         owner: vehicle.owner || undefined,
+        inspectionPoints: Array.isArray(vehicle.inspectionPoints) 
+          ? vehicle.inspectionPoints[0] 
+          : vehicle.inspectionPoints,
       })) as Vehicle[];
 
       setVehicles(vehiclesData);

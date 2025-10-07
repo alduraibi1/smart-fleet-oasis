@@ -161,7 +161,16 @@ const VehicleTable = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleTab
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <span className="font-medium">{vehicle.daily_rate} ريال</span>
+                  {vehicle.min_daily_rate && vehicle.max_daily_rate ? (
+                    <div className="text-sm">
+                      <div className="font-medium">{vehicle.daily_rate} ريال</div>
+                      <div className="text-xs text-muted-foreground">
+                        ({vehicle.min_daily_rate}-{vehicle.max_daily_rate})
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="font-medium">{vehicle.daily_rate} ريال</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   {vehicle.mileage?.toLocaleString() || 0} كم

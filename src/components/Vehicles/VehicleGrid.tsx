@@ -178,9 +178,15 @@ const VehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleGrid
                   </Badge>
                 </div>
                 <div className="absolute bottom-4 left-4">
-                  <Badge variant="secondary" className="bg-white/90 text-primary">
-                    {vehicle.daily_rate} ريال/يوم
-                  </Badge>
+                  {vehicle.min_daily_rate && vehicle.max_daily_rate ? (
+                    <Badge variant="secondary" className="bg-white/90 text-primary">
+                      {vehicle.min_daily_rate}-{vehicle.max_daily_rate} ريال/يوم
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="bg-white/90 text-primary">
+                      {vehicle.daily_rate} ريال/يوم
+                    </Badge>
+                  )}
                 </div>
               </div>
 
