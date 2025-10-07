@@ -1,14 +1,24 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Download, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Upload, Download, FileCheck, CheckCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
+import ImportPreviewStep from './ImportSteps/ImportPreviewStep';
+import ImportResultsStep from './ImportSteps/ImportResultsStep';
+import {
+  VehicleImportData,
+  ValidationError,
+  validateRequiredFields,
+  checkExpiryWarnings,
+  checkDuplicates,
+  normalizePlateNumber,
+  normalizeBrand,
+  findOrCreateOwner
+} from '@/utils/vehicleImportValidation';
 
 interface ImportVehiclesDialogProps {
   open: boolean;
@@ -16,43 +26,17 @@ interface ImportVehiclesDialogProps {
   onVehiclesImported: () => void;
 }
 
-interface VehicleImportData {
-  // Basic fields
-  plate_number: string;
-  brand: string;
-  model: string;
-  year: number;
-  color?: string;
-  
-  // Technical details
-  vin?: string;
-  chassis_number?: string;
-  engine_number?: string;
-  fuel_type?: string;
-  transmission?: string;
-  seating_capacity?: number;
-  daily_rate?: number;
-  mileage?: number;
-  status?: string;
-  
-  // Elm specific fields
-  registration_type?: string;
-  owner_name?: string;
-  inspection_expiry?: string;
-  inspection_status?: string;
-  insurance_status?: string;
-  insurance_expiry?: string;
-  renewal_fees?: number;
-  renewal_status?: string;
-  registration_expiry?: string;
-  
-  // Legacy fields
-  tracker_id?: string;
-  owner_phone?: string;
-  insurance_company?: string;
-  insurance_policy?: string;
-  insurance_start?: string;
-  insurance_end?: string;
+type ImportStep = 'upload' | 'preview' | 'import' | 'results';
+
+interface ImportResult {
+  success: number;
+  failed: number;
+  warnings: number;
+  errors: Array<{
+    row: number;
+    plate: string;
+    message: string;
+  }>;
 }
 
 // Elm field mapping - يربط أسماء الأعمدة العربية بأسماء الحقول في قاعدة البيانات
@@ -108,9 +92,12 @@ const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
   onOpenChange,
   onVehiclesImported
 }) => {
+  const [currentStep, setCurrentStep] = useState<ImportStep>('upload');
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [previewData, setPreviewData] = useState<VehicleImportData[]>([]);
+  const [validationErrors, setValidationErrors] = useState<Map<number, ValidationError[]>>(new Map());
+  const [importResults, setImportResults] = useState<ImportResult | null>(null);
   const { toast } = useToast();
 
   const downloadTemplate = () => {
@@ -141,11 +128,11 @@ const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
     XLSX.writeFile(wb, 'elm_vehicles_template.xlsx');
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      previewFile(selectedFile);
+      await previewFile(selectedFile);
     }
   };
 
@@ -182,7 +169,6 @@ const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
       renewal_status: mappedRow.renewal_status,
       registration_expiry: mappedRow.registration_expiry,
       daily_rate: parseFloat(mappedRow.daily_rate) || 0,
-      tracker_id: mappedRow.tracker_id,
       fuel_type: mappedRow.fuel_type,
       transmission: mappedRow.transmission,
       seating_capacity: parseInt(mappedRow.seating_capacity),
@@ -191,9 +177,11 @@ const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
     };
   };
 
-  const previewFile = (file: File) => {
+  const previewFile = async (file: File) => {
+    setLoading(true);
     const reader = new FileReader();
-    reader.onload = (e) => {
+    
+    reader.onload = async (e) => {
       try {
         const data = e.target?.result;
         const workbook = XLSX.read(data, { type: 'binary' });
@@ -202,8 +190,34 @@ const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
         const mappedData: VehicleImportData[] = jsonData.map((row: any) => mapRowData(row));
-        setPreviewData(mappedData.slice(0, 5));
+        
+        // التحقق من صحة البيانات
+        const errorsMap = new Map<number, ValidationError[]>();
+        
+        for (let i = 0; i < mappedData.length; i++) {
+          const rowErrors: ValidationError[] = [];
+          
+          // التحقق من الحقول المطلوبة
+          rowErrors.push(...validateRequiredFields(mappedData[i], i + 1));
+          
+          // التحقق من التواريخ المنتهية
+          rowErrors.push(...checkExpiryWarnings(mappedData[i], i + 1));
+          
+          // التحقق من التكرار
+          const duplicateErrors = await checkDuplicates(mappedData[i]);
+          rowErrors.push(...duplicateErrors.map(e => ({ ...e, row: i + 1 })));
+          
+          if (rowErrors.length > 0) {
+            errorsMap.set(i, rowErrors);
+          }
+        }
+        
+        setPreviewData(mappedData);
+        setValidationErrors(errorsMap);
+        setCurrentStep('preview');
+        setLoading(false);
       } catch (error) {
+        setLoading(false);
         toast({
           title: "خطأ في قراءة الملف",
           description: "تأكد من أن الملف بصيغة Excel صحيحة",
@@ -211,270 +225,309 @@ const ImportVehiclesDialog: React.FC<ImportVehiclesDialogProps> = ({
         });
       }
     };
+    
     reader.readAsBinaryString(file);
   };
 
   const handleImport = async () => {
-    if (!file) return;
+    // التحقق من عدم وجود أخطاء حرجة
+    const hasErrors = Array.from(validationErrors.values())
+      .flat()
+      .some(e => e.severity === 'error');
+    
+    if (hasErrors) {
+      toast({
+        title: "لا يمكن الاستيراد",
+        description: "يجب تصحيح الأخطاء قبل المتابعة",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(true);
+    setCurrentStep('import');
+    
+    const results: ImportResult = {
+      success: 0,
+      failed: 0,
+      warnings: 0,
+      errors: []
+    };
+
     try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const data = e.target?.result;
-          const workbook = XLSX.read(data, { type: 'binary' });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-          let successCount = 0;
-          let errorCount = 0;
-          const errors: string[] = [];
-
-          for (const row of jsonData) {
-            try {
-              const vehicleData: VehicleImportData = {
-                plate_number: row['رقم اللوحة'] || row['plate_number'] || '',
-                brand: row['الماركة'] || row['brand'] || '',
-                model: row['الموديل'] || row['model'] || '',
-                year: parseInt(row['السنة'] || row['year']) || new Date().getFullYear(),
-                color: row['اللون'] || row['color'] || '',
-                tracker_id: row['معرف الجهاز'] || row['tracker_id'] || '',
-                daily_rate: parseFloat(row['السعر اليومي'] || row['daily_rate']) || 0,
-                owner_name: row['اسم المالك'] || row['owner_name'] || '',
-                owner_phone: row['هاتف المالك'] || row['owner_phone'] || '',
-                insurance_company: row['شركة التأمين'] || row['insurance_company'] || '',
-                insurance_policy: row['رقم الوثيقة'] || row['insurance_policy'] || '',
-                insurance_start: row['تاريخ بداية التأمين'] || row['insurance_start'] || '',
-                insurance_end: row['تاريخ انتهاء التأمين'] || row['insurance_end'] || ''
-              };
-
-              // التحقق من البيانات المطلوبة
-              if (!vehicleData.plate_number || !vehicleData.brand || !vehicleData.model) {
-                errors.push(`صف ${jsonData.indexOf(row) + 1}: بيانات ناقصة`);
-                errorCount++;
-                continue;
-              }
-
-              // Parse dates from Excel or string format
-              const parseDate = (dateStr: any) => {
-                if (!dateStr) return null;
-                try {
-                  // Handle Excel date format (number)
-                  if (typeof dateStr === 'number') {
-                    const date = new Date((dateStr - 25569) * 86400 * 1000);
-                    return date.toISOString().split('T')[0];
-                  }
-                  // Handle string dates
-                  const parsed = new Date(dateStr);
-                  if (!isNaN(parsed.getTime())) {
-                    return parsed.toISOString().split('T')[0];
-                  }
-                  return null;
-                } catch {
-                  return null;
-                }
-              };
-              
-              // Map status values
-              const mapStatus = (status: string) => {
-                const statusMap: Record<string, string> = {
-                  'متاح': 'available',
-                  'مؤجر': 'rented',
-                  'صيانة': 'maintenance',
-                  'خارج الخدمة': 'out_of_service'
-                };
-                return statusMap[status] || status || 'available';
-              };
-              
-              // Map inspection/insurance status
-              const mapValidityStatus = (status: string) => {
-                const statusMap: Record<string, string> = {
-                  'صالح': 'valid',
-                  'منتهي': 'expired',
-                  'قريب الانتهاء': 'near_expiry'
-                };
-                return statusMap[status] || status || 'valid';
-              };
-              
-              // Import to database (enabled!)
-              const { error } = await supabase
-                .from('vehicles')
-                .insert({
-                  plate_number: vehicleData.plate_number,
-                  brand: vehicleData.brand,
-                  model: vehicleData.model,
-                  year: vehicleData.year,
-                  color: vehicleData.color,
-                  vin: vehicleData.vin,
-                  chassis_number: vehicleData.chassis_number,
-                  fuel_type: vehicleData.fuel_type || 'gasoline',
-                  transmission: vehicleData.transmission || 'automatic',
-                  seating_capacity: parseInt(vehicleData.seating_capacity?.toString() || '5'),
-                  daily_rate: vehicleData.daily_rate || 0,
-                  mileage: parseInt(vehicleData.mileage?.toString() || '0'),
-                  status: mapStatus(vehicleData.status || 'available'),
-                  // Elm specific fields
-                  registration_type: vehicleData.registration_type,
-                  inspection_expiry: parseDate(vehicleData.inspection_expiry),
-                  inspection_status: mapValidityStatus(vehicleData.inspection_status || 'valid'),
-                  insurance_status: mapValidityStatus(vehicleData.insurance_status || 'valid'),
-                  insurance_expiry: parseDate(vehicleData.insurance_expiry),
-                  renewal_fees: vehicleData.renewal_fees || 0,
-                  renewal_status: vehicleData.renewal_status,
-                  registration_expiry: parseDate(vehicleData.registration_expiry)
-                });
-              
-              if (error) {
-                throw new Error(error.message);
-              }
-              
-              successCount++;
-            } catch (error) {
-              errorCount++;
-              errors.push(`صف ${jsonData.indexOf(row) + 1}: ${error.message}`);
-            }
-          }
-
-          toast({
-            title: "اكتملت عملية الاستيراد",
-            description: `تم استيراد ${successCount} مركبة بنجاح، ${errorCount} أخطاء`,
-            variant: successCount > 0 ? "default" : "destructive"
-          });
-
-          if (successCount > 0) {
-            onVehiclesImported();
-            onOpenChange(false);
-          }
-
-        } catch (error) {
-          toast({
-            title: "خطأ في الاستيراد",
-            description: "حدث خطأ أثناء معالجة البيانات",
-            variant: "destructive",
-          });
-        } finally {
-          setLoading(false);
+      for (let i = 0; i < previewData.length; i++) {
+        const vehicleData = previewData[i];
+        
+        // التحقق من وجود تحذيرات
+        const rowErrors = validationErrors.get(i) || [];
+        const hasWarnings = rowErrors.some(e => e.severity === 'warning');
+        if (hasWarnings) {
+          results.warnings++;
         }
-      };
-      reader.readAsBinaryString(file);
+
+        try {
+          // تنسيق البيانات
+          const normalizedPlate = normalizePlateNumber(vehicleData.plate_number);
+          const normalizedBrand = normalizeBrand(vehicleData.brand);
+          
+          // معالجة المالك
+          let ownerId: string | null = null;
+          if (vehicleData.owner_name) {
+            ownerId = await findOrCreateOwner(vehicleData.owner_name);
+          }
+
+          // Parse dates from Excel or string format
+          const parseDate = (dateStr: any) => {
+            if (!dateStr) return null;
+            try {
+              if (typeof dateStr === 'number') {
+                const date = new Date((dateStr - 25569) * 86400 * 1000);
+                return date.toISOString().split('T')[0];
+              }
+              const parsed = new Date(dateStr);
+              if (!isNaN(parsed.getTime())) {
+                return parsed.toISOString().split('T')[0];
+              }
+              return null;
+            } catch {
+              return null;
+            }
+          };
+          
+          // Map status values
+          const mapStatus = (status: string) => {
+            const statusMap: Record<string, string> = {
+              'متاح': 'available',
+              'مؤجر': 'rented',
+              'صيانة': 'maintenance',
+              'خارج الخدمة': 'out_of_service'
+            };
+            return statusMap[status] || status || 'available';
+          };
+          
+          // Map inspection/insurance status
+          const mapValidityStatus = (status: string) => {
+            const statusMap: Record<string, string> = {
+              'صالح': 'valid',
+              'منتهي': 'expired',
+              'قريب الانتهاء': 'near_expiry'
+            };
+            return statusMap[status] || status || 'valid';
+          };
+          
+          // Insert to database
+          const { error } = await supabase
+            .from('vehicles')
+            .insert({
+              plate_number: normalizedPlate,
+              brand: normalizedBrand,
+              model: vehicleData.model,
+              year: vehicleData.year,
+              color: vehicleData.color,
+              vin: vehicleData.vin,
+              chassis_number: vehicleData.chassis_number,
+              engine_number: vehicleData.engine_number,
+              fuel_type: vehicleData.fuel_type || 'gasoline',
+              transmission: vehicleData.transmission || 'automatic',
+              seating_capacity: vehicleData.seating_capacity || 5,
+              daily_rate: vehicleData.daily_rate || 0,
+              mileage: vehicleData.mileage || 0,
+              status: mapStatus(vehicleData.status || 'available'),
+              owner_id: ownerId,
+              registration_type: vehicleData.registration_type,
+              inspection_expiry: parseDate(vehicleData.inspection_expiry),
+              inspection_status: mapValidityStatus(vehicleData.inspection_status || 'valid'),
+              insurance_status: mapValidityStatus(vehicleData.insurance_status || 'valid'),
+              insurance_expiry: parseDate(vehicleData.insurance_expiry),
+              renewal_fees: vehicleData.renewal_fees || 0,
+              renewal_status: vehicleData.renewal_status || 'active',
+              registration_expiry: parseDate(vehicleData.registration_expiry)
+            });
+          
+          if (error) {
+            throw new Error(error.message);
+          }
+          
+          results.success++;
+        } catch (error: any) {
+          results.failed++;
+          results.errors.push({
+            row: i + 1,
+            plate: vehicleData.plate_number,
+            message: error.message || 'خطأ غير معروف'
+          });
+        }
+      }
+
+      setImportResults(results);
+      setCurrentStep('results');
+      setLoading(false);
+
+      toast({
+        title: "اكتملت عملية الاستيراد",
+        description: `تم استيراد ${results.success} مركبة بنجاح، ${results.failed} فشل`,
+        variant: results.success > 0 ? "default" : "destructive"
+      });
+
+      if (results.success > 0) {
+        onVehiclesImported();
+      }
     } catch (error) {
       setLoading(false);
       toast({
-        title: "خطأ في الملف",
-        description: "تأكد من صحة الملف المحدد",
+        title: "خطأ في الاستيراد",
+        description: "حدث خطأ أثناء معالجة البيانات",
         variant: "destructive",
       });
     }
   };
 
+  const handleReset = () => {
+    setCurrentStep('upload');
+    setFile(null);
+    setPreviewData([]);
+    setValidationErrors(new Map());
+    setImportResults(null);
+  };
+
+  const handleClose = () => {
+    handleReset();
+    onOpenChange(false);
+  };
+
+  const hasValidationErrors = Array.from(validationErrors.values())
+    .flat()
+    .some(e => e.severity === 'error');
+
+  const stepTitles = {
+    upload: 'رفع الملف',
+    preview: 'معاينة والتحقق',
+    import: 'جاري الاستيراد...',
+    results: 'النتائج'
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>استيراد المركبات من ملف Excel</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            استيراد المركبات من ملف Excel
+            <span className="text-sm font-normal text-muted-foreground">
+              - {stepTitles[currentStep]}
+            </span>
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              يمكنك تحميل قالب Excel لمعرفة التنسيق المطلوب للبيانات
-            </AlertDescription>
-          </Alert>
-
-          <div className="flex gap-4">
-            <Button 
-              onClick={downloadTemplate} 
-              variant="outline" 
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              تحميل القالب
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="excel-file">اختر ملف Excel</Label>
-            <Input
-              id="excel-file"
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleFileSelect}
-            />
-          </div>
-
-          {previewData.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">معاينة البيانات (أول 5 صفوف):</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm border-collapse border">
-                  <thead>
-                    <tr className="bg-muted">
-                      <th className="border p-2">رقم اللوحة</th>
-                      <th className="border p-2">نوع التسجيل</th>
-                      <th className="border p-2">الماركة</th>
-                      <th className="border p-2">الطراز</th>
-                      <th className="border p-2">السنة</th>
-                      <th className="border p-2">حالة الفحص</th>
-                      <th className="border p-2">حالة التأمين</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previewData.map((item, index) => (
-                      <tr key={index}>
-                        <td className="border p-2">{item.plate_number}</td>
-                        <td className="border p-2">{item.registration_type || '-'}</td>
-                        <td className="border p-2">{item.brand}</td>
-                        <td className="border p-2">{item.model}</td>
-                        <td className="border p-2">{item.year}</td>
-                        <td className="border p-2">
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            item.inspection_status === 'صالح' || item.inspection_status === 'valid' 
-                              ? 'bg-green-100 text-green-800' 
-                              : item.inspection_status === 'منتهي' || item.inspection_status === 'expired'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {item.inspection_status || '-'}
-                          </span>
-                        </td>
-                        <td className="border p-2">
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            item.insurance_status === 'صالح' || item.insurance_status === 'valid' 
-                              ? 'bg-green-100 text-green-800' 
-                              : item.insurance_status === 'منتهي' || item.insurance_status === 'expired'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {item.insurance_status || '-'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        {/* Progress Steps */}
+        <div className="flex items-center justify-between mb-6">
+          {(['upload', 'preview', 'import', 'results'] as ImportStep[]).map((step, index) => (
+            <div key={step} className="flex items-center flex-1">
+              <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                currentStep === step 
+                  ? 'border-primary bg-primary text-primary-foreground' 
+                  : index < ['upload', 'preview', 'import', 'results'].indexOf(currentStep)
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-muted bg-muted text-muted-foreground'
+              }`}>
+                {index < ['upload', 'preview', 'import', 'results'].indexOf(currentStep) ? (
+                  <CheckCircle className="h-5 w-5" />
+                ) : (
+                  <span>{index + 1}</span>
+                )}
               </div>
+              {index < 3 && (
+                <div className={`flex-1 h-0.5 mx-2 ${
+                  index < ['upload', 'preview', 'import', 'results'].indexOf(currentStep)
+                    ? 'bg-primary'
+                    : 'bg-muted'
+                }`} />
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-4">
+          {/* Step 1: Upload */}
+          {currentStep === 'upload' && (
+            <>
+              <div className="flex gap-4">
+                <Button 
+                  onClick={downloadTemplate} 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  تحميل قالب علم
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="excel-file">اختر ملف Excel</Label>
+                <Input
+                  id="excel-file"
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleFileSelect}
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="flex gap-4 justify-end">
+                <Button variant="outline" onClick={handleClose}>
+                  إلغاء
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* Step 2: Preview */}
+          {currentStep === 'preview' && (
+            <>
+              <ImportPreviewStep 
+                previewData={previewData}
+                validationErrors={validationErrors}
+              />
+
+              <div className="flex gap-4 justify-end">
+                <Button variant="outline" onClick={handleReset}>
+                  رجوع
+                </Button>
+                <Button 
+                  onClick={handleImport}
+                  disabled={hasValidationErrors || loading}
+                  className="flex items-center gap-2"
+                >
+                  <FileCheck className="h-4 w-4" />
+                  تأكيد الاستيراد ({previewData.length} مركبة)
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* Step 3: Importing */}
+          {currentStep === 'import' && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mb-4"></div>
+              <p className="text-lg font-medium">جاري استيراد المركبات...</p>
+              <p className="text-sm text-muted-foreground">الرجاء الانتظار</p>
             </div>
           )}
 
-          <div className="flex gap-4 justify-end">
-            <Button 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-            >
-              إلغاء
-            </Button>
-            <Button 
-              onClick={handleImport}
-              disabled={!file || loading}
-              className="flex items-center gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              {loading ? "جاري الاستيراد..." : "استيراد"}
-            </Button>
-          </div>
+          {/* Step 4: Results */}
+          {currentStep === 'results' && importResults && (
+            <>
+              <ImportResultsStep results={importResults} />
+
+              <div className="flex gap-4 justify-end">
+                <Button variant="outline" onClick={handleReset}>
+                  استيراد ملف آخر
+                </Button>
+                <Button onClick={handleClose}>
+                  إغلاق
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
