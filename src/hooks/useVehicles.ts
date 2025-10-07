@@ -96,8 +96,12 @@ export const useVehicles = () => {
     setStats(stats);
   };
 
-  // Add new vehicle
-  const addVehicle = async (vehicleData: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => {
+  // Add new vehicle with images and inspection data
+  const addVehicle = async (
+    vehicleData: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>,
+    images?: File[],
+    inspectionData?: any
+  ) => {
     try {
       // الحصول على معرف المستخدم الحالي لاستخدامه في created_by
       const { data: userData } = await supabase.auth.getUser();
@@ -117,14 +121,19 @@ export const useVehicles = () => {
         color: (vehicleData as any).color,
         status: (vehicleData as any).status,
         daily_rate: (vehicleData as any).daily_rate,
+        min_daily_rate: (vehicleData as any).min_daily_rate || (vehicleData as any).daily_rate * 0.8,
+        max_daily_rate: (vehicleData as any).max_daily_rate || (vehicleData as any).daily_rate * 1.2,
         mileage: (vehicleData as any).mileage,
         vin: (vehicleData as any).vin,
         engine_number: (vehicleData as any).engine_number,
-        chassis_number: (vehicleData as any).chassis_number,
         fuel_type: (vehicleData as any).fuel_type,
         transmission: (vehicleData as any).transmission,
         seating_capacity: (vehicleData as any).seating_capacity,
         registration_expiry: (vehicleData as any).registration_expiry,
+        inspection_expiry: (vehicleData as any).inspection_expiry,
+        insurance_expiry: (vehicleData as any).insurance_expiry,
+        insurance_company: (vehicleData as any).insurance_company,
+        insurance_policy_number: (vehicleData as any).insurance_policy_number,
         owner_id: cleanOwnerId,
         notes: (vehicleData as any).notes,
         created_by: currentUserId || undefined,
@@ -139,6 +148,76 @@ export const useVehicles = () => {
       if (error) throw error;
 
       const newVehicle = data as Vehicle;
+
+      // رفع الصور إذا وجدت
+      if (images && images.length > 0) {
+        try {
+          const uploadPromises = images.map(async (image, index) => {
+            const fileExt = image.name.split('.').pop();
+            const fileName = `${newVehicle.id}/${Date.now()}-${index}.${fileExt}`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from('vehicle-images')
+              .upload(fileName, image, {
+                cacheControl: '3600',
+                upsert: false
+              });
+
+            if (uploadError) throw uploadError;
+
+            // الحصول على الرابط العام للصورة
+            const { data: { publicUrl } } = supabase.storage
+              .from('vehicle-images')
+              .getPublicUrl(fileName);
+
+            return {
+              vehicle_id: newVehicle.id,
+              url: publicUrl,
+              type: index === 0 ? 'exterior' : 'other',
+              upload_date: new Date().toISOString(),
+              uploaded_by: currentUserId,
+            };
+          });
+
+          const imageRecords = await Promise.all(uploadPromises);
+
+          // حفظ بيانات الصور في جدول vehicle_images
+          const { error: imagesError } = await supabase
+            .from('vehicle_images')
+            .insert(imageRecords);
+
+          if (imagesError) {
+            console.error('Error saving image records:', imagesError);
+          }
+        } catch (uploadError) {
+          console.error('Error uploading images:', uploadError);
+          toast({
+            title: "تحذير",
+            description: "تم إضافة المركبة لكن حدث خطأ أثناء رفع بعض الصور",
+            variant: "destructive",
+          });
+        }
+      }
+
+      // حفظ بيانات الفحص إذا وجدت
+      if (inspectionData && Object.keys(inspectionData).length > 0) {
+        try {
+          const { error: inspectionError } = await supabase
+            .from('vehicle_inspection_points')
+            .insert([{
+              vehicle_id: newVehicle.id,
+              ...inspectionData,
+              created_by: currentUserId,
+            }]);
+
+          if (inspectionError) {
+            console.error('Error saving inspection data:', inspectionError);
+          }
+        } catch (inspectionError) {
+          console.error('Error saving inspection:', inspectionError);
+        }
+      }
+
       setVehicles(prev => [newVehicle, ...prev]);
       calculateStats([newVehicle, ...vehicles]);
       

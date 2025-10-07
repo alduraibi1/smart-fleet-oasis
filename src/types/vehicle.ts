@@ -79,6 +79,55 @@ export interface VehicleCurrentRental {
   endDate: string;
 }
 
+export interface VehicleInspectionPoints {
+  id: string;
+  vehicle_id: string;
+  // الهيكل الخارجي
+  body_front: boolean;
+  body_rear: boolean;
+  body_right_side: boolean;
+  body_left_side: boolean;
+  body_roof: boolean;
+  body_hood: boolean;
+  body_trunk: boolean;
+  // الإطارات
+  tires_front_right: boolean;
+  tires_front_left: boolean;
+  tires_rear_right: boolean;
+  tires_rear_left: boolean;
+  spare_tire: boolean;
+  // الأضواء
+  lights_headlights: boolean;
+  lights_tail_lights: boolean;
+  lights_brake_lights: boolean;
+  lights_turn_signals: boolean;
+  lights_fog_lights: boolean;
+  lights_interior: boolean;
+  // الزجاج والمرايا
+  glass_windshield: boolean;
+  glass_rear_window: boolean;
+  glass_side_windows: boolean;
+  mirrors: boolean;
+  // المحرك
+  engine_condition: boolean;
+  oil_level: boolean;
+  coolant_level: boolean;
+  battery_condition: boolean;
+  // الداخلية
+  interior_seats: boolean;
+  interior_dashboard: boolean;
+  interior_controls: boolean;
+  interior_cleanliness: boolean;
+  // معلومات الفحص
+  inspector_name?: string;
+  inspection_date?: string;
+  notes?: string;
+  overall_condition?: 'excellent' | 'good' | 'fair' | 'poor';
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+}
+
 export interface Vehicle {
   id: string;
   plate_number: string;
@@ -90,6 +139,8 @@ export interface Vehicle {
   status: 'available' | 'rented' | 'maintenance' | 'out_of_service';
   daily_rate: number;
   dailyRate?: number;
+  min_daily_rate?: number;
+  max_daily_rate?: number;
   mileage: number;
   
   // Vehicle Details
@@ -112,6 +163,8 @@ export interface Vehicle {
   inspection_status?: 'valid' | 'expired' | 'near_expiry';
   insurance_status?: 'valid' | 'expired' | 'near_expiry';
   insurance_expiry?: string;
+  insurance_company?: string;
+  insurance_policy_number?: string;
   renewal_fees?: number;
   renewal_status?: 'active' | 'pending' | 'overdue';
   
@@ -123,6 +176,7 @@ export interface Vehicle {
   documents?: VehicleDocument[];
   images?: VehicleImage[];
   maintenance?: VehicleMaintenance[];
+  inspectionPoints?: VehicleInspectionPoints;
   location?: VehicleLocation;
   purchase?: VehiclePurchase;
   currentRental?: VehicleCurrentRental;

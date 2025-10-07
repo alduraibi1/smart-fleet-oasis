@@ -4159,6 +4159,140 @@ export type Database = {
           },
         ]
       }
+      vehicle_inspection_points: {
+        Row: {
+          battery_condition: boolean | null
+          body_front: boolean | null
+          body_hood: boolean | null
+          body_left_side: boolean | null
+          body_rear: boolean | null
+          body_right_side: boolean | null
+          body_roof: boolean | null
+          body_trunk: boolean | null
+          coolant_level: boolean | null
+          created_at: string | null
+          created_by: string | null
+          engine_condition: boolean | null
+          glass_rear_window: boolean | null
+          glass_side_windows: boolean | null
+          glass_windshield: boolean | null
+          id: string
+          inspection_date: string | null
+          inspector_name: string | null
+          interior_cleanliness: boolean | null
+          interior_controls: boolean | null
+          interior_dashboard: boolean | null
+          interior_seats: boolean | null
+          lights_brake_lights: boolean | null
+          lights_fog_lights: boolean | null
+          lights_headlights: boolean | null
+          lights_interior: boolean | null
+          lights_tail_lights: boolean | null
+          lights_turn_signals: boolean | null
+          mirrors: boolean | null
+          notes: string | null
+          oil_level: boolean | null
+          overall_condition: string | null
+          spare_tire: boolean | null
+          tires_front_left: boolean | null
+          tires_front_right: boolean | null
+          tires_rear_left: boolean | null
+          tires_rear_right: boolean | null
+          updated_at: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          battery_condition?: boolean | null
+          body_front?: boolean | null
+          body_hood?: boolean | null
+          body_left_side?: boolean | null
+          body_rear?: boolean | null
+          body_right_side?: boolean | null
+          body_roof?: boolean | null
+          body_trunk?: boolean | null
+          coolant_level?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          engine_condition?: boolean | null
+          glass_rear_window?: boolean | null
+          glass_side_windows?: boolean | null
+          glass_windshield?: boolean | null
+          id?: string
+          inspection_date?: string | null
+          inspector_name?: string | null
+          interior_cleanliness?: boolean | null
+          interior_controls?: boolean | null
+          interior_dashboard?: boolean | null
+          interior_seats?: boolean | null
+          lights_brake_lights?: boolean | null
+          lights_fog_lights?: boolean | null
+          lights_headlights?: boolean | null
+          lights_interior?: boolean | null
+          lights_tail_lights?: boolean | null
+          lights_turn_signals?: boolean | null
+          mirrors?: boolean | null
+          notes?: string | null
+          oil_level?: boolean | null
+          overall_condition?: string | null
+          spare_tire?: boolean | null
+          tires_front_left?: boolean | null
+          tires_front_right?: boolean | null
+          tires_rear_left?: boolean | null
+          tires_rear_right?: boolean | null
+          updated_at?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          battery_condition?: boolean | null
+          body_front?: boolean | null
+          body_hood?: boolean | null
+          body_left_side?: boolean | null
+          body_rear?: boolean | null
+          body_right_side?: boolean | null
+          body_roof?: boolean | null
+          body_trunk?: boolean | null
+          coolant_level?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          engine_condition?: boolean | null
+          glass_rear_window?: boolean | null
+          glass_side_windows?: boolean | null
+          glass_windshield?: boolean | null
+          id?: string
+          inspection_date?: string | null
+          inspector_name?: string | null
+          interior_cleanliness?: boolean | null
+          interior_controls?: boolean | null
+          interior_dashboard?: boolean | null
+          interior_seats?: boolean | null
+          lights_brake_lights?: boolean | null
+          lights_fog_lights?: boolean | null
+          lights_headlights?: boolean | null
+          lights_interior?: boolean | null
+          lights_tail_lights?: boolean | null
+          lights_turn_signals?: boolean | null
+          mirrors?: boolean | null
+          notes?: string | null
+          oil_level?: boolean | null
+          overall_condition?: string | null
+          spare_tire?: boolean | null
+          tires_front_left?: boolean | null
+          tires_front_right?: boolean | null
+          tires_rear_left?: boolean | null
+          tires_rear_right?: boolean | null
+          updated_at?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_inspection_points_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_insurance: {
         Row: {
           contact_email: string | null
@@ -4638,9 +4772,13 @@ export type Database = {
           id: string
           inspection_expiry: string | null
           inspection_status: string | null
+          insurance_company: string | null
           insurance_expiry: string | null
+          insurance_policy_number: string | null
           insurance_status: string | null
+          max_daily_rate: number | null
           mileage: number
+          min_daily_rate: number | null
           model: string
           notes: string | null
           owner_id: string | null
@@ -4671,9 +4809,13 @@ export type Database = {
           id?: string
           inspection_expiry?: string | null
           inspection_status?: string | null
+          insurance_company?: string | null
           insurance_expiry?: string | null
+          insurance_policy_number?: string | null
           insurance_status?: string | null
+          max_daily_rate?: number | null
           mileage?: number
+          min_daily_rate?: number | null
           model: string
           notes?: string | null
           owner_id?: string | null
@@ -4704,9 +4846,13 @@ export type Database = {
           id?: string
           inspection_expiry?: string | null
           inspection_status?: string | null
+          insurance_company?: string | null
           insurance_expiry?: string | null
+          insurance_policy_number?: string | null
           insurance_status?: string | null
+          max_daily_rate?: number | null
           mileage?: number
+          min_daily_rate?: number | null
           model?: string
           notes?: string | null
           owner_id?: string | null
