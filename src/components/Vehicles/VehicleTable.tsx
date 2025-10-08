@@ -23,6 +23,8 @@ import { EditVehicleDialog } from './EditVehicleDialog';
 import { DeleteVehicleDialog } from './DeleteVehicleDialog';
 import EnhancedVehicleDetailsDialog from './EnhancedVehicleDetailsDialog';
 import { VehicleRegistrationExpiry } from './VehicleRegistrationExpiry';
+import { VehicleInsuranceExpiry } from './VehicleInsuranceExpiry';
+import { VehicleInspectionExpiry } from './VehicleInspectionExpiry';
 
 interface VehicleTableProps {
   vehicles: Vehicle[];
@@ -136,7 +138,7 @@ const VehicleTable = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleTab
               <TableHead className="text-right">عدد الكيلومترات</TableHead>
               <TableHead className="text-right">نوع الوقود</TableHead>
               <TableHead className="text-right">ناقل الحركة</TableHead>
-              <TableHead className="text-right">صلاحية التسجيل</TableHead>
+              <TableHead className="text-right">الصلاحيات</TableHead>
               <TableHead className="text-right">المالك</TableHead>
               <TableHead className="w-[100px]">الإجراءات</TableHead>
             </TableRow>
@@ -182,14 +184,11 @@ const VehicleTable = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleTab
                   {getTransmissionLabel(vehicle.transmission)}
                 </TableCell>
                 <TableCell>
-                  {vehicle.registration_expiry ? (
-                    <VehicleRegistrationExpiry 
-                      expiryDate={vehicle.registration_expiry}
-                      className="text-xs"
-                    />
-                  ) : (
-                    <span className="text-muted-foreground text-sm">غير محدد</span>
-                  )}
+                  <div className="space-y-1">
+                    <VehicleInsuranceExpiry expiryDate={vehicle.insurance_expiry} />
+                    <VehicleInspectionExpiry expiryDate={vehicle.inspection_expiry} />
+                    <VehicleRegistrationExpiry expiryDate={vehicle.registration_expiry} />
+                  </div>
                 </TableCell>
                 <TableCell>
                   <span className="text-sm">

@@ -38,35 +38,41 @@ serve(async (req) => {
 
     // 1. فحص الصيانة المستحقة والمتأخرة
     results.maintenance_due = await checkMaintenanceDue(supabase)
-    results.maintenance_overdue = await checkMaintenanceOverdue(supabase)
-    
-    // 2. فحص المخزون المنخفض والمنتهي الصلاحية
-    results.low_stock = await checkLowStock(supabase)
-    results.expired_items = await checkExpiredItems(supabase)
-    results.expiring_items = await checkExpiringItems(supabase)
-    
-    // 3. فحص انتهاء صلاحية الوثائق والتأمين
-    results.document_expiry = await checkDocumentExpiry(supabase)
-    results.insurance_expiry = await checkInsuranceExpiry(supabase)
-    
-    // 4. فحص انتهاء العقود
-    results.contract_expiry = await checkContractExpiry(supabase)
-    
-    // 5. فحص المركبات الخاملة
-    results.vehicle_idle = await checkIdleVehicles(supabase)
-    
-    // 6. فحص العملاء المتعثرين
-    results.customer_arrears = await checkCustomerArrears(supabase)
+    const maintenanceOverdueCount = await checkMaintenanceOverdue(supabase);
+    const lowStockCount = await checkLowStock(supabase);
+    const expiredItemsCount = await checkExpiredItems(supabase);
+    const expiringItemsCount = await checkExpiringItems(supabase);
+    const documentExpiryCount = await checkDocumentExpiry(supabase);
+    const insuranceExpiryCount = await checkInsuranceExpiry(supabase);
+    const vehicleInsuranceExpiryCount = await checkVehicleInsuranceExpiry(supabase);
+    const vehicleInspectionExpiryCount = await checkVehicleInspectionExpiry(supabase);
+    const vehicleRegistrationExpiryCount = await checkVehicleRegistrationExpiry(supabase);
+    const contractExpiryCount = await checkContractExpiry(supabase);
+    const idleVehiclesCount = await checkIdleVehicles(supabase);
+    const customerArrearsCount = await checkCustomerArrears(supabase);
 
-    const totalNotifications = Object.values(results).reduce((sum, count) => sum + count, 0)
-
-    console.log('✅ تم إنشاء', totalNotifications, 'تنبيه جديد')
+    console.log('✅ تم إنشاء', maintenanceDueCount + maintenanceOverdueCount + lowStockCount + expiredItemsCount + expiringItemsCount + documentExpiryCount + insuranceExpiryCount + vehicleInsuranceExpiryCount + vehicleInspectionExpiryCount + vehicleRegistrationExpiryCount + contractExpiryCount + idleVehiclesCount + customerArrearsCount, 'تنبيه جديد')
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `تم فحص جميع التنبيهات وإنشاء ${totalNotifications} تنبيه جديد`,
-        results,
+        message: `تم فحص جميع التنبيهات وإنشاء ${maintenanceDueCount + maintenanceOverdueCount + lowStockCount + expiredItemsCount + expiringItemsCount + documentExpiryCount + insuranceExpiryCount + vehicleInsuranceExpiryCount + vehicleInspectionExpiryCount + vehicleRegistrationExpiryCount + contractExpiryCount + idleVehiclesCount + customerArrearsCount} تنبيه جديد`,
+        data: {
+          maintenanceDue: maintenanceDueCount,
+          maintenanceOverdue: maintenanceOverdueCount,
+          lowStock: lowStockCount,
+          expiredItems: expiredItemsCount,
+          expiringItems: expiringItemsCount,
+          documentExpiry: documentExpiryCount,
+          insuranceExpiry: insuranceExpiryCount,
+          vehicleInsuranceExpiry: vehicleInsuranceExpiryCount,
+          vehicleInspectionExpiry: vehicleInspectionExpiryCount,
+          vehicleRegistrationExpiry: vehicleRegistrationExpiryCount,
+          contractExpiry: contractExpiryCount,
+          idleVehicles: idleVehiclesCount,
+          customerArrears: customerArrearsCount,
+          total: maintenanceDueCount + maintenanceOverdueCount + lowStockCount + expiredItemsCount + expiringItemsCount + documentExpiryCount + insuranceExpiryCount + vehicleInsuranceExpiryCount + vehicleInspectionExpiryCount + vehicleRegistrationExpiryCount + contractExpiryCount + idleVehiclesCount + customerArrearsCount
+        },
         timestamp: new Date().toISOString()
       }),
       { 
@@ -547,6 +553,100 @@ async function checkCustomerArrears(supabase: any): Promise<number> {
   }
   
   return data || 0
+}
+
+// Check vehicle insurance expiry
+async function checkVehicleInsuranceExpiry(supabase: any): Promise<number> {
+  const today = new Date()
+  const thirtyDays = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
+  
+  const { data: vehicles } = await supabase
+    .from('vehicles')
+    .select('id, plate_number, brand, model, insurance_expiry')
+    .not('insurance_expiry', 'is', null)
+    .lte('insurance_expiry', thirtyDays.toISOString().split('T')[0])
+
+  let count = 0
+  for (const v of vehicles || []) {
+    const days = Math.ceil((new Date(v.insurance_expiry).getTime() - today.getTime()) / (1000*60*60*24))
+    await createNotification(supabase, {
+      type: days < 0 ? 'error' : 'warning',
+      title: days < 0 ? 'تأمين منتهي' : 'انتهاء تأمين',
+      message: `تأمين ${v.plate_number} ${days < 0 ? 'منتهي' : 'سينتهي خلال ' + days + ' يوم'}`,
+      severity: days < 0 ? 'error' : 'warning',
+      reference_type: 'vehicle',
+      reference_id: v.id,
+      category: 'vehicles',
+      priority: days <= 7 ? 'urgent' : 'high',
+      delivery_channels: ['in_app', 'email'],
+      target_roles: ['admin', 'manager'],
+      metadata: { plate_number: v.plate_number, days_until_expiry: days }
+    })
+    count++
+  }
+  return count
+}
+
+async function checkVehicleInspectionExpiry(supabase: any): Promise<number> {
+  const today = new Date()
+  const thirtyDays = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
+  
+  const { data: vehicles } = await supabase
+    .from('vehicles')
+    .select('id, plate_number, brand, model, inspection_expiry')
+    .not('inspection_expiry', 'is', null)
+    .lte('inspection_expiry', thirtyDays.toISOString().split('T')[0])
+
+  let count = 0
+  for (const v of vehicles || []) {
+    const days = Math.ceil((new Date(v.inspection_expiry).getTime() - today.getTime()) / (1000*60*60*24))
+    await createNotification(supabase, {
+      type: days < 0 ? 'error' : 'warning',
+      title: days < 0 ? 'فحص منتهي' : 'انتهاء فحص',
+      message: `فحص ${v.plate_number} ${days < 0 ? 'منتهي' : 'سينتهي خلال ' + days + ' يوم'}`,
+      severity: days < 0 ? 'error' : 'warning',
+      reference_type: 'vehicle',
+      reference_id: v.id,
+      category: 'vehicles',
+      priority: days <= 7 ? 'urgent' : 'high',
+      delivery_channels: ['in_app', 'email'],
+      target_roles: ['admin', 'manager'],
+      metadata: { plate_number: v.plate_number, days_until_expiry: days }
+    })
+    count++
+  }
+  return count
+}
+
+async function checkVehicleRegistrationExpiry(supabase: any): Promise<number> {
+  const today = new Date()
+  const thirtyDays = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
+  
+  const { data: vehicles } = await supabase
+    .from('vehicles')
+    .select('id, plate_number, brand, model, registration_expiry')
+    .not('registration_expiry', 'is', null)
+    .lte('registration_expiry', thirtyDays.toISOString().split('T')[0])
+
+  let count = 0
+  for (const v of vehicles || []) {
+    const days = Math.ceil((new Date(v.registration_expiry).getTime() - today.getTime()) / (1000*60*60*24))
+    await createNotification(supabase, {
+      type: days < 0 ? 'error' : 'warning',
+      title: days < 0 ? 'استمارة منتهية' : 'انتهاء استمارة',
+      message: `استمارة ${v.plate_number} ${days < 0 ? 'منتهية' : 'ستنتهي خلال ' + days + ' يوم'}`,
+      severity: days < 0 ? 'error' : 'warning',
+      reference_type: 'vehicle',
+      reference_id: v.id,
+      category: 'vehicles',
+      priority: days <= 7 ? 'urgent' : 'high',
+      delivery_channels: ['in_app', 'email'],
+      target_roles: ['admin', 'manager'],
+      metadata: { plate_number: v.plate_number, days_until_expiry: days }
+    })
+    count++
+  }
+  return count
 }
 
 // إنشاء تنبيه جديد

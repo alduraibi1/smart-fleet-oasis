@@ -25,6 +25,8 @@ import { EditVehicleDialog } from './EditVehicleDialog';
 import { DeleteVehicleDialog } from './DeleteVehicleDialog';
 import EnhancedVehicleDetailsDialog from './EnhancedVehicleDetailsDialog';
 import { VehicleRegistrationExpiry } from './VehicleRegistrationExpiry';
+import { VehicleInsuranceExpiry } from './VehicleInsuranceExpiry';
+import { VehicleInspectionExpiry } from './VehicleInspectionExpiry';
 
 interface VehicleGridProps {
   vehicles: Vehicle[];
@@ -212,16 +214,6 @@ const VehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleGrid
                   </span>
                 </div>
 
-                {/* Registration Expiry Status */}
-                {vehicle.registration_expiry && (
-                  <div>
-                    <VehicleRegistrationExpiry 
-                      expiryDate={vehicle.registration_expiry}
-                      className="text-xs"
-                    />
-                  </div>
-                )}
-
                 {/* Vehicle Details */}
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-1">
@@ -240,6 +232,14 @@ const VehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleGrid
                     <Settings className="h-3 w-3 text-muted-foreground" />
                     <span>{getTransmissionLabel(vehicle.transmission)}</span>
                   </div>
+                </div>
+
+                {/* Expiry Section */}
+                <div className="space-y-2 pt-2 border-t">
+                  <div className="text-xs font-semibold text-muted-foreground mb-1">الصلاحيات</div>
+                  <VehicleInsuranceExpiry expiryDate={vehicle.insurance_expiry} showLabel />
+                  <VehicleInspectionExpiry expiryDate={vehicle.inspection_expiry} showLabel />
+                  <VehicleRegistrationExpiry expiryDate={vehicle.registration_expiry} />
                 </div>
 
                 {/* Owner Info */}

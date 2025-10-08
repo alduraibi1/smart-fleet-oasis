@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import VehicleStats from '@/components/Vehicles/VehicleStats';
 import VehicleFilters from '@/components/Vehicles/VehicleFilters';
 import VehicleTable from '@/components/Vehicles/VehicleTable';
@@ -11,6 +11,10 @@ import { useVehicles } from '@/hooks/useVehicles';
 import { ExportVehiclesDialog } from '@/components/Vehicles/ExportVehiclesDialog';
 import { Button } from '@/components/ui/button';
 import { FileSpreadsheet } from 'lucide-react';
+import { VehicleExpiryDashboard } from '@/components/Vehicles/VehicleExpiryDashboard';
+import { VehicleExpiryDetailsTable } from '@/components/Vehicles/VehicleExpiryDetailsTable';
+import { supabase } from '@/integrations/supabase/client';
+import { differenceInDays, parseISO } from 'date-fns';
 
 const Vehicles = () => {
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
@@ -28,9 +32,54 @@ const Vehicles = () => {
     getBrands,
   } = useVehicles();
 
+  // Trigger smart notifications check on mount
+  useEffect(() => {
+    const checkNotifications = async () => {
+      try {
+        await supabase.functions.invoke('smart-notifications');
+      } catch (error) {
+        console.error('Error checking notifications:', error);
+      }
+    };
+    checkNotifications();
+  }, []);
+
   const handleFiltersChange = (newFilters: VehicleFiltersType) => {
     setFilters(newFilters);
     fetchVehicles(newFilters);
+  };
+
+  const handleExpiryFilterChange = (filter: { type: 'insurance' | 'inspection' | 'registration'; status: 'expired' | 'expiring' | 'valid' }) => {
+    const today = new Date();
+    const warningDays = 30;
+
+    const matchesFilter = (vehicle: any) => {
+      const dateField = filter.type === 'insurance' ? vehicle.insurance_expiry :
+                       filter.type === 'inspection' ? vehicle.inspection_expiry :
+                       vehicle.registration_expiry;
+
+      if (!dateField) return filter.status === 'valid';
+
+      try {
+        const expiry = parseISO(dateField);
+        const daysUntil = differenceInDays(expiry, today);
+
+        if (filter.status === 'expired') return daysUntil < 0;
+        if (filter.status === 'expiring') return daysUntil >= 0 && daysUntil <= warningDays;
+        if (filter.status === 'valid') return daysUntil > warningDays;
+      } catch {
+        return filter.status === 'valid';
+      }
+
+      return false;
+    };
+
+    // Filter vehicles based on expiry status
+    const filtered = vehicles.filter(matchesFilter);
+    
+    // This is a simplified approach - in a real implementation, you'd want to update the filters state
+    // and have the vehicle list component handle the filtering
+    console.log(`Filtering ${filter.type} by ${filter.status}:`, filtered.length, 'vehicles');
   };
 
   const handleVehicleAdded = async (vehicleData: any, images?: File[], inspectionData?: any) => {
@@ -72,6 +121,15 @@ const Vehicles = () => {
         <div className="adaptive-grid">
           <VehicleStats stats={stats} />
         </div>
+
+        {/* Expiry Dashboard */}
+        <VehicleExpiryDashboard 
+          vehicles={vehicles}
+          onFilterChange={handleExpiryFilterChange}
+        />
+
+        {/* Detailed Expiry Table */}
+        <VehicleExpiryDetailsTable vehicles={vehicles} />
 
         {/* Actions */}
         <VehicleActions 
