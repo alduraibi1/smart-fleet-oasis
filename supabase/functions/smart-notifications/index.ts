@@ -23,21 +23,8 @@ serve(async (req) => {
 
     console.log('🔔 بدء فحص التنبيهات الذكية...')
 
-    const results = {
-      maintenance_due: 0,
-      maintenance_overdue: 0,
-      low_stock: 0,
-      expired_items: 0,
-      expiring_items: 0,
-      document_expiry: 0,
-      insurance_expiry: 0,
-      contract_expiry: 0,
-      vehicle_idle: 0,
-      customer_arrears: 0
-    }
-
-    // 1. فحص الصيانة المستحقة والمتأخرة
-    results.maintenance_due = await checkMaintenanceDue(supabase)
+    // فحص جميع التنبيهات
+    const maintenanceDueCount = await checkMaintenanceDue(supabase);
     const maintenanceOverdueCount = await checkMaintenanceOverdue(supabase);
     const lowStockCount = await checkLowStock(supabase);
     const expiredItemsCount = await checkExpiredItems(supabase);
@@ -51,12 +38,14 @@ serve(async (req) => {
     const idleVehiclesCount = await checkIdleVehicles(supabase);
     const customerArrearsCount = await checkCustomerArrears(supabase);
 
-    console.log('✅ تم إنشاء', maintenanceDueCount + maintenanceOverdueCount + lowStockCount + expiredItemsCount + expiringItemsCount + documentExpiryCount + insuranceExpiryCount + vehicleInsuranceExpiryCount + vehicleInspectionExpiryCount + vehicleRegistrationExpiryCount + contractExpiryCount + idleVehiclesCount + customerArrearsCount, 'تنبيه جديد')
+    const totalNotifications = maintenanceDueCount + maintenanceOverdueCount + lowStockCount + expiredItemsCount + expiringItemsCount + documentExpiryCount + insuranceExpiryCount + vehicleInsuranceExpiryCount + vehicleInspectionExpiryCount + vehicleRegistrationExpiryCount + contractExpiryCount + idleVehiclesCount + customerArrearsCount;
+
+    console.log('✅ تم إنشاء', totalNotifications, 'تنبيه جديد')
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `تم فحص جميع التنبيهات وإنشاء ${maintenanceDueCount + maintenanceOverdueCount + lowStockCount + expiredItemsCount + expiringItemsCount + documentExpiryCount + insuranceExpiryCount + vehicleInsuranceExpiryCount + vehicleInspectionExpiryCount + vehicleRegistrationExpiryCount + contractExpiryCount + idleVehiclesCount + customerArrearsCount} تنبيه جديد`,
+        message: `تم فحص جميع التنبيهات وإنشاء ${totalNotifications} تنبيه جديد`,
         data: {
           maintenanceDue: maintenanceDueCount,
           maintenanceOverdue: maintenanceOverdueCount,
@@ -71,7 +60,7 @@ serve(async (req) => {
           contractExpiry: contractExpiryCount,
           idleVehicles: idleVehiclesCount,
           customerArrears: customerArrearsCount,
-          total: maintenanceDueCount + maintenanceOverdueCount + lowStockCount + expiredItemsCount + expiringItemsCount + documentExpiryCount + insuranceExpiryCount + vehicleInsuranceExpiryCount + vehicleInspectionExpiryCount + vehicleRegistrationExpiryCount + contractExpiryCount + idleVehiclesCount + customerArrearsCount
+          total: totalNotifications
         },
         timestamp: new Date().toISOString()
       }),
@@ -669,13 +658,14 @@ async function createNotification(supabase: any, notificationData: any): Promise
   }
 
   // إنشاء التنبيه الجديد
+  const { metadata, ...notificationFields } = notificationData;
   const { error } = await supabase
     .from('smart_notifications')
     .insert([{
-      ...notificationData,
+      ...notificationFields,
       status: 'unread',
       auto_generated: true,
-      reference_data: notificationData.metadata || {}
+      reference_data: metadata || {}
     }])
 
   if (error) {
