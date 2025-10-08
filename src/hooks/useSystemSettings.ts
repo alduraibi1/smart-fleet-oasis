@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { AutoSyncSettings } from './useAutoSync';
 
 export interface SystemSettingsData {
@@ -9,6 +10,15 @@ export interface SystemSettingsData {
   companyPhone: string;
   companyEmail: string;
   taxNumber: string;
+  commercialRegistration?: string;
+  licenseNumber?: string;
+  bankName?: string;
+  bankIban?: string;
+  contractTerms?: string;
+  vatEnabled?: boolean;
+  vatPercentage?: number;
+  companyLogoUrl?: string;
+  companySealUrl?: string;
   currency: string;
   dateFormat: string;
   timeFormat: string;
@@ -35,7 +45,16 @@ const defaultSettings: SystemSettingsData = {
   companyAddress: 'عنوان الشركة',
   companyPhone: '+966500000000',
   companyEmail: 'info@example.com',
-  taxNumber: '1234567890',
+  taxNumber: '30009167800003',
+  commercialRegistration: '4030175252',
+  licenseNumber: '38/00006704',
+  bankName: '',
+  bankIban: '',
+  contractTerms: 'لم يتم إضافة بنود العقد بعد. يمكنك إضافتها من إعدادات الشركة.',
+  vatEnabled: false,
+  vatPercentage: 15,
+  companyLogoUrl: '/company/logo.png',
+  companySealUrl: '/company/seal.png',
   currency: 'SAR',
   dateFormat: 'YYYY-MM-DD',
   timeFormat: 'HH:mm',
@@ -62,10 +81,14 @@ export const useSystemSettings = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = () => {
+    // For now, use localStorage until we fix database structure
     const storedSettings = localStorage.getItem('systemSettings');
     if (storedSettings) {
       const parsedSettings = JSON.parse(storedSettings);
-      // Ensure all required properties exist
       const completeSettings = { ...defaultSettings, ...parsedSettings };
       setSettings(completeSettings);
     } else {
@@ -73,9 +96,10 @@ export const useSystemSettings = () => {
       localStorage.setItem('systemSettings', JSON.stringify(defaultSettings));
     }
     setLoading(false);
-  }, []);
+  };
 
   const updateSettings = (newSettings: SystemSettingsData) => {
+    // For now, use localStorage until we fix database structure
     setSettings(newSettings);
     localStorage.setItem('systemSettings', JSON.stringify(newSettings));
     toast({
@@ -84,5 +108,35 @@ export const useSystemSettings = () => {
     });
   };
 
-  return { settings, setSettings, updateSettings, loading };
+  const uploadFile = async (file: File, path: string) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${path}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('company-documents')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('company-documents')
+        .getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء رفع الملف',
+        variant: 'destructive',
+      });
+      return null;
+    }
+  };
+
+  return { settings, setSettings, updateSettings, uploadFile, loading };
 };

@@ -3089,6 +3089,7 @@ export type Database = {
           actual_return_date: string | null
           additional_charges: number | null
           contract_number: string
+          contract_pdf_url: string | null
           created_at: string | null
           created_by: string | null
           credit_limit_override: number | null
@@ -3101,6 +3102,7 @@ export type Database = {
           end_date: string
           fuel_level_end: string | null
           fuel_level_start: string | null
+          handover_form_pdf_url: string | null
           id: string
           insurance_amount: number | null
           mileage_end: number | null
@@ -3112,13 +3114,16 @@ export type Database = {
           payment_status: string | null
           pickup_location: string | null
           remaining_amount: number | null
+          return_form_pdf_url: string | null
           return_location: string | null
           signed_at: string | null
           start_date: string
           status: string | null
+          tax_invoice_pdf_url: string | null
           terms_conditions: string | null
           total_amount: number
           updated_at: string | null
+          vat_included: boolean | null
           vehicle_id: string
         }
         Insert: {
@@ -3126,6 +3131,7 @@ export type Database = {
           actual_return_date?: string | null
           additional_charges?: number | null
           contract_number: string
+          contract_pdf_url?: string | null
           created_at?: string | null
           created_by?: string | null
           credit_limit_override?: number | null
@@ -3138,6 +3144,7 @@ export type Database = {
           end_date: string
           fuel_level_end?: string | null
           fuel_level_start?: string | null
+          handover_form_pdf_url?: string | null
           id?: string
           insurance_amount?: number | null
           mileage_end?: number | null
@@ -3149,13 +3156,16 @@ export type Database = {
           payment_status?: string | null
           pickup_location?: string | null
           remaining_amount?: number | null
+          return_form_pdf_url?: string | null
           return_location?: string | null
           signed_at?: string | null
           start_date: string
           status?: string | null
+          tax_invoice_pdf_url?: string | null
           terms_conditions?: string | null
           total_amount: number
           updated_at?: string | null
+          vat_included?: boolean | null
           vehicle_id: string
         }
         Update: {
@@ -3163,6 +3173,7 @@ export type Database = {
           actual_return_date?: string | null
           additional_charges?: number | null
           contract_number?: string
+          contract_pdf_url?: string | null
           created_at?: string | null
           created_by?: string | null
           credit_limit_override?: number | null
@@ -3175,6 +3186,7 @@ export type Database = {
           end_date?: string
           fuel_level_end?: string | null
           fuel_level_start?: string | null
+          handover_form_pdf_url?: string | null
           id?: string
           insurance_amount?: number | null
           mileage_end?: number | null
@@ -3186,13 +3198,16 @@ export type Database = {
           payment_status?: string | null
           pickup_location?: string | null
           remaining_amount?: number | null
+          return_form_pdf_url?: string | null
           return_location?: string | null
           signed_at?: string | null
           start_date?: string
           status?: string | null
+          tax_invoice_pdf_url?: string | null
           terms_conditions?: string | null
           total_amount?: number
           updated_at?: string | null
+          vat_included?: boolean | null
           vehicle_id?: string
         }
         Relationships: [
@@ -3761,34 +3776,61 @@ export type Database = {
       }
       system_settings: {
         Row: {
+          bank_iban: string | null
+          bank_name: string | null
+          commercial_registration: string | null
+          company_logo_url: string | null
+          company_seal_url: string | null
+          contract_terms: string | null
           created_at: string
           created_by: string | null
           description: string | null
           id: string
           is_active: boolean
+          license_number: string | null
           setting_key: string
           setting_value: Json
           updated_at: string
+          vat_enabled: boolean | null
+          vat_percentage: number | null
         }
         Insert: {
+          bank_iban?: string | null
+          bank_name?: string | null
+          commercial_registration?: string | null
+          company_logo_url?: string | null
+          company_seal_url?: string | null
+          contract_terms?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
           is_active?: boolean
+          license_number?: string | null
           setting_key: string
           setting_value?: Json
           updated_at?: string
+          vat_enabled?: boolean | null
+          vat_percentage?: number | null
         }
         Update: {
+          bank_iban?: string | null
+          bank_name?: string | null
+          commercial_registration?: string | null
+          company_logo_url?: string | null
+          company_seal_url?: string | null
+          contract_terms?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
           is_active?: boolean
+          license_number?: string | null
           setting_key?: string
           setting_value?: Json
           updated_at?: string
+          vat_enabled?: boolean | null
+          vat_percentage?: number | null
         }
         Relationships: []
       }

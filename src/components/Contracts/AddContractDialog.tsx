@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -45,6 +46,7 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
     totalAmount: '',
     depositAmount: '1000',
     notes: '',
+    vatIncluded: false,
   });
 
   const { createContract } = useContracts();
@@ -110,6 +112,7 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
         totalAmount: '',
         depositAmount: '1000',
         notes: '',
+        vatIncluded: false,
       });
 
       onOpenChange(false);
@@ -257,7 +260,56 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
               </p>
             </div>
             <div>
-              {/* فراغ للحفاظ على الشبكة */}
+              {/* خيار الضريبة */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mt-6">
+                  <Checkbox
+                    id="vatIncluded"
+                    checked={formData.vatIncluded}
+                    onCheckedChange={(checked) =>
+                      setFormData(prev => ({ ...prev, vatIncluded: checked as boolean }))
+                    }
+                  />
+                  <Label htmlFor="vatIncluded" className="text-sm font-normal cursor-pointer">
+                    شامل ضريبة القيمة المضافة (15%)
+                  </Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>
+                          عند التفعيل، سيتم إضافة 15% ضريبة قيمة مضافة على المبلغ
+                          الأساسي. ستظهر تفاصيل الضريبة في العقد والفاتورة المطبوعة.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                {formData.vatIncluded && (
+                  <div className="bg-muted/50 p-3 rounded-lg border border-border">
+                    <div className="text-sm space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">المبلغ الأساسي:</span>
+                        <span className="font-medium">{formData.totalAmount || '0'} ر.س</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">الضريبة (15%):</span>
+                        <span className="font-medium">
+                          {(parseFloat(formData.totalAmount || '0') * 0.15).toFixed(2)} ر.س
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-t border-border pt-1 mt-1">
+                        <span className="font-semibold">المجموع شامل الضريبة:</span>
+                        <span className="font-bold text-primary">
+                          {(parseFloat(formData.totalAmount || '0') * 1.15).toFixed(2)} ر.س
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

@@ -4,15 +4,17 @@ import { AccountSettings } from './AccountSettings';
 import { NotificationSettings } from './NotificationSettings';
 import { AppearanceSettings } from './AppearanceSettings';
 import { SystemSettings } from './SystemSettings';
+import { CompanySettings } from './CompanySettings';
 
 export function GeneralSettings() {
   return (
     <Tabs defaultValue="account" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-4">
+      <TabsList className="grid w-full grid-cols-5">
         <TabsTrigger value="account">الحساب</TabsTrigger>
         <TabsTrigger value="notifications">الإشعارات</TabsTrigger>
         <TabsTrigger value="appearance">المظهر</TabsTrigger>
         <TabsTrigger value="system">النظام</TabsTrigger>
+        <TabsTrigger value="printing">بيانات الطباعة</TabsTrigger>
       </TabsList>
       
       <TabsContent value="account">
@@ -69,6 +71,10 @@ export function GeneralSettings() {
             <SystemSettings />
           </CardContent>
         </Card>
+      </TabsContent>
+
+      <TabsContent value="printing">
+        <CompanySettings />
       </TabsContent>
     </Tabs>
   );
