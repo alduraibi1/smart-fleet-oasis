@@ -24,9 +24,7 @@ import { Button } from '@/components/ui/button';
 import { EditVehicleDialog } from './EditVehicleDialog';
 import { DeleteVehicleDialog } from './DeleteVehicleDialog';
 import EnhancedVehicleDetailsDialog from './EnhancedVehicleDetailsDialog';
-import { VehicleRegistrationExpiry } from './VehicleRegistrationExpiry';
-import { VehicleInsuranceExpiry } from './VehicleInsuranceExpiry';
-import { VehicleInspectionExpiry } from './VehicleInspectionExpiry';
+import { VehicleExpiryBadges } from './VehicleExpiryBadges';
 
 interface VehicleGridProps {
   vehicles: Vehicle[];
@@ -235,11 +233,13 @@ const VehicleGrid = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleGrid
                 </div>
 
                 {/* Expiry Section */}
-                <div className="space-y-2 pt-2 border-t">
-                  <div className="text-xs font-semibold text-muted-foreground mb-1">الصلاحيات</div>
-                  <VehicleInsuranceExpiry expiryDate={vehicle.insurance_expiry} showLabel />
-                  <VehicleInspectionExpiry expiryDate={vehicle.inspection_expiry} showLabel />
-                  <VehicleRegistrationExpiry expiryDate={vehicle.registration_expiry} />
+                <div className="pt-2 border-t">
+                  <div className="text-xs font-semibold text-muted-foreground mb-2">الصلاحيات</div>
+                  <VehicleExpiryBadges
+                    insuranceExpiry={vehicle.insurance_expiry}
+                    inspectionExpiry={vehicle.inspection_expiry}
+                    registrationExpiry={vehicle.registration_expiry}
+                  />
                 </div>
 
                 {/* Owner Info */}

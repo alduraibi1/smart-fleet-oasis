@@ -8,9 +8,10 @@ import VehicleActions from '@/components/Vehicles/VehicleActions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { VehicleFilters as VehicleFiltersType } from '@/types/vehicle';
 import { useVehicles } from '@/hooks/useVehicles';
+import { useVehicleSorting } from '@/hooks/useVehicleSorting';
 import { ExportVehiclesDialog } from '@/components/Vehicles/ExportVehiclesDialog';
 import { Button } from '@/components/ui/button';
-import { FileSpreadsheet } from 'lucide-react';
+import { FileSpreadsheet, Calendar, Gauge, TrendingUp } from 'lucide-react';
 import { VehicleExpiryDashboard } from '@/components/Vehicles/VehicleExpiryDashboard';
 import { VehicleExpiryDetailsTable } from '@/components/Vehicles/VehicleExpiryDetailsTable';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,6 +32,13 @@ const Vehicles = () => {
     deleteVehicle,
     getBrands,
   } = useVehicles();
+
+  const {
+    sortField,
+    sortDirection,
+    sortedVehicles,
+    handleSort
+  } = useVehicleSorting(vehicles);
 
   // Trigger smart notifications check on mount
   useEffect(() => {
@@ -159,6 +167,40 @@ const Vehicles = () => {
           />
         </div>
 
+        {/* Quick Sort Bar */}
+        <div className="dashboard-card">
+          <div className="flex flex-wrap gap-2">
+            <span className="text-sm font-medium text-muted-foreground flex items-center">فرز سريع:</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSort('year')}
+              className="gap-2"
+            >
+              <Calendar className="h-4 w-4" />
+              الموديل {sortField === 'year' && (sortDirection === 'desc' ? '(الأحدث)' : '(الأقدم)')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSort('mileage')}
+              className="gap-2"
+            >
+              <Gauge className="h-4 w-4" />
+              الكيلومترات {sortField === 'mileage' && (sortDirection === 'asc' ? '(الأقل)' : '(الأكثر)')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSort('daily_rate')}
+              className="gap-2"
+            >
+              <TrendingUp className="h-4 w-4" />
+              السعر {sortField === 'daily_rate' && (sortDirection === 'asc' ? '(الأقل)' : '(الأعلى)')}
+            </Button>
+          </div>
+        </div>
+
         {/* Main Content */}
         <div className="dashboard-card">
           <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'table' | 'grid')}>
@@ -174,16 +216,19 @@ const Vehicles = () => {
             <TabsContent value="table" className="mt-0">
               <div className="table-responsive">
                 <VehicleTable 
-                  vehicles={vehicles}
+                  vehicles={sortedVehicles}
                   onUpdateVehicle={handleVehicleUpdated}
                   onDeleteVehicle={handleVehicleDeleted}
+                  sortField={sortField}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
                 />
               </div>
             </TabsContent>
             
             <TabsContent value="grid" className="mt-0">
               <VehicleGrid 
-                vehicles={vehicles}
+                vehicles={sortedVehicles}
                 onUpdateVehicle={handleVehicleUpdated}
                 onDeleteVehicle={handleVehicleDeleted}
               />

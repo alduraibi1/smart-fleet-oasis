@@ -22,19 +22,35 @@ import { MoreHorizontal, Edit, Trash2, Eye, FileText } from 'lucide-react';
 import { EditVehicleDialog } from './EditVehicleDialog';
 import { DeleteVehicleDialog } from './DeleteVehicleDialog';
 import EnhancedVehicleDetailsDialog from './EnhancedVehicleDetailsDialog';
-import { VehicleRegistrationExpiry } from './VehicleRegistrationExpiry';
-import { VehicleInsuranceExpiry } from './VehicleInsuranceExpiry';
-import { VehicleInspectionExpiry } from './VehicleInspectionExpiry';
+import { VehicleExpiryBadges } from './VehicleExpiryBadges';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface VehicleTableProps {
   vehicles: Vehicle[];
   onUpdateVehicle?: (id: string, data: Partial<Vehicle>, images?: File[], inspectionData?: any) => Promise<void>;
   onDeleteVehicle?: (id: string) => Promise<void>;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+  onSort?: (field: string) => void;
 }
 
-const VehicleTable = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleTableProps) => {
+const VehicleTable = ({ 
+  vehicles, 
+  onUpdateVehicle, 
+  onDeleteVehicle,
+  sortField,
+  sortDirection,
+  onSort
+}: VehicleTableProps) => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [dialogType, setDialogType] = useState<'edit' | 'delete' | 'details' | null>(null);
+
+  const getSortIcon = (field: string) => {
+    if (sortField !== field) return <ArrowUpDown className="h-4 w-4 opacity-40" />;
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="h-4 w-4 text-primary" /> 
+      : <ArrowDown className="h-4 w-4 text-primary" />;
+  };
 
   const getStatusVariant = (status: Vehicle['status']) => {
     switch (status) {
@@ -131,15 +147,69 @@ const VehicleTable = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleTab
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-right">رقم اللوحة</TableHead>
-              <TableHead className="text-right">المركبة</TableHead>
-              <TableHead className="text-right">الحالة</TableHead>
-              <TableHead className="text-right">السعر اليومي</TableHead>
-              <TableHead className="text-right">عدد الكيلومترات</TableHead>
+              <TableHead className="text-right">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => onSort?.('plate_number')}
+                  className="hover:bg-muted h-8 px-2 gap-1 font-semibold"
+                >
+                  رقم اللوحة
+                  {getSortIcon('plate_number')}
+                </Button>
+              </TableHead>
+              <TableHead className="text-right">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => onSort?.('brand')}
+                  className="hover:bg-muted h-8 px-2 gap-1 font-semibold"
+                >
+                  المركبة
+                  {getSortIcon('brand')}
+                </Button>
+              </TableHead>
+              <TableHead className="text-right">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => onSort?.('status')}
+                  className="hover:bg-muted h-8 px-2 gap-1 font-semibold"
+                >
+                  الحالة
+                  {getSortIcon('status')}
+                </Button>
+              </TableHead>
+              <TableHead className="text-right">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => onSort?.('daily_rate')}
+                  className="hover:bg-muted h-8 px-2 gap-1 font-semibold"
+                >
+                  السعر اليومي
+                  {getSortIcon('daily_rate')}
+                </Button>
+              </TableHead>
+              <TableHead className="text-right">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => onSort?.('mileage')}
+                  className="hover:bg-muted h-8 px-2 gap-1 font-semibold"
+                >
+                  الكيلومترات
+                  {getSortIcon('mileage')}
+                </Button>
+              </TableHead>
               <TableHead className="text-right">نوع الوقود</TableHead>
               <TableHead className="text-right">ناقل الحركة</TableHead>
-              <TableHead className="text-right">الصلاحيات</TableHead>
-              <TableHead className="text-right">المالك</TableHead>
+              <TableHead className="text-right w-[140px]">الصلاحيات</TableHead>
+              <TableHead className="text-right">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => onSort?.('owner_name')}
+                  className="hover:bg-muted h-8 px-2 gap-1 font-semibold"
+                >
+                  المالك
+                  {getSortIcon('owner_name')}
+                </Button>
+              </TableHead>
               <TableHead className="w-[100px]">الإجراءات</TableHead>
             </TableRow>
           </TableHeader>
@@ -184,11 +254,11 @@ const VehicleTable = ({ vehicles, onUpdateVehicle, onDeleteVehicle }: VehicleTab
                   {getTransmissionLabel(vehicle.transmission)}
                 </TableCell>
                 <TableCell>
-                  <div className="space-y-1">
-                    <VehicleInsuranceExpiry expiryDate={vehicle.insurance_expiry} />
-                    <VehicleInspectionExpiry expiryDate={vehicle.inspection_expiry} />
-                    <VehicleRegistrationExpiry expiryDate={vehicle.registration_expiry} />
-                  </div>
+                  <VehicleExpiryBadges
+                    insuranceExpiry={vehicle.insurance_expiry}
+                    inspectionExpiry={vehicle.inspection_expiry}
+                    registrationExpiry={vehicle.registration_expiry}
+                  />
                 </TableCell>
                 <TableCell>
                   <span className="text-sm">
