@@ -7,7 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, User, Car, CreditCard, FileText, CheckCircle } from 'lucide-react';
+import { CalendarDays, User, Car, CreditCard, FileText, CheckCircle, Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useVehicles } from '@/hooks/useVehicles';
 import { useContracts } from '@/hooks/useContracts';
@@ -345,7 +351,19 @@ export const ContractFormWizard: React.FC<ContractFormWizardProps> = ({
                 />
               </div>
               <div>
-                <Label htmlFor="depositAmount">الوديعة (ر.س)</Label>
+                <div className="flex items-center gap-2 mb-2">
+                  <Label htmlFor="depositAmount">الوديعة (ر.س)</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>المبلغ المدفوع من قبل العميل كضمان، ويُسترد بالكامل عند تسليم المركبة وإنهاء العقد بدون أضرار أو مخالفات</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <Input
                   id="depositAmount"
                   type="number"
