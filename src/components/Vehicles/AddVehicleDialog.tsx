@@ -281,14 +281,17 @@ const AddVehicleDialog = ({ open, onOpenChange, onVehicleAdded }: AddVehicleDial
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>المالك</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      onValueChange={(value) => field.onChange(value === 'none' ? '' : value)} 
+                      value={field.value || 'none'}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="اختر المالك (اختياري)" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">بدون مالك</SelectItem>
+                        <SelectItem value="none">بدون مالك</SelectItem>
                         {owners.map((owner) => (
                           <SelectItem key={owner.id} value={owner.id}>
                             {owner.name} - {owner.national_id}
@@ -325,31 +328,6 @@ const AddVehicleDialog = ({ open, onOpenChange, onVehicleAdded }: AddVehicleDial
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="owner_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>المالك</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر المالك (اختياري)" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="">بدون مالك</SelectItem>
-                          {owners.map((owner) => (
-                            <SelectItem key={owner.id} value={owner.id}>
-                              {owner.name} - {owner.national_id}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
             </div>
 
