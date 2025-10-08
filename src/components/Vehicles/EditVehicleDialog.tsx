@@ -41,10 +41,14 @@ interface EditVehicleDialogProps {
   vehicle: Vehicle;
   onUpdate: (id: string, data: Partial<Vehicle>, images?: File[], inspectionData?: Partial<VehicleInspectionPoints>) => Promise<void>;
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const EditVehicleDialog = ({ vehicle, onUpdate, trigger }: EditVehicleDialogProps) => {
-  const [open, setOpen] = useState(false);
+export const EditVehicleDialog = ({ vehicle, onUpdate, trigger, open: controlledOpen, onOpenChange }: EditVehicleDialogProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
   const [loading, setLoading] = useState(false);
   const [newImages, setNewImages] = useState<File[]>([]);
   const [inspectionData, setInspectionData] = useState<Partial<VehicleInspectionPoints> | undefined>(
@@ -168,14 +172,11 @@ export const EditVehicleDialog = ({ vehicle, onUpdate, trigger }: EditVehicleDia
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button variant="outline" size="sm">
-            <Pencil className="h-4 w-4 mr-2" />
-            تعديل
-          </Button>
-        )}
-      </DialogTrigger>
+      {trigger && (
+        <DialogTrigger asChild>
+          {trigger}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">تعديل بيانات المركبة - {vehicle.plate_number}</DialogTitle>

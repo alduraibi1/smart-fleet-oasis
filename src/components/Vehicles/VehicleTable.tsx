@@ -299,29 +299,45 @@ const VehicleTable = ({
         </Table>
       </div>
 
-      {/* Dialogs */}
-      {selectedVehicle && dialogType === 'edit' && (
-        <EditVehicleDialog
-          vehicle={selectedVehicle}
-          onUpdate={handleVehicleUpdate}
-          trigger={<div style={{ display: 'none' }} />}
-        />
-      )}
+  {/* Dialogs */}
+  {selectedVehicle && (
+    <>
+      <EditVehicleDialog
+        vehicle={selectedVehicle}
+        onUpdate={handleVehicleUpdate}
+        open={dialogType === 'edit'}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedVehicle(null);
+            setDialogType(null);
+          }
+        }}
+      />
 
-      {selectedVehicle && dialogType === 'delete' && (
-        <DeleteVehicleDialog
-          vehicle={selectedVehicle}
-          onDelete={() => handleVehicleDelete(selectedVehicle.id)}
-          trigger={<div style={{ display: 'none' }} />}
-        />
-      )}
+      <DeleteVehicleDialog
+        vehicle={selectedVehicle}
+        onDelete={() => handleVehicleDelete(selectedVehicle.id)}
+        open={dialogType === 'delete'}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedVehicle(null);
+            setDialogType(null);
+          }
+        }}
+      />
 
-      {selectedVehicle && dialogType === 'details' && (
-        <EnhancedVehicleDetailsDialog
-          vehicle={selectedVehicle}
-          trigger={<div style={{ display: 'none' }} />}
-        />
-      )}
+      <EnhancedVehicleDetailsDialog
+        vehicle={selectedVehicle}
+        open={dialogType === 'details'}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedVehicle(null);
+            setDialogType(null);
+          }
+        }}
+      />
+    </>
+  )}
     </>
   );
 };

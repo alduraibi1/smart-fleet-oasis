@@ -17,11 +17,15 @@ import ImagesTab from './tabs/ImagesTab';
 
 interface EnhancedVehicleDetailsDialogProps {
   vehicle: Vehicle;
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function EnhancedVehicleDetailsDialog({ vehicle, trigger }: EnhancedVehicleDetailsDialogProps) {
-  const [open, setOpen] = useState(false);
+export default function EnhancedVehicleDetailsDialog({ vehicle, trigger, open: controlledOpen, onOpenChange }: EnhancedVehicleDetailsDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -85,9 +89,11 @@ export default function EnhancedVehicleDetailsDialog({ vehicle, trigger }: Enhan
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger}
-      </DialogTrigger>
+      {trigger && (
+        <DialogTrigger asChild>
+          {trigger}
+        </DialogTrigger>
+      )}
       
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>

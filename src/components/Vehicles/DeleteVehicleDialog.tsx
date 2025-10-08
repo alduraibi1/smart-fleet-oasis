@@ -18,9 +18,11 @@ interface DeleteVehicleDialogProps {
   vehicle: Vehicle;
   onDelete: (id: string) => Promise<void>;
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const DeleteVehicleDialog = ({ vehicle, onDelete, trigger }: DeleteVehicleDialogProps) => {
+export const DeleteVehicleDialog = ({ vehicle, onDelete, trigger, open, onOpenChange }: DeleteVehicleDialogProps) => {
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {
@@ -37,20 +39,12 @@ export const DeleteVehicleDialog = ({ vehicle, onDelete, trigger }: DeleteVehicl
   const canDelete = vehicle.status !== 'rented';
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        {trigger || (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            disabled={!canDelete}
-            className={!canDelete ? 'opacity-50 cursor-not-allowed' : ''}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            حذف
-          </Button>
-        )}
-      </AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      {trigger && (
+        <AlertDialogTrigger asChild>
+          {trigger}
+        </AlertDialogTrigger>
+      )}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
