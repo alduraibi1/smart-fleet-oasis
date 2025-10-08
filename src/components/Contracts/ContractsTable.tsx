@@ -4,10 +4,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Eye, FileText, Car, Edit, Trash2 } from 'lucide-react';
+import { Eye, FileText, Car, Edit, Trash2, Printer } from 'lucide-react';
 import { Contract } from '@/hooks/useContracts';
 import VehicleReturnDialog from './VehicleReturnDialog';
 import DetailedReturnReport from './DetailedReturnReport';
+import { PrintDialog } from './Print/PrintDialog';
 
 interface ContractsTableProps {
   contracts: Contract[];
@@ -19,6 +20,7 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showReturnDialog, setShowReturnDialog] = useState(false);
   const [showDetailedReport, setShowDetailedReport] = useState(false);
+  const [showPrintDialog, setShowPrintDialog] = useState(false);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -45,6 +47,11 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
   const handleViewDetailedReport = (contract: Contract) => {
     setSelectedContract(contract);
     setShowDetailedReport(true);
+  };
+
+  const handlePrint = (contract: Contract) => {
+    setSelectedContract(contract);
+    setShowPrintDialog(true);
   };
 
   if (loading) {
@@ -103,6 +110,15 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
                       onClick={() => handleViewDetails(contract)}
                     >
                       <Eye className="h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePrint(contract)}
+                      title="طباعة المستندات"
+                    >
+                      <Printer className="h-4 w-4" />
                     </Button>
                     
                     {contract.status === 'active' && (
@@ -185,6 +201,15 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
           contractId={selectedContract.id}
           open={showDetailedReport}
           onOpenChange={setShowDetailedReport}
+        />
+      )}
+
+      {/* Print Dialog */}
+      {selectedContract && (
+        <PrintDialog
+          contract={selectedContract}
+          open={showPrintDialog}
+          onOpenChange={setShowPrintDialog}
         />
       )}
     </>

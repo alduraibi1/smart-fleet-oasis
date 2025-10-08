@@ -55,6 +55,7 @@ export const ContractFormWizard: React.FC<ContractFormWizardProps> = ({
     fuelLevelStart: 'full',
     notes: '',
     termsConditions: '',
+    vatIncluded: false,
   });
 
   const { customers } = useCustomers();
@@ -138,6 +139,7 @@ export const ContractFormWizard: React.FC<ContractFormWizardProps> = ({
         fuelLevelStart: 'full',
         notes: '',
         termsConditions: '',
+        vatIncluded: false,
       });
     } catch (error) {
       console.error('Error creating contract:', error);
@@ -419,6 +421,25 @@ export const ContractFormWizard: React.FC<ContractFormWizardProps> = ({
               </Select>
             </div>
 
+            {/* خيار الضريبة */}
+            <div className="border border-gray-300 rounded-lg p-4 bg-blue-50">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="vatIncluded"
+                  checked={formData.vatIncluded}
+                  onChange={(e) => setFormData(prev => ({ ...prev, vatIncluded: e.target.checked }))}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="vatIncluded" className="font-medium cursor-pointer">
+                  شامل ضريبة القيمة المضافة (15%)
+                </Label>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 mr-7">
+                عند التفعيل، سيتم إضافة 15% ضريبة على المبلغ الأساسي
+              </p>
+            </div>
+
             <Card className="bg-green-50 border-green-200">
               <CardContent className="pt-4">
                 <div className="space-y-2">
@@ -435,10 +456,29 @@ export const ContractFormWizard: React.FC<ContractFormWizardProps> = ({
                     <span>-{formData.discountAmount} ر.س</span>
                   </div>
                   <hr />
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>المجموع:</span>
-                    <span>{total} ر.س</span>
-                  </div>
+                  {formData.vatIncluded && (
+                    <>
+                      <div className="flex justify-between">
+                        <span>المجموع قبل الضريبة:</span>
+                        <span>{total} ر.س</span>
+                      </div>
+                      <div className="flex justify-between text-yellow-700">
+                        <span>ضريبة القيمة المضافة (15%):</span>
+                        <span>{(total * 0.15).toFixed(2)} ر.س</span>
+                      </div>
+                      <hr />
+                      <div className="flex justify-between font-bold text-lg text-primary">
+                        <span>المجموع شامل الضريبة:</span>
+                        <span>{(total * 1.15).toFixed(2)} ر.س</span>
+                      </div>
+                    </>
+                  )}
+                  {!formData.vatIncluded && (
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>المجموع:</span>
+                      <span>{total} ر.س</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
