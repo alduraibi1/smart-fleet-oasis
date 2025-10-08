@@ -125,7 +125,8 @@ export const useVehicles = () => {
         model: (vehicleData as any).model,
         year: (vehicleData as any).year,
         color: (vehicleData as any).color,
-        status: (vehicleData as any).status,
+        status: (vehicleData as any).status || 'available',
+        owner_id: cleanOwnerId,
         daily_rate: (vehicleData as any).daily_rate,
         min_daily_rate: (vehicleData as any).min_daily_rate || (vehicleData as any).daily_rate * 0.8,
         max_daily_rate: (vehicleData as any).max_daily_rate || (vehicleData as any).daily_rate * 1.2,
@@ -140,7 +141,6 @@ export const useVehicles = () => {
         insurance_expiry: (vehicleData as any).insurance_expiry,
         insurance_company: (vehicleData as any).insurance_company,
         insurance_policy_number: (vehicleData as any).insurance_policy_number,
-        owner_id: cleanOwnerId,
         notes: (vehicleData as any).notes,
         created_by: currentUserId || undefined,
       };

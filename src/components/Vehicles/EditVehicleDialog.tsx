@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Vehicle, VehicleInspectionPoints } from '@/types/vehicle';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -49,8 +50,24 @@ export const EditVehicleDialog = ({ vehicle, onUpdate, trigger }: EditVehicleDia
   const [inspectionData, setInspectionData] = useState<Partial<VehicleInspectionPoints> | undefined>(
     vehicle.inspectionPoints || undefined
   );
+  const [owners, setOwners] = useState<Array<{ id: string; name: string; national_id: string }>>([]);
   const { toast } = useToast();
   const { plateDuplicate, vinDuplicate, checkPlateNumber, checkVIN } = useVehicleDuplicateCheck(vehicle.id);
+
+  useEffect(() => {
+    const fetchOwners = async () => {
+      const { data, error } = await supabase
+        .from('vehicle_owners')
+        .select('id, name, national_id')
+        .eq('is_active', true)
+        .order('name');
+      
+      if (data && !error) {
+        setOwners(data);
+      }
+    };
+    fetchOwners();
+  }, []);
 
   const form = useForm({
     defaultValues: {
@@ -60,6 +77,7 @@ export const EditVehicleDialog = ({ vehicle, onUpdate, trigger }: EditVehicleDia
       year: vehicle.year,
       color: vehicle.color,
       status: vehicle.status,
+      owner_id: vehicle.owner_id || '',
       daily_rate: vehicle.daily_rate,
       min_daily_rate: vehicle.min_daily_rate || vehicle.daily_rate * 0.8,
       max_daily_rate: vehicle.max_daily_rate || vehicle.daily_rate * 1.2,
@@ -285,6 +303,32 @@ export const EditVehicleDialog = ({ vehicle, onUpdate, trigger }: EditVehicleDia
                           <SelectItem value="rented">مؤجرة</SelectItem>
                           <SelectItem value="maintenance">صيانة</SelectItem>
                           <SelectItem value="out_of_service">خارج الخدمة</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="owner_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>المالك</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر المالك (اختياري)" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">بدون مالك</SelectItem>
+                          {owners.map((owner) => (
+                            <SelectItem key={owner.id} value={owner.id}>
+                              {owner.name} - {owner.national_id}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
