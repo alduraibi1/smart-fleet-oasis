@@ -13,6 +13,21 @@ export const PrintLayout = ({ children, title, showLogo = true, showSeal = false
 
   return (
     <div className="block">
+      <style>{`
+        @media print {
+          img {
+            page-break-inside: avoid;
+            max-width: 100%;
+            height: auto;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+          .photo-grid {
+            page-break-before: auto;
+            page-break-after: auto;
+          }
+        }
+      `}</style>
       <div className="max-w-[210mm] mx-auto bg-white p-8 print:p-0" style={{ minHeight: '297mm' }}>
         {/* الترويسة */}
         {showLogo && (

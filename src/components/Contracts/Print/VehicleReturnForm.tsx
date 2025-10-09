@@ -7,11 +7,13 @@ interface VehicleReturnFormProps {
   returnData?: {
     mileageOut: number;
     fuelLevelOut: string;
+    photos?: string[];
     damages: Array<{ 
       location?: string;
       severity?: 'minor' | 'moderate' | 'major';
       description: string; 
       cost: number;
+      photo?: string;
     }>;
     additionalCharges: {
       lateFee: number;
@@ -143,7 +145,32 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
                 {returnData.damages.map((damage, index) => (
                   <tr key={index}>
                     <td className="border border-red-300 p-2 text-center">{index + 1}</td>
-                    <td className="border border-red-300 p-2">{damage.location || '-'}</td>
+                    <td className="border border-red-300 p-2">
+                      <div className="flex items-start gap-2">
+                        {damage.photo && (
+                          <img 
+                            src={damage.photo} 
+                            alt={`ضرر ${index + 1}`}
+                            className="w-16 h-16 object-cover rounded border flex-shrink-0"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        )}
+                        <div className="flex-1">
+                          {damage.location && <p className="text-xs font-semibold text-red-600">{damage.location}</p>}
+                          {damage.severity && (
+                            <span className={`text-[10px] px-2 py-0.5 rounded inline-block mb-1 ${
+                              damage.severity === 'major' ? 'bg-red-100 text-red-700' :
+                              damage.severity === 'moderate' ? 'bg-orange-100 text-orange-700' :
+                              'bg-yellow-100 text-yellow-700'
+                            }`}>
+                              {damage.severity === 'major' ? 'خطير' : damage.severity === 'moderate' ? 'متوسط' : 'بسيط'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
                     <td className="border border-red-300 p-2 text-center">
                       {damage.severity === 'minor' && 'بسيط'}
                       {damage.severity === 'moderate' && 'متوسط'}
@@ -166,6 +193,33 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
                 </tr>
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* صور المركبة عند الإرجاع */}
+        {returnData?.photos && returnData.photos.length > 0 && (
+          <div className="border border-gray-300 rounded p-3 bg-blue-50">
+            <h3 className="font-bold mb-3 text-blue-700">📸 صور المركبة عند الإرجاع</h3>
+            <div className="photo-grid grid grid-cols-4 gap-2">
+              {returnData.photos.map((photoUrl, index) => (
+                <div key={index} className="border border-gray-300 overflow-hidden rounded bg-white">
+                  <img 
+                    src={photoUrl} 
+                    alt={`صورة إرجاع ${index + 1}`}
+                    className="w-full h-24 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect width="100" height="100" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="12"%3Eفشل التحميل%3C/text%3E%3C/svg%3E';
+                    }}
+                  />
+                  <p className="text-[8px] text-center bg-gray-100 py-1">
+                    صورة {index + 1}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-600 mt-2">
+              عدد الصور: {returnData.photos.length} | تاريخ التصوير: {format(new Date(), 'dd/MM/yyyy HH:mm')}
+            </p>
           </div>
         )}
 

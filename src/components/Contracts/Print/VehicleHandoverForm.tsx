@@ -133,16 +133,43 @@ export const VehicleHandoverForm = ({ contract, inspectionData }: VehicleHandove
           </div>
         </div>
 
-        {/* مساحة للصور */}
+        {/* الصور التوثيقية */}
         <div className="border border-gray-300 rounded p-3">
-          <h3 className="font-bold mb-3">الصور التوثيقية (8 صور إلزامية)</h3>
-          <div className="grid grid-cols-4 gap-2">
-            {['أمامية', 'خلفية', 'يمين', 'يسار', 'لوحة أمامية', 'لوحة خلفية', 'عداد الكيلو', 'داخلية'].map((label, index) => (
-              <div key={index} className="border-2 border-dashed border-gray-300 h-24 flex items-center justify-center text-xs text-gray-500">
-                {label}
-              </div>
-            ))}
-          </div>
+          <h3 className="font-bold mb-3">📸 الصور التوثيقية للمركبة</h3>
+          
+          {inspectionData?.photos && inspectionData.photos.length > 0 ? (
+            <div className="photo-grid grid grid-cols-4 gap-2">
+              {inspectionData.photos.map((photoUrl: string, index: number) => (
+                <div key={index} className="border border-gray-300 overflow-hidden rounded">
+                  <img 
+                    src={photoUrl} 
+                    alt={`صورة ${index + 1}`}
+                    className="w-full h-24 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect width="100" height="100" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="12"%3Eفشل التحميل%3C/text%3E%3C/svg%3E';
+                    }}
+                  />
+                  <p className="text-[8px] text-center bg-gray-100 py-1">
+                    صورة {index + 1}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-2">
+              {['أمامية', 'خلفية', 'يمين', 'يسار', 'لوحة أمامية', 'لوحة خلفية', 'عداد الكيلو', 'داخلية'].map((label, index) => (
+                <div key={index} className="border-2 border-dashed border-gray-300 h-24 flex items-center justify-center text-xs text-gray-500">
+                  {label}
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {inspectionData?.photos && inspectionData.photos.length > 0 && (
+            <p className="text-xs text-gray-600 mt-2">
+              عدد الصور: {inspectionData.photos.length} | تاريخ التصوير: {format(new Date(), 'dd/MM/yyyy HH:mm')}
+            </p>
+          )}
         </div>
 
         {/* ملاحظات إضافية */}
