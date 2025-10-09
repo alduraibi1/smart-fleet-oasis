@@ -14,16 +14,23 @@ export const generateAndUploadPDF = async (
   try {
     const element = document.getElementById(elementId);
     if (!element) {
+      console.error(`❌ العنصر ${elementId} غير موجود`);
       throw new Error(`العنصر ${elementId} غير موجود`);
     }
 
-    // إنشاء canvas من العنصر
+    console.log(`📄 بدء توليد PDF: ${fileName}`);
+
+    // إنشاء canvas من العنصر مع إعدادات محسّنة
     const canvas = await html2canvas(element, {
-      scale: 2,
+      scale: 2, // دقة عالية
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
+      imageTimeout: 15000, // مهلة 15 ثانية للصور
+      removeContainer: true,
     });
+
+    console.log(`✅ تم إنشاء Canvas بنجاح (${canvas.width}x${canvas.height})`);
 
     // إنشاء PDF
     const imgWidth = 210; // A4 width in mm
@@ -33,6 +40,7 @@ export const generateAndUploadPDF = async (
       orientation: imgHeight > imgWidth ? 'portrait' : 'portrait',
       unit: 'mm',
       format: 'a4',
+      compress: true, // ضغط PDF لتقليل الحجم
     });
 
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
@@ -53,11 +61,16 @@ export const generateAndUploadPDF = async (
       heightLeft -= pageHeight;
     }
 
+    console.log(`✅ تم إنشاء PDF بنجاح (${pdf.getNumberOfPages()} صفحة)`);
+
     // تحويل PDF إلى Blob
     const pdfBlob = pdf.output('blob');
+    console.log(`📦 حجم PDF: ${(pdfBlob.size / 1024).toFixed(2)} KB`);
 
     // رفع الملف إلى Supabase Storage
     const filePath = `${contractId}/${fileName}`;
+    console.log(`☁️ جارٍ رفع الملف: ${filePath}`);
+    
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('contract-documents')
       .upload(filePath, pdfBlob, {
@@ -66,8 +79,11 @@ export const generateAndUploadPDF = async (
       });
 
     if (uploadError) {
+      console.error('❌ خطأ في رفع الملف:', uploadError);
       throw uploadError;
     }
+
+    console.log(`✅ تم رفع الملف بنجاح:`, uploadData);
 
     // الحصول على URL العام
     const { data: urlData } = supabase.storage
@@ -75,6 +91,7 @@ export const generateAndUploadPDF = async (
       .getPublicUrl(filePath);
 
     const publicUrl = urlData.publicUrl;
+    console.log(`🔗 رابط PDF: ${publicUrl}`);
 
     // تحديث رابط PDF في قاعدة البيانات
     const columnMap = {
@@ -84,14 +101,21 @@ export const generateAndUploadPDF = async (
       return: 'return_pdf_url',
     };
 
-    await supabase
+    const { error: updateError } = await supabase
       .from('rental_contracts')
       .update({ [columnMap[documentType]]: publicUrl })
       .eq('id', contractId);
 
+    if (updateError) {
+      console.error('⚠️ تحذير: فشل تحديث رابط PDF في قاعدة البيانات:', updateError);
+      // لا نرمي خطأ هنا لأن الملف تم رفعه بنجاح
+    } else {
+      console.log(`✅ تم تحديث رابط PDF في قاعدة البيانات`);
+    }
+
     return publicUrl;
   } catch (error) {
-    console.error('خطأ في توليد ورفع PDF:', error);
+    console.error('💥 خطأ في توليد ورفع PDF:', error);
     return null;
   }
 };
@@ -118,38 +142,58 @@ export const generateAllContractDocuments = async (
     return: null as string | null,
   };
 
-  // توليد عقد الإيجار
-  results.contract = await generateAndUploadPDF(
-    'contract-template',
-    `contract-${contractNumber}-${timestamp}.pdf`,
-    contractId,
-    'contract'
-  );
+  console.log(`🚀 بدء توليد مستندات العقد: ${contractNumber}`);
+  const startTime = Date.now();
 
-  // توليد الفاتورة الضريبية
-  results.invoice = await generateAndUploadPDF(
-    'tax-invoice-template',
-    `invoice-${contractNumber}-${timestamp}.pdf`,
-    contractId,
-    'invoice'
-  );
-
-  // توليد نموذج الاستلام
-  results.handover = await generateAndUploadPDF(
-    'handover-template',
-    `handover-${contractNumber}-${timestamp}.pdf`,
-    contractId,
-    'handover'
-  );
-
-  // توليد نموذج الإرجاع (اختياري - فقط عند طلبه)
-  if (includeReturn) {
-    results.return = await generateAndUploadPDF(
-      'return-template',
-      `return-${contractNumber}-${timestamp}.pdf`,
+  try {
+    // توليد عقد الإيجار
+    console.log('📄 توليد عقد الإيجار...');
+    results.contract = await generateAndUploadPDF(
+      'contract-template',
+      `contract-${contractNumber}-${timestamp}.pdf`,
       contractId,
-      'return'
+      'contract'
     );
+
+    // توليد الفاتورة الضريبية
+    console.log('🧾 توليد الفاتورة الضريبية...');
+    results.invoice = await generateAndUploadPDF(
+      'tax-invoice-template',
+      `invoice-${contractNumber}-${timestamp}.pdf`,
+      contractId,
+      'invoice'
+    );
+
+    // توليد نموذج الاستلام
+    console.log('📋 توليد نموذج الاستلام...');
+    results.handover = await generateAndUploadPDF(
+      'handover-template',
+      `handover-${contractNumber}-${timestamp}.pdf`,
+      contractId,
+      'handover'
+    );
+
+    // توليد نموذج الإرجاع (اختياري - فقط عند طلبه)
+    if (includeReturn) {
+      console.log('🔄 توليد نموذج الإرجاع...');
+      results.return = await generateAndUploadPDF(
+        'return-template',
+        `return-${contractNumber}-${timestamp}.pdf`,
+        contractId,
+        'return'
+      );
+    }
+
+    const endTime = Date.now();
+    const duration = ((endTime - startTime) / 1000).toFixed(2);
+    const successCount = Object.values(results).filter(r => r !== null).length;
+    const totalDocs = includeReturn ? 4 : 3;
+    
+    console.log(`✅ اكتملت عملية التوليد في ${duration} ثانية`);
+    console.log(`📊 تم توليد ${successCount} من ${totalDocs} مستندات`);
+
+  } catch (error) {
+    console.error('💥 خطأ عام في توليد المستندات:', error);
   }
 
   return results;

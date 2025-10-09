@@ -121,16 +121,22 @@ export const PrintDialog = ({ open, onOpenChange, contract }: PrintDialogProps) 
               <Printer className="h-4 w-4 ml-2" />
               طباعة مباشرة
             </Button>
-            <Button onClick={handleGeneratePDF} variant="default" disabled={generating}>
+            <Button 
+              onClick={handleGeneratePDF} 
+              variant="default" 
+              disabled={generating}
+              className="relative overflow-hidden"
+            >
               {generating ? (
                 <>
                   <Loader2 className="h-4 w-4 ml-2 animate-spin" />
-                  جاري الإنشاء...
+                  <span className="mr-1">جاري الإنشاء...</span>
+                  <span className="absolute inset-0 bg-primary/20 animate-pulse"></span>
                 </>
               ) : (
                 <>
                   {generatedDocs[activeTab] ? (
-                    <CheckCircle className="h-4 w-4 ml-2 text-green-600" />
+                    <CheckCircle className="h-4 w-4 ml-2 text-green-600 dark:text-green-400" />
                   ) : (
                     <Download className="h-4 w-4 ml-2" />
                   )}
@@ -141,9 +147,27 @@ export const PrintDialog = ({ open, onOpenChange, contract }: PrintDialogProps) 
           </div>
           
           {/* ملاحظة للمستخدم */}
-          {Object.keys(generatedDocs).length > 0 && (
-            <div className="text-xs text-muted-foreground bg-green-50 dark:bg-green-950 p-2 rounded border border-green-200 dark:border-green-800">
-              ✅ تم حفظ المستندات في قاعدة البيانات ويمكنك الوصول إليها من قائمة العقود
+          {generating && (
+            <div className="text-sm bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-200 dark:border-blue-800 flex items-center gap-3">
+              <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-blue-900 dark:text-blue-100">جارٍ المعالجة...</p>
+                <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+                  يتم تحويل المستند إلى PDF وحفظه
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {!generating && Object.keys(generatedDocs).length > 0 && (
+            <div className="text-sm bg-green-50 dark:bg-green-950/30 p-3 rounded-lg border border-green-200 dark:border-green-800 flex items-center gap-3">
+              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-green-900 dark:text-green-100">تم الحفظ بنجاح</p>
+                <p className="text-xs text-green-700 dark:text-green-300 mt-0.5">
+                  المستندات محفوظة ويمكنك الوصول إليها من قائمة العقود
+                </p>
+              </div>
             </div>
           )}
 

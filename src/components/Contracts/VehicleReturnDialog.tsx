@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Camera, FileText, AlertTriangle, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Camera, FileText, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -780,7 +780,9 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
           <Button 
             variant="outline" 
             onClick={currentStep === 1 ? () => onOpenChange(false) : prevStep}
+            disabled={isGeneratingPDF}
           >
+            <ArrowLeft className={`h-4 w-4 ${currentStep === 1 ? '' : 'ml-2'}`} />
             {currentStep === 1 ? 'إلغاء' : 'السابق'}
           </Button>
           
@@ -798,8 +800,18 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
               {/* NEW: confirm before submit */}
               <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
                 <AlertDialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary-hover">
-                    إنهاء الإرجاع
+                  <Button 
+                    className="bg-primary hover:bg-primary-hover relative"
+                    disabled={isGeneratingPDF}
+                  >
+                    {isGeneratingPDF ? (
+                      <>
+                        <Loader2 className="h-4 w-4 ml-2 animate-spin" />
+                        جارٍ المعالجة...
+                      </>
+                    ) : (
+                      'إنهاء الإرجاع'
+                    )}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -811,7 +823,7 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
                     </AlertDialogDescription>
                   </AlertHeader>
 
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-2 text-sm bg-muted/50 p-4 rounded-lg">
                     <div className="flex justify-between">
                       <span>الرسوم الإضافية:</span>
                       <span className="font-bold">{calculateTotalCharges().toLocaleString()} ر.س</span>
@@ -831,11 +843,20 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
                   </div>
 
                   <AlertDialogFooter>
-                    <AlertDialogCancel>رجوع</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isGeneratingPDF}>رجوع</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleSubmit}
+                      disabled={isGeneratingPDF}
+                      className="relative"
                     >
-                      تأكيد وإنهاء
+                      {isGeneratingPDF ? (
+                        <>
+                          <Loader2 className="h-4 w-4 ml-2 animate-spin" />
+                          جارٍ الحفظ...
+                        </>
+                      ) : (
+                        'تأكيد وإنهاء'
+                      )}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
