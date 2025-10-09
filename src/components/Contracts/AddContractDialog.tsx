@@ -135,13 +135,15 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
   };
 
   // Calculate total amount when daily rate or dates change
-  const calculateTotal = () => {
-    if (formData.startDate && formData.endDate && formData.dailyRate) {
-      const start = new Date(formData.startDate);
-      const end = new Date(formData.endDate);
+  const calculateTotal = (startDate: string, endDate: string, dailyRate: string) => {
+    if (startDate && endDate && dailyRate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
       const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-      const total = days * parseFloat(formData.dailyRate);
-      setFormData(prev => ({ ...prev, totalAmount: total.toString() }));
+      if (days > 0 && !isNaN(parseFloat(dailyRate))) {
+        const total = days * parseFloat(dailyRate);
+        setFormData(prev => ({ ...prev, totalAmount: total.toFixed(2) }));
+      }
     }
   };
 
@@ -198,8 +200,9 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
                 type="date"
                 value={formData.startDate}
                 onChange={(e) => {
-                  setFormData(prev => ({ ...prev, startDate: e.target.value }));
-                  setTimeout(calculateTotal, 100);
+                  const newStartDate = e.target.value;
+                  setFormData(prev => ({ ...prev, startDate: newStartDate }));
+                  calculateTotal(newStartDate, formData.endDate, formData.dailyRate);
                 }}
               />
             </div>
@@ -211,8 +214,9 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
                 type="date"
                 value={formData.endDate}
                 onChange={(e) => {
-                  setFormData(prev => ({ ...prev, endDate: e.target.value }));
-                  setTimeout(calculateTotal, 100);
+                  const newEndDate = e.target.value;
+                  setFormData(prev => ({ ...prev, endDate: newEndDate }));
+                  calculateTotal(formData.startDate, newEndDate, formData.dailyRate);
                 }}
               />
             </div>
@@ -227,8 +231,9 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
                 step="0.01"
                 value={formData.dailyRate}
                 onChange={(e) => {
-                  setFormData(prev => ({ ...prev, dailyRate: e.target.value }));
-                  setTimeout(calculateTotal, 100);
+                  const newDailyRate = e.target.value;
+                  setFormData(prev => ({ ...prev, dailyRate: newDailyRate }));
+                  calculateTotal(formData.startDate, formData.endDate, newDailyRate);
                 }}
               />
             </div>
