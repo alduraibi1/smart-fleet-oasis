@@ -5,7 +5,7 @@ import { TaxInvoice } from './Print/TaxInvoice';
 import { VehicleHandoverForm } from './Print/VehicleHandoverForm';
 import { VehicleReturnForm } from './Print/VehicleReturnForm';
 import { generateAllContractDocuments } from '@/utils/pdfGenerator';
-import { useToast } from '@/hooks/use-toast';
+import { enhancedToast } from '@/components/ui/enhanced-toast';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { FileText } from 'lucide-react';
 
@@ -21,7 +21,6 @@ interface AutoPDFGeneratorProps {
  */
 export const AutoPDFGenerator = ({ contract, onComplete, includeReturn = false }: AutoPDFGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     const generateDocuments = async () => {
@@ -43,19 +42,25 @@ export const AutoPDFGenerator = ({ contract, onComplete, includeReturn = false }
         const totalDocs = includeReturn ? 4 : 3;
         
         if (successCount > 0) {
-          toast({
-            title: '✅ تم توليد المستندات',
-            description: `تم توليد ${successCount} من ${totalDocs} مستند بنجاح`,
-          });
+          if (successCount === totalDocs) {
+            enhancedToast.success('تم توليد المستندات بنجاح', {
+              description: `تم توليد وحفظ ${successCount} مستند PDF`,
+              duration: 5000
+            });
+          } else {
+            enhancedToast.warning('تم توليد المستندات جزئياً', {
+              description: `تم توليد ${successCount} من ${totalDocs} مستند`,
+              duration: 6000
+            });
+          }
         }
 
         onComplete?.();
       } catch (error) {
         console.error('خطأ في توليد المستندات:', error);
-        toast({
-          title: 'تنبيه',
+        enhancedToast.error('فشل توليد المستندات', {
           description: 'حدث خطأ أثناء توليد بعض المستندات',
-          variant: 'destructive',
+          duration: 6000
         });
       } finally {
         setIsGenerating(false);

@@ -13,7 +13,7 @@ import { VehicleHandoverForm } from './VehicleHandoverForm';
 import { VehicleReturnForm } from './VehicleReturnForm';
 import { TaxInvoice } from './TaxInvoice';
 import { FileText, Printer, Download, Loader2, CheckCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { enhancedToast } from '@/components/ui/enhanced-toast';
 import { generateAndUploadPDF } from '@/utils/pdfGenerator';
 
 interface PrintDialogProps {
@@ -26,7 +26,6 @@ export const PrintDialog = ({ open, onOpenChange, contract }: PrintDialogProps) 
   const [activeTab, setActiveTab] = useState('contract');
   const [generating, setGenerating] = useState(false);
   const [generatedDocs, setGeneratedDocs] = useState<{[key: string]: boolean}>({});
-  const { toast } = useToast();
 
   const handlePrint = () => {
     window.print();
@@ -42,6 +41,16 @@ export const PrintDialog = ({ open, onOpenChange, contract }: PrintDialogProps) 
     return typeMap[tab] || 'contract';
   };
 
+  const getDocumentName = (type: string) => {
+    const names: {[key: string]: string} = {
+      'contract': 'العقد',
+      'invoice': 'الفاتورة الضريبية',
+      'handover': 'نموذج الاستلام',
+      'return': 'نموذج الإرجاع'
+    };
+    return names[type] || 'المستند';
+  };
+
   const handleGeneratePDF = async () => {
     if (generating) return;
     
@@ -52,10 +61,7 @@ export const PrintDialog = ({ open, onOpenChange, contract }: PrintDialogProps) 
       const docType = getDocumentType(activeTab);
       const fileName = `${contract.contract_number}_${activeTab}_${Date.now()}`;
 
-      toast({
-        title: "جاري إنشاء المستند...",
-        description: "يرجى الانتظار",
-      });
+      enhancedToast.loading(`جارٍ توليد ${getDocumentName(activeTab)}...`);
 
       const pdfUrl = await generateAndUploadPDF(
         elementId,
@@ -77,17 +83,21 @@ export const PrintDialog = ({ open, onOpenChange, contract }: PrintDialogProps) 
         link.click();
         document.body.removeChild(link);
 
-        toast({
-          title: "✅ تم إنشاء المستند بنجاح",
-          description: `تم حفظ ${activeTab === 'contract' ? 'العقد' : activeTab === 'invoice' ? 'الفاتورة' : activeTab === 'handover' ? 'نموذج الاستلام' : 'نموذج الإرجاع'} وحفظه في قاعدة البيانات`,
+        enhancedToast.success('تم إنشاء المستند بنجاح', {
+          description: `تم حفظ ${getDocumentName(activeTab)} وبدأ التنزيل`,
+          duration: 5000
+        });
+      } else {
+        enhancedToast.error('فشل توليد المستند', {
+          description: 'لم يتم إنشاء الملف، يرجى المحاولة مرة أخرى',
+          duration: 6000
         });
       }
     } catch (error) {
       console.error('Error generating PDF:', error);
-      toast({
-        title: "خطأ في الإنشاء",
-        description: error instanceof Error ? error.message : "حدث خطأ أثناء إنشاء ملف PDF",
-        variant: "destructive",
+      enhancedToast.error('خطأ في توليد المستند', {
+        description: error instanceof Error ? error.message : 'حدث خطأ أثناء إنشاء ملف PDF',
+        duration: 6000
       });
     } finally {
       setGenerating(false);

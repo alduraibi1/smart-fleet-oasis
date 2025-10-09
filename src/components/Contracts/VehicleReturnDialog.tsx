@@ -22,7 +22,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/hooks/use-toast';
+import { enhancedToast } from '@/components/ui/enhanced-toast';
 
 // NEW: confirmation dialog (shadcn)
 import {
@@ -124,7 +124,7 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
     inspectorName: '',
   });
   const [returnImages, setReturnImages] = useState<File[]>([]);
-  const { toast } = useToast();
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   // Auto calculations toggles
   const [autoLateFee, setAutoLateFee] = useState(true);
@@ -224,10 +224,9 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
 
   const handleSubmit = async () => {
     if (!formData.contractId || !formData.inspectorName || !formData.customerSignature) {
-      toast({
-        variant: "destructive",
-        title: "خطأ في البيانات",
-        description: "يرجى ملء جميع الحقول المطلوبة والتوقيع",
+      enhancedToast.error('خطأ في البيانات', {
+        description: 'يرجى ملء جميع الحقول المطلوبة والتوقيع',
+        duration: 5000
       });
       return;
     }
@@ -243,15 +242,16 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
 
       await completeContract(formData.contractId, returnData);
       
-      toast({
-        title: "✅ تم إرجاع المركبة بنجاح",
-        description: "جاري توليد نموذج الإرجاع...",
+      enhancedToast.success('تم إرجاع المركبة بنجاح', {
+        description: 'جارٍ توليد نموذج الإرجاع...',
+        duration: 4000
       });
 
       // توليد نموذج الإرجاع تلقائياً
       try {
         const contract = selectedContract;
         if (contract) {
+          setIsGeneratingPDF(true);
           // الانتظار قليلاً لضمان تحديث البيانات
           await new Promise(resolve => setTimeout(resolve, 500));
           
@@ -263,15 +263,20 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
           );
           
           if (pdfUrl) {
-            toast({
-              title: "✅ تم إنشاء نموذج الإرجاع",
-              description: "تم حفظ نموذج الإرجاع في قاعدة البيانات",
+            enhancedToast.success('تم إنشاء نموذج الإرجاع', {
+              description: 'تم حفظ نموذج الإرجاع في قاعدة البيانات',
+              duration: 5000
             });
           }
         }
       } catch (pdfError) {
         console.error('Error generating return PDF:', pdfError);
-        // لا نعرض خطأ للمستخدم لأن الإرجاع تم بنجاح
+        enhancedToast.warning('تحذير', {
+          description: 'تم تسجيل الإرجاع لكن فشل توليد نموذج PDF',
+          duration: 6000
+        });
+      } finally {
+        setIsGeneratingPDF(false);
       }
 
       onOpenChange(false);
