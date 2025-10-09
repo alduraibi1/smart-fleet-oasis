@@ -12,7 +12,7 @@ export const PrintLayout = ({ children, title, showLogo = true, showSeal = false
   const { settings } = useSystemSettings();
 
   return (
-    <div className="print:block hidden">
+    <div className="block">
       <div className="max-w-[210mm] mx-auto bg-white p-8 print:p-0" style={{ minHeight: '297mm' }}>
         {/* الترويسة */}
         {showLogo && (
