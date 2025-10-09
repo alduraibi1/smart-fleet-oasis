@@ -97,6 +97,7 @@ export interface CreateContractData {
   fuel_level_start?: string;
   notes?: string;
   terms_conditions?: string;
+  vat_included?: boolean;
 }
 
 export const useContracts = () => {

@@ -30,6 +30,7 @@ import { useContracts } from '@/hooks/useContracts';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useVehicles } from '@/hooks/useVehicles';
 import { useToast } from '@/hooks/use-toast';
+import { useContractNotifications } from '@/hooks/useContractNotifications';
 
 interface AddContractDialogProps {
   open: boolean;
@@ -53,6 +54,7 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
   const { customers } = useCustomers();
   const { vehicles } = useVehicles();
   const { toast } = useToast();
+  const { sendContractNotification } = useContractNotifications();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +93,7 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
     }
 
     try {
-      await createContract({
+      const newContract = await createContract({
         customer_id: formData.customerId,
         vehicle_id: formData.vehicleId,
         start_date: formData.startDate,
@@ -100,7 +102,18 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
         total_amount: parseFloat(formData.totalAmount) || (days * parseFloat(formData.dailyRate)),
         deposit_amount: depositNum,
         notes: formData.notes,
+        vat_included: formData.vatIncluded,
       });
+
+      // إرسال إشعار للعميل
+      if (newContract?.id) {
+        try {
+          await sendContractNotification(newContract.id, 'created');
+        } catch (notificationError) {
+          console.error('Failed to send notification:', notificationError);
+          // لا نوقف العملية إذا فشل الإشعار
+        }
+      }
 
       // Reset form
       setFormData({
