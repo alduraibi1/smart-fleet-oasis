@@ -34,87 +34,72 @@ export const PrintDialog = ({ open, onOpenChange, contract }: PrintDialogProps) 
   };
 
   const handleDownloadPDF = async () => {
+    if (generating) return;
+    
     try {
       setGenerating(true);
       
-      // الحصول على العنصر المراد تحويله لـ PDF
       const element = document.getElementById('print-content');
       if (!element) {
-        throw new Error('لم يتم العثور على المحتوى');
+        throw new Error('لم يتم العثور على المحتوى للطباعة');
       }
-      
-      // تحويل HTML إلى Canvas
+
       const canvas = await html2canvas(element, {
-        scale: 2, // جودة أعلى
+        scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
       });
-      
-      // إنشاء PDF
+
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
       });
-      
-      const imgWidth = 210; // A4 width in mm
+
+      const imgWidth = 210;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
       
-      // إضافة الصفحة الأولى
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= 297; // A4 height in mm
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
       
-      // إضافة صفحات إضافية إذا لزم الأمر
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= 297;
-      }
-      
-      // حفظ الملف
-      const fileName = `${contract.contract_number}-${activeTab}-${Date.now()}.pdf`;
-      const blob = pdf.output('blob');
-      
-      // رفع إلى Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const pdfBlob = pdf.output('blob');
+      const fileName = `${contract.contract_number}_${activeTab}_${Date.now()}.pdf`;
+      const filePath = `${contract.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
         .from('contracts')
-        .upload(`${contract.id}/${fileName}`, blob, {
+        .upload(filePath, pdfBlob, {
           contentType: 'application/pdf',
           upsert: true,
         });
-      
-      if (uploadError) throw uploadError;
-      
-      // الحصول على الرابط العام
-      const { data: { publicUrl } } = supabase.storage
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error('فشل رفع الملف إلى التخزين');
+      }
+
+      const { data: urlData } = supabase.storage
         .from('contracts')
-        .getPublicUrl(`${contract.id}/${fileName}`);
-      
-      // تحديث العقد بالرابط
-      const updateField = `${activeTab}_pdf_url`;
+        .getPublicUrl(filePath);
+
       await supabase
         .from('rental_contracts')
-        .update({ [updateField]: publicUrl })
+        .update({ pdf_url: urlData.publicUrl })
         .eq('id', contract.id);
-      
-      // تحميل الملف للمستخدم
+
       pdf.save(fileName);
-      
+
       toast({
-        title: 'تم الحفظ',
-        description: 'تم حفظ المستند كـ PDF بنجاح',
+        title: "تم الحفظ بنجاح",
+        description: "تم حفظ PDF وتحميله",
       });
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
-        title: 'خطأ',
-        description: 'حدث خطأ أثناء إنشاء ملف PDF',
-        variant: 'destructive',
+        title: "خطأ في التحميل",
+        description: error instanceof Error ? error.message : "حدث خطأ أثناء إنشاء ملف PDF",
+        variant: "destructive",
       });
     } finally {
       setGenerating(false);
