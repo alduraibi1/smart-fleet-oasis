@@ -48,6 +48,9 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
     depositAmount: '1000',
     notes: '',
     vatIncluded: false,
+    pickupLocation: '',
+    mileageStart: '',
+    fuelLevelStart: '100',
   });
 
   const { createContract } = useContracts();
@@ -59,11 +62,11 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.customerId || !formData.vehicleId || !formData.startDate || !formData.endDate || !formData.dailyRate) {
+    if (!formData.customerId || !formData.vehicleId || !formData.startDate || !formData.endDate || !formData.dailyRate || !formData.pickupLocation || !formData.mileageStart) {
       toast({
         variant: "destructive",
         title: "خطأ في البيانات",
-        description: "يرجى ملء جميع الحقول المطلوبة",
+        description: "يرجى ملء جميع الحقول المطلوبة (العميل، المركبة، التواريخ، السعر، موقع الاستلام، قراءة العداد)",
       });
       return;
     }
@@ -103,6 +106,9 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
         deposit_amount: depositNum,
         notes: formData.notes,
         vat_included: formData.vatIncluded,
+        pickup_location: formData.pickupLocation,
+        mileage_start: formData.mileageStart ? parseInt(formData.mileageStart) : undefined,
+        fuel_level_start: formData.fuelLevelStart || undefined,
       });
 
       // إرسال إشعار للعميل
@@ -126,6 +132,9 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
         depositAmount: '1000',
         notes: '',
         vatIncluded: false,
+        pickupLocation: '',
+        mileageStart: '',
+        fuelLevelStart: '100',
       });
 
       onOpenChange(false);
@@ -358,6 +367,42 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="pickupLocation">موقع الاستلام *</Label>
+              <Input
+                id="pickupLocation"
+                placeholder="مثال: الرياض - الملز"
+                value={formData.pickupLocation}
+                onChange={(e) => setFormData(prev => ({ ...prev, pickupLocation: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="mileageStart">قراءة العداد (كم) *</Label>
+              <Input
+                id="mileageStart"
+                type="number"
+                min="0"
+                placeholder="0"
+                value={formData.mileageStart}
+                onChange={(e) => setFormData(prev => ({ ...prev, mileageStart: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="fuelLevelStart">مستوى الوقود (%)</Label>
+              <Input
+                id="fuelLevelStart"
+                type="number"
+                min="0"
+                max="100"
+                value={formData.fuelLevelStart}
+                onChange={(e) => setFormData(prev => ({ ...prev, fuelLevelStart: e.target.value }))}
+              />
             </div>
           </div>
 
