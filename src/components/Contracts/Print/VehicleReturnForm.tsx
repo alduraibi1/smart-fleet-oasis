@@ -7,14 +7,23 @@ interface VehicleReturnFormProps {
   returnData?: {
     mileageOut: number;
     fuelLevelOut: string;
-    damages: Array<{ description: string; cost: number }>;
+    damages: Array<{ 
+      location?: string;
+      severity?: 'minor' | 'moderate' | 'major';
+      description: string; 
+      cost: number;
+    }>;
     additionalCharges: {
       lateFee: number;
       fuelFee: number;
       cleaningFee: number;
+      mileageFee?: number;
       other: number;
     };
     notes: string;
+    distance?: number;
+    fuelCostDetails?: string;
+    inspectorName?: string;
   };
 }
 
@@ -58,7 +67,7 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
         {/* القراءات النهائية */}
         <div className="border-2 border-gray-400 rounded p-3 bg-yellow-50">
           <h3 className="font-bold mb-3 text-lg">القراءات عند الإرجاع</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <p className="font-semibold">عداد الكيلومترات عند الاستلام:</p>
               <div className="border-b border-gray-400 mt-1 pb-1">
@@ -71,30 +80,48 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
                 {contract.odometer_end || returnData?.mileageOut || '_____________'} كم
               </div>
             </div>
+            <div>
+              <p className="font-semibold">المسافة المقطوعة:</p>
+              <div className="border-b-2 border-green-600 mt-1 pb-1 font-bold text-green-700">
+                {returnData?.distance || 
+                  ((contract.odometer_end || returnData?.mileageOut) && (contract.odometer_start || contract.mileage_start)
+                    ? `${(contract.odometer_end || returnData?.mileageOut) - (contract.odometer_start || contract.mileage_start)} كم`
+                    : '_____________')}
+              </div>
+            </div>
           </div>
-          <div className="mt-3 bg-white p-2 rounded border border-gray-300">
-            <p className="font-bold">
-              المسافة المقطوعة:{' '}
-              {(contract.odometer_end || returnData?.mileageOut) && (contract.odometer_start || contract.mileage_start)
-                ? `${(contract.odometer_end || returnData?.mileageOut) - (contract.odometer_start || contract.mileage_start)} كم`
-                : '_____________'}
-            </p>
-          </div>
-          <div className="mt-2 text-xs text-gray-600">
-            <p><span className="font-semibold">تاريخ الإرجاع الفعلي:</span> {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
+          <div className="mt-3 grid grid-cols-2 gap-4">
+            <div className="bg-white p-2 rounded border border-gray-300">
+              <p className="text-xs text-gray-600">تاريخ الإرجاع الفعلي</p>
+              <p className="font-semibold">{format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
+            </div>
+            {returnData?.inspectorName && (
+              <div className="bg-white p-2 rounded border border-gray-300">
+                <p className="text-xs text-gray-600">المفتش</p>
+                <p className="font-semibold">{returnData.inspectorName}</p>
+              </div>
+            )}
           </div>
         </div>
 
         {/* مستوى الوقود */}
         <div className="border border-gray-300 rounded p-3">
           <h3 className="font-bold mb-2">مستوى الوقود</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
-              <p className="text-gray-600">عند الاستلام: {contract.fuel_level_start || 'غير محدد'}</p>
+              <p className="text-gray-600">عند الاستلام:</p>
+              <p className="font-semibold">{contract.fuel_level_start || 'غير محدد'}</p>
             </div>
             <div>
-              <p className="font-semibold">عند الإرجاع: {contract.fuel_level_end || returnData?.fuelLevelOut || '___________'}</p>
+              <p className="text-gray-600">عند الإرجاع:</p>
+              <p className="font-semibold">{contract.fuel_level_end || returnData?.fuelLevelOut || '___________'}</p>
             </div>
+            {returnData?.fuelCostDetails && (
+              <div className="text-xs text-orange-600">
+                <p className="text-gray-600">التكلفة:</p>
+                <p className="font-semibold">{returnData.fuelCostDetails}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -106,6 +133,8 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
               <thead className="bg-red-100">
                 <tr>
                   <th className="border border-red-300 p-2">#</th>
+                  <th className="border border-red-300 p-2">الموقع</th>
+                  <th className="border border-red-300 p-2">الخطورة</th>
                   <th className="border border-red-300 p-2">وصف الضرر</th>
                   <th className="border border-red-300 p-2">التكلفة المقدرة</th>
                 </tr>
@@ -114,6 +143,13 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
                 {returnData.damages.map((damage, index) => (
                   <tr key={index}>
                     <td className="border border-red-300 p-2 text-center">{index + 1}</td>
+                    <td className="border border-red-300 p-2">{damage.location || '-'}</td>
+                    <td className="border border-red-300 p-2 text-center">
+                      {damage.severity === 'minor' && 'بسيط'}
+                      {damage.severity === 'moderate' && 'متوسط'}
+                      {damage.severity === 'major' && 'كبير'}
+                      {!damage.severity && '-'}
+                    </td>
                     <td className="border border-red-300 p-2">{damage.description}</td>
                     <td className="border border-red-300 p-2 text-left font-medium">
                       {damage.cost.toFixed(2)} ر.س
@@ -121,7 +157,7 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
                   </tr>
                 ))}
                 <tr className="bg-red-200 font-bold">
-                  <td colSpan={2} className="border border-red-300 p-2 text-right">
+                  <td colSpan={4} className="border border-red-300 p-2 text-right">
                     إجمالي تكلفة الأضرار:
                   </td>
                   <td className="border border-red-300 p-2 text-left">
@@ -173,6 +209,12 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
                 <td className="border border-gray-300 p-2 pr-6">رسوم الأضرار</td>
                 <td className="border border-gray-300 p-2 text-left font-medium text-red-600">
                   {damagesCost.toFixed(2)} ر.س
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 p-2 pr-6">رسوم الكيلومترات الزائدة</td>
+                <td className="border border-gray-300 p-2 text-left">
+                  {returnData?.additionalCharges?.mileageFee?.toFixed(2) || '0.00'} ر.س
                 </td>
               </tr>
               <tr>

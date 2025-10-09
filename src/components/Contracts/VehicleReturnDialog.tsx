@@ -37,10 +37,15 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-// NEW: small image preview component
+// Image preview component
 import ReturnImagePreview from './ReturnImagePreview';
-// NEW: calculations utility
-import { calculateLateFee } from '@/utils/returnCalculations';
+// Calculations utilities
+import { 
+  calculateLateFee, 
+  calculateFuelCharge, 
+  calculateMileageCharge,
+  calculateContractDays 
+} from '@/utils/returnCalculations';
 
 export interface VehicleCondition {
   exterior: 'excellent' | 'good' | 'fair' | 'damaged';
@@ -117,8 +122,10 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
   const [returnImages, setReturnImages] = useState<File[]>([]);
   const { toast } = useToast();
 
-  // NEW: toggle auto late-fee and confirm dialog open state
+  // Auto calculations toggles
   const [autoLateFee, setAutoLateFee] = useState(true);
+  const [autoFuelCharge, setAutoFuelCharge] = useState(true);
+  const [autoMileageCharge, setAutoMileageCharge] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Get active contracts for the dropdown
@@ -148,7 +155,7 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
     return Math.max(0, securityDeposit - totalCharges);
   };
 
-  // NEW: auto-calc late fee when enabled and inputs change
+  // Auto-calculate late fee
   useEffect(() => {
     if (!autoLateFee || !selectedContract) return;
 
@@ -167,6 +174,49 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
       }
     }));
   }, [autoLateFee, selectedContract?.endDate, selectedContract?.dailyRate, formData.returnDate, formData.returnTime]);
+
+  // Auto-calculate fuel charge
+  useEffect(() => {
+    if (!autoFuelCharge || !selectedContract) return;
+
+    const contracts = activeContracts.find(c => c.id === formData.contractId);
+    if (!contracts) return;
+
+    // Get fuel level at start from contract (assuming we have it)
+    const startFuelLevel = 'full'; // Default or from contract data
+    const charge = calculateFuelCharge(startFuelLevel, formData.fuelLevel);
+
+    setFormData(prev => ({
+      ...prev,
+      additionalCharges: {
+        ...prev.additionalCharges,
+        fuelCharge: charge
+      }
+    }));
+  }, [autoFuelCharge, formData.fuelLevel, formData.contractId]);
+
+  // Auto-calculate mileage excess charge
+  useEffect(() => {
+    if (!autoMileageCharge || !selectedContract || !formData.currentMileage) return;
+
+    const days = calculateContractDays(selectedContract.startDate, selectedContract.endDate);
+    const allowedKmPerDay = 250; // Default: 250 km/day
+    const charge = calculateMileageCharge(
+      selectedContract.startMileage,
+      formData.currentMileage,
+      allowedKmPerDay,
+      days,
+      0.5 // 0.5 SAR per excess km
+    );
+
+    setFormData(prev => ({
+      ...prev,
+      additionalCharges: {
+        ...prev.additionalCharges,
+        other: charge
+      }
+    }));
+  }, [autoMileageCharge, selectedContract, formData.currentMileage]);
 
   const handleSubmit = async () => {
     if (!formData.contractId || !formData.inspectorName || !formData.customerSignature) {
@@ -469,22 +519,41 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* NEW: auto late-fee toggle and helper text */}
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="autoLateFee"
-                    checked={autoLateFee}
-                    onCheckedChange={(checked) => setAutoLateFee(!!checked)}
-                  />
-                  <Label htmlFor="autoLateFee" className="text-sm">
-                    حساب رسوم التأخير تلقائياً حسب تاريخ انتهاء العقد
-                  </Label>
+                {/* Auto calculations toggles */}
+                <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="autoLateFee"
+                      checked={autoLateFee}
+                      onCheckedChange={(checked) => setAutoLateFee(!!checked)}
+                    />
+                    <Label htmlFor="autoLateFee" className="text-sm">
+                      حساب رسوم التأخير تلقائياً
+                    </Label>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="autoFuelCharge"
+                      checked={autoFuelCharge}
+                      onCheckedChange={(checked) => setAutoFuelCharge(!!checked)}
+                    />
+                    <Label htmlFor="autoFuelCharge" className="text-sm">
+                      حساب رسوم الوقود تلقائياً (50 ر.س لكل ربع نقص)
+                    </Label>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="autoMileageCharge"
+                      checked={autoMileageCharge}
+                      onCheckedChange={(checked) => setAutoMileageCharge(!!checked)}
+                    />
+                    <Label htmlFor="autoMileageCharge" className="text-sm">
+                      حساب رسوم الكيلومترات الزائدة (0.5 ر.س/كم، 250 كم/يوم مسموح)
+                    </Label>
+                  </div>
                 </div>
-                {autoLateFee && selectedContract && (
-                  <p className="text-xs text-muted-foreground">
-                    سيُحتسب التأخير بناءً على {selectedContract.endDate} وبسعر يومي {selectedContract.dailyRate.toLocaleString()} ر.س
-                  </p>
-                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -492,6 +561,7 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
                     <Input
                       id="lateFee"
                       type="number"
+                      disabled={autoLateFee}
                       value={formData.additionalCharges.lateFee}
                       onChange={(e) => setFormData(prev => ({ 
                         ...prev, 
@@ -501,12 +571,18 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
                         }
                       }))}
                     />
+                    {selectedContract && formData.returnDate > selectedContract.endDate && (
+                      <p className="text-xs text-orange-600 mt-1">
+                        تأخير عن موعد الانتهاء ({selectedContract.endDate})
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="fuelCharge">رسوم الوقود (ر.س)</Label>
                     <Input
                       id="fuelCharge"
                       type="number"
+                      disabled={autoFuelCharge}
                       value={formData.additionalCharges.fuelCharge}
                       onChange={(e) => setFormData(prev => ({ 
                         ...prev, 
@@ -516,6 +592,11 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
                         }
                       }))}
                     />
+                    {formData.fuelLevel < 100 && (
+                      <p className="text-xs text-orange-600 mt-1">
+                        مستوى الوقود {formData.fuelLevel}%
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="damageFee">رسوم الأضرار (ر.س)</Label>
@@ -550,7 +631,7 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
                 </div>
 
                 <div>
-                  <Label htmlFor="otherDescription">رسوم أخرى - الوصف</Label>
+                  <Label htmlFor="otherDescription">رسوم الكيلومترات الزائدة - الوصف</Label>
                   <Input
                     id="otherDescription"
                     value={formData.additionalCharges.otherDescription}
@@ -561,7 +642,7 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
                         otherDescription: e.target.value 
                       }
                     }))}
-                    placeholder="وصف الرسوم الأخرى"
+                    placeholder="وصف الرسوم الأخرى (تلقائي: رسوم الكيلومترات الزائدة)"
                   />
                 </div>
 
@@ -570,6 +651,7 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
                   <Input
                     id="other"
                     type="number"
+                    disabled={autoMileageCharge}
                     value={formData.additionalCharges.other}
                     onChange={(e) => setFormData(prev => ({ 
                       ...prev, 
@@ -579,6 +661,11 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
                       }
                     }))}
                   />
+                  {selectedContract && formData.currentMileage > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      المسافة المقطوعة: {(formData.currentMileage - selectedContract.startMileage).toLocaleString()} كم
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
