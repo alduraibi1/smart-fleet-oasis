@@ -32,6 +32,7 @@ export interface Contract {
   customer_signature?: string;
   employee_signature?: string;
   signed_at?: string;
+  vat_included?: boolean;
   created_at: string;
   updated_at: string;
   created_by?: string;
@@ -45,6 +46,9 @@ export interface Contract {
     national_id: string;
     license_number: string;
     license_expiry: string;
+    nationality?: string;
+    date_of_birth?: string;
+    address?: string;
   };
   vehicle?: {
     id: string;
@@ -54,6 +58,31 @@ export interface Contract {
     year: number;
     color: string;
     daily_rate: number;
+    vin?: string;
+  };
+  
+  // For print templates compatibility
+  customers?: {
+    id: string;
+    name: string;
+    phone: string;
+    email?: string;
+    national_id: string;
+    license_number: string;
+    license_expiry: string;
+    nationality?: string;
+    date_of_birth?: string;
+    address?: string;
+  };
+  vehicles?: {
+    id: string;
+    plate_number: string;
+    brand: string;
+    model: string;
+    year: number;
+    color: string;
+    daily_rate: number;
+    vin?: string;
   };
 }
 
@@ -115,12 +144,24 @@ export const useContracts = () => {
   });
   const { toast } = useToast();
 
-  // Generate unique contract number
-  const generateContractNumber = () => {
-    const year = new Date().getFullYear();
-    const month = (new Date().getMonth() + 1).toString().padStart(2, '0');
-    const random = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
-    return `CR-${year}${month}-${random}`;
+  // Generate unique contract number using RPC
+  const generateContractNumber = async () => {
+    try {
+      const { data, error } = await supabase.rpc('generate_contract_number');
+      if (error) {
+        console.error('Error generating contract number:', error);
+        // Fallback to client-side generation
+        const year = new Date().getFullYear();
+        const random = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+        return `CR-${year}-${random}`;
+      }
+      return data;
+    } catch (error) {
+      console.error('Error calling generate_contract_number RPC:', error);
+      const year = new Date().getFullYear();
+      const random = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+      return `CR-${year}-${random}`;
+    }
   };
 
   // Fetch contracts with relations
@@ -138,7 +179,10 @@ export const useContracts = () => {
             email,
             national_id,
             license_number,
-            license_expiry
+            license_expiry,
+            nationality,
+            date_of_birth,
+            address
           ),
           vehicle:vehicles(
             id,
@@ -147,7 +191,8 @@ export const useContracts = () => {
             model,
             year,
             color,
-            daily_rate
+            daily_rate,
+            vin
           )
         `)
         .order('created_at', { ascending: false });
@@ -176,11 +221,19 @@ export const useContracts = () => {
 
       if (error) throw error;
 
-      const contractsData = (data || []).map(contract => ({
-        ...contract,
-        customer: contract.customer || undefined,
-        vehicle: contract.vehicle || undefined,
-      })) as Contract[];
+      const contractsData = (data || []).map(contract => {
+        const customer = contract.customer || undefined;
+        const vehicle = contract.vehicle || undefined;
+        
+        return {
+          ...contract,
+          customer,
+          vehicle,
+          // Add compatibility for print templates
+          customers: customer,
+          vehicles: vehicle,
+        };
+      }) as Contract[];
 
       setContracts(contractsData);
       calculateStats(contractsData);
@@ -244,7 +297,7 @@ export const useContracts = () => {
         throw new Error('Contract duration must be at least 90 days');
       }
 
-      const contractNumber = generateContractNumber();
+      const contractNumber = await generateContractNumber();
 
       // حساب الوديعة: حد أدنى 1000 ريال
       const deposit = Math.max(1000, contractData.deposit_amount ?? 1000);
@@ -280,7 +333,10 @@ export const useContracts = () => {
             email,
             national_id,
             license_number,
-            license_expiry
+            license_expiry,
+            nationality,
+            date_of_birth,
+            address
           ),
           vehicle:vehicles(
             id,
@@ -289,7 +345,8 @@ export const useContracts = () => {
             model,
             year,
             color,
-            daily_rate
+            daily_rate,
+            vin
           )
         `)
         .single();
@@ -302,10 +359,15 @@ export const useContracts = () => {
         .update({ status: 'rented' })
         .eq('id', contractData.vehicle_id);
 
+      const customer = data.customer || undefined;
+      const vehicle = data.vehicle || undefined;
+      
       const newContractData = {
         ...data,
-        customer: data.customer || undefined,
-        vehicle: data.vehicle || undefined,
+        customer,
+        vehicle,
+        customers: customer,
+        vehicles: vehicle,
       } as Contract;
 
       setContracts(prev => [newContractData, ...prev]);
@@ -344,7 +406,10 @@ export const useContracts = () => {
             email,
             national_id,
             license_number,
-            license_expiry
+            license_expiry,
+            nationality,
+            date_of_birth,
+            address
           ),
           vehicle:vehicles(
             id,
@@ -353,17 +418,23 @@ export const useContracts = () => {
             model,
             year,
             color,
-            daily_rate
+            daily_rate,
+            vin
           )
         `)
         .single();
 
       if (error) throw error;
 
+      const customer = data.customer || undefined;
+      const vehicle = data.vehicle || undefined;
+      
       const updatedContract = {
         ...data,
-        customer: data.customer || undefined,
-        vehicle: data.vehicle || undefined,
+        customer,
+        vehicle,
+        customers: customer,
+        vehicles: vehicle,
       } as Contract;
 
       setContracts(prev => 
@@ -425,7 +496,10 @@ export const useContracts = () => {
             email,
             national_id,
             license_number,
-            license_expiry
+            license_expiry,
+            nationality,
+            date_of_birth,
+            address
           ),
           vehicle:vehicles(
             id,
@@ -434,7 +508,8 @@ export const useContracts = () => {
             model,
             year,
             color,
-            daily_rate
+            daily_rate,
+            vin
           )
         `)
         .single();
@@ -450,10 +525,15 @@ export const useContracts = () => {
         })
         .eq('id', contract.vehicle_id);
 
+      const customer = data.customer || undefined;
+      const vehicle = data.vehicle || undefined;
+      
       const updatedContract = {
         ...data,
-        customer: data.customer || undefined,
-        vehicle: data.vehicle || undefined,
+        customer,
+        vehicle,
+        customers: customer,
+        vehicles: vehicle,
       } as Contract;
 
       setContracts(prev => 
