@@ -37,6 +37,12 @@ export interface Contract {
   updated_at: string;
   created_by?: string;
   
+  // PDF URLs
+  contract_pdf_url?: string;
+  invoice_pdf_url?: string;
+  handover_pdf_url?: string;
+  return_pdf_url?: string;
+  
   // Relations
   customer?: {
     id: string;

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Eye, FileText, Car, Edit, Trash2, Printer } from 'lucide-react';
+import { Eye, FileText, Car, Edit, Trash2, Printer, Download, FileCheck } from 'lucide-react';
 import { Contract } from '@/hooks/useContracts';
 import VehicleReturnDialog from './VehicleReturnDialog';
 import DetailedReturnReport from './DetailedReturnReport';
@@ -54,6 +54,20 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
     setShowPrintDialog(true);
   };
 
+  const handleDownloadPDF = (url: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const hasPDFs = (contract: Contract) => {
+    return contract.contract_pdf_url || contract.invoice_pdf_url || contract.handover_pdf_url;
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -100,6 +114,12 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
                       <span className="font-medium">
                         {contract.total_amount.toLocaleString()} ر.س
                       </span>
+                      {hasPDFs(contract) && (
+                        <span className="flex items-center gap-1 text-green-600">
+                          <FileCheck className="h-4 w-4" />
+                          مستندات محفوظة
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -112,14 +132,25 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
                       <Eye className="h-4 w-4" />
                     </Button>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePrint(contract)}
-                      title="طباعة المستندات"
-                    >
-                      <Printer className="h-4 w-4" />
-                    </Button>
+                    {hasPDFs(contract) ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewDetails(contract)}
+                        title="عرض المستندات المحفوظة"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePrint(contract)}
+                        title="طباعة المستندات"
+                      >
+                        <Printer className="h-4 w-4" />
+                      </Button>
+                    )}
                     
                     {contract.status === 'active' && (
                       <Button
@@ -168,7 +199,6 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
           </DialogHeader>
           {selectedContract && (
             <div className="space-y-4">
-              {/* Contract details content here */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">رقم العقد</label>
@@ -181,6 +211,58 @@ export const ContractsTable = ({ contracts, loading }: ContractsTableProps) => {
                   </Badge>
                 </div>
               </div>
+
+              {/* PDF Documents Section */}
+              {hasPDFs(selectedContract) && (
+                <div className="space-y-3 p-4 bg-muted rounded-lg">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <FileCheck className="h-5 w-5 text-green-600" />
+                    المستندات المحفوظة
+                  </h3>
+                  <div className="space-y-2">
+                    {selectedContract.contract_pdf_url && (
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={() => handleDownloadPDF(selectedContract.contract_pdf_url!, `contract-${selectedContract.contract_number}.pdf`)}
+                      >
+                        <FileText className="h-4 w-4 ml-2" />
+                        عقد الإيجار
+                      </Button>
+                    )}
+                    {selectedContract.invoice_pdf_url && (
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={() => handleDownloadPDF(selectedContract.invoice_pdf_url!, `invoice-${selectedContract.contract_number}.pdf`)}
+                      >
+                        <FileText className="h-4 w-4 ml-2" />
+                        الفاتورة الضريبية
+                      </Button>
+                    )}
+                    {selectedContract.handover_pdf_url && (
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={() => handleDownloadPDF(selectedContract.handover_pdf_url!, `handover-${selectedContract.contract_number}.pdf`)}
+                      >
+                        <FileText className="h-4 w-4 ml-2" />
+                        نموذج الاستلام
+                      </Button>
+                    )}
+                    {selectedContract.return_pdf_url && (
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={() => handleDownloadPDF(selectedContract.return_pdf_url!, `return-${selectedContract.contract_number}.pdf`)}
+                      >
+                        <FileText className="h-4 w-4 ml-2" />
+                        نموذج الإرجاع
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
