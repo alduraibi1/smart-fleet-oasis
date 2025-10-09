@@ -3,6 +3,7 @@ import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { QRCodeSVG } from 'qrcode.react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { generateZatcaQR } from '@/utils/zatcaQR';
 
 interface TaxInvoiceProps {
   contract: any;
@@ -28,25 +29,13 @@ export const TaxInvoice = ({ contract, invoiceNumber }: TaxInvoiceProps) => {
   }
 
   // إنشاء QR Code متوافق مع الفاتورة الإلكترونية السعودية (ZATCA)
-  // TLV Format: Tag-Length-Value
-  const generateZatcaQR = () => {
-    const sellerName = settings?.companyName || '';
-    const vatNumber = settings?.taxNumber || '';
-    const timestamp = new Date().toISOString();
-    const total = totalWithVat.toFixed(2);
-    const vat = vatAmount.toFixed(2);
-
-    // تنسيق TLV بسيط (في الإنتاج يحتاج Base64 encoding)
-    const qrData = JSON.stringify({
-      seller: sellerName,
-      vat_number: vatNumber,
-      timestamp,
-      total,
-      vat_amount: vat,
-    });
-
-    return qrData;
-  };
+  const zatcaQRData = generateZatcaQR({
+    sellerName: settings?.companyName || '',
+    vatNumber: settings?.taxNumber || '',
+    timestamp: new Date().toISOString(),
+    totalWithVat: totalWithVat.toFixed(2),
+    vatAmount: vatAmount.toFixed(2),
+  });
 
   return (
     <PrintLayout showLogo showSeal>
@@ -72,7 +61,7 @@ export const TaxInvoice = ({ contract, invoiceNumber }: TaxInvoiceProps) => {
             </p>
           </div>
           <div className="text-right">
-            <QRCodeSVG value={generateZatcaQR()} size={100} />
+            <QRCodeSVG value={zatcaQRData} size={100} level="M" />
             <p className="text-xs text-gray-500 mt-1">رمز التحقق ZATCA</p>
           </div>
         </div>

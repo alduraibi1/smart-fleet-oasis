@@ -700,3 +700,78 @@
     transform: scale(1);
   }
 }
+
+/* Print Styles - إعدادات الطباعة */
+@media print {
+  /* إخفاء العناصر غير الضرورية */
+  .print\:hidden,
+  button,
+  nav,
+  aside,
+  .sidebar,
+  .header-actions,
+  [data-radix-dialog-overlay],
+  [role="dialog"]:not(.print-container) > div:first-child,
+  .no-print {
+    display: none !important;
+  }
+  
+  /* إعدادات الصفحة */
+  @page {
+    size: A4 portrait;
+    margin: 1cm;
+  }
+  
+  /* التأكد من طباعة الألوان */
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  
+  /* فواصل الصفحات */
+  .page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+  
+  .page-break-after {
+    page-break-after: always;
+    break-after: page;
+  }
+  
+  /* منع تقطيع العناصر */
+  .no-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  /* تحسين الجداول */
+  table {
+    page-break-inside: auto;
+  }
+  
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  
+  /* تحسين الهوامش */
+  .print-container {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* تحسين حجم الخط للطباعة */
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+  
+  /* إزالة الخلفيات */
+  .bg-gradient-to-r,
+  .bg-gradient-to-br {
+    background: white !important;
+  }
+}
