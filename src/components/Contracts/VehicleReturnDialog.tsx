@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Camera, FileText, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
+import { uploadMultipleContractImages } from '@/lib/supabase-storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -124,6 +125,8 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
     inspectorName: '',
   });
   const [returnImages, setReturnImages] = useState<File[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   // Auto calculations toggles
@@ -232,12 +235,44 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
     }
 
     try {
+      // رفع الصور أولاً إلى Supabase Storage
+      let imageUrls: string[] = [];
+      if (returnImages.length > 0) {
+        setIsUploadingImages(true);
+        enhancedToast.info('جاري رفع الصور...', {
+          description: `يتم رفع ${returnImages.length} صورة`,
+          duration: 3000
+        });
+        
+        try {
+          imageUrls = await uploadMultipleContractImages(
+            returnImages,
+            formData.contractId,
+            'return'
+          );
+          setUploadedImageUrls(imageUrls);
+          
+          enhancedToast.success('تم رفع الصور بنجاح', {
+            description: `تم رفع ${imageUrls.length} صورة`,
+            duration: 3000
+          });
+        } catch (uploadError) {
+          console.error('Error uploading images:', uploadError);
+          enhancedToast.error('فشل رفع الصور', {
+            description: 'حدث خطأ أثناء رفع الصور. سيتم المتابعة بدون الصور.',
+            duration: 5000
+          });
+        } finally {
+          setIsUploadingImages(false);
+        }
+      }
+
       const returnData = {
         actual_return_date: `${formData.returnDate}T${formData.returnTime}:00`,
         mileage_end: formData.currentMileage,
         fuel_level_end: formData.fuelLevel.toString(),
         additional_charges: calculateTotalCharges(),
-        notes: `${formData.returnNotes}\n\nفحص المركبة:\n${Object.entries(formData.condition).map(([part, condition]) => `${part}: ${condition}`).join('\n')}\n\nالمفتش: ${formData.inspectorName}\n\nالأضرار: ${formData.damageNotes}`,
+        notes: `${formData.returnNotes}\n\nفحص المركبة:\n${Object.entries(formData.condition).map(([part, condition]) => `${part}: ${condition}`).join('\n')}\n\nالمفتش: ${formData.inspectorName}\n\nالأضرار: ${formData.damageNotes}${imageUrls.length > 0 ? `\n\nالصور: ${imageUrls.join(', ')}` : ''}`,
       };
 
       await completeContract(formData.contractId, returnData);
@@ -885,6 +920,7 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
             returnData={{
               mileageOut: formData.currentMileage,
               fuelLevelOut: `${formData.fuelLevel}%`,
+              photos: uploadedImageUrls.length > 0 ? uploadedImageUrls : undefined,
               damages: [],
               additionalCharges: {
                 lateFee: formData.additionalCharges.lateFee,
