@@ -46,9 +46,23 @@ export const ContractTemplate = ({ contract }: ContractTemplateProps) => {
       (1000 * 60 * 60 * 24)
   );
 
-  const baseAmount = contract.total_amount;
-  const vatAmount = contract.vat_included ? baseAmount * 0.15 : 0;
-  const totalWithVat = baseAmount + vatAmount;
+  // إصلاح حساب VAT: إذا كان شامل الضريبة، نستخرجها من المبلغ بدلاً من إضافتها
+  let baseAmount: number;
+  let vatAmount: number;
+  let totalWithVat: number;
+
+  if (contract.vat_included) {
+    // المبلغ المدخل شامل الضريبة، نستخرج الضريبة منه
+    totalWithVat = contract.total_amount;
+    baseAmount = totalWithVat / 1.15;
+    vatAmount = totalWithVat - baseAmount;
+  } else {
+    // المبلغ المدخل بدون ضريبة
+    baseAmount = contract.total_amount;
+    vatAmount = 0;
+    totalWithVat = baseAmount;
+  }
+
   const remaining = totalWithVat - contract.paid_amount;
 
   const verificationUrl = `${window.location.origin}/contracts/verify/${contract.id}`;
@@ -109,7 +123,7 @@ export const ContractTemplate = ({ contract }: ContractTemplateProps) => {
             </div>
             <div>
               <span className="text-gray-600">الجنسية / Nationality:</span>
-              <span className="font-medium mr-2">{contract.customers?.nationality}</span>
+              <span className="font-medium mr-2">{contract.customers?.nationality || 'غير محدد'}</span>
             </div>
             <div>
               <span className="text-gray-600">الهاتف / Mobile:</span>

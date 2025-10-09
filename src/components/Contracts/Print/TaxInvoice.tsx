@@ -12,9 +12,20 @@ interface TaxInvoiceProps {
 export const TaxInvoice = ({ contract, invoiceNumber }: TaxInvoiceProps) => {
   const { settings } = useSystemSettings();
 
-  const baseAmount = contract.total_amount || 0;
-  const vatAmount = contract.vat_included ? baseAmount * 0.15 : 0;
-  const totalWithVat = baseAmount + vatAmount;
+  // إصلاح حساب VAT: إذا كان شامل الضريبة، نستخرجها من المبلغ
+  let baseAmount: number;
+  let vatAmount: number;
+  let totalWithVat: number;
+
+  if (contract.vat_included) {
+    totalWithVat = contract.total_amount || 0;
+    baseAmount = totalWithVat / 1.15;
+    vatAmount = totalWithVat - baseAmount;
+  } else {
+    baseAmount = contract.total_amount || 0;
+    vatAmount = 0;
+    totalWithVat = baseAmount;
+  }
 
   // إنشاء QR Code متوافق مع الفاتورة الإلكترونية السعودية (ZATCA)
   // TLV Format: Tag-Length-Value

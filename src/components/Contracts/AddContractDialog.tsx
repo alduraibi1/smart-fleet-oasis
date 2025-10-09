@@ -141,11 +141,31 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
       const end = new Date(endDate);
       const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
       if (days > 0 && !isNaN(parseFloat(dailyRate))) {
-        const total = days * parseFloat(dailyRate);
-        setFormData(prev => ({ ...prev, totalAmount: total.toFixed(2) }));
+        // المبلغ المحسوب هو الأساسي (بدون ضريبة)
+        const baseTotal = days * parseFloat(dailyRate);
+        setFormData(prev => ({ ...prev, totalAmount: baseTotal.toFixed(2) }));
       }
     }
   };
+
+  // حساب تفاصيل المبلغ للعرض
+  const getAmountDetails = () => {
+    const total = parseFloat(formData.totalAmount || '0');
+    if (isNaN(total) || total === 0) return null;
+
+    if (formData.vatIncluded) {
+      // المبلغ المدخل شامل الضريبة
+      const totalWithVat = total;
+      const baseAmount = totalWithVat / 1.15;
+      const vatAmount = totalWithVat - baseAmount;
+      return { baseAmount, vatAmount, totalWithVat };
+    } else {
+      // المبلغ المدخل بدون ضريبة
+      return { baseAmount: total, vatAmount: 0, totalWithVat: total };
+    }
+  };
+
+  const amountDetails = getAmountDetails();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -305,24 +325,34 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                {formData.vatIncluded && (
-                  <div className="bg-muted/50 p-3 rounded-lg border border-border">
+                {amountDetails && formData.vatIncluded && (
+                  <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
                     <div className="text-sm space-y-1">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">المبلغ الأساسي:</span>
-                        <span className="font-medium">{formData.totalAmount || '0'} ر.س</span>
+                        <span className="text-gray-600">المبلغ الأساسي:</span>
+                        <span className="font-medium">{amountDetails.baseAmount.toFixed(2)} ر.س</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">الضريبة (15%):</span>
+                      <div className="flex justify-between text-yellow-700">
+                        <span>الضريبة (15%):</span>
                         <span className="font-medium">
-                          {(parseFloat(formData.totalAmount || '0') * 0.15).toFixed(2)} ر.س
+                          {amountDetails.vatAmount.toFixed(2)} ر.س
                         </span>
                       </div>
-                      <div className="flex justify-between border-t border-border pt-1 mt-1">
+                      <div className="flex justify-between border-t border-blue-300 pt-1 mt-1">
                         <span className="font-semibold">المجموع شامل الضريبة:</span>
                         <span className="font-bold text-primary">
-                          {(parseFloat(formData.totalAmount || '0') * 1.15).toFixed(2)} ر.س
+                          {amountDetails.totalWithVat.toFixed(2)} ر.س
                         </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {amountDetails && !formData.vatIncluded && formData.totalAmount && (
+                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <div className="text-sm">
+                      <div className="flex justify-between">
+                        <span className="font-semibold">المجموع (بدون ضريبة):</span>
+                        <span className="font-bold">{amountDetails.baseAmount.toFixed(2)} ر.س</span>
                       </div>
                     </div>
                   </div>

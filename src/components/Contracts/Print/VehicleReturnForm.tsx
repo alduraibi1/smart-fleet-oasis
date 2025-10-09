@@ -62,23 +62,26 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
             <div>
               <p className="font-semibold">عداد الكيلومترات عند الاستلام:</p>
               <div className="border-b border-gray-400 mt-1 pb-1">
-                {contract.odometer_start || '_____________'} كم
+                {contract.odometer_start || contract.mileage_start || '_____________'} كم
               </div>
             </div>
             <div>
               <p className="font-semibold">عداد الكيلومترات عند الإرجاع:</p>
               <div className="border-b-2 border-gray-600 mt-1 pb-1 font-bold">
-                {returnData?.mileageOut || '_____________'} كم
+                {contract.odometer_end || returnData?.mileageOut || '_____________'} كم
               </div>
             </div>
           </div>
           <div className="mt-3 bg-white p-2 rounded border border-gray-300">
             <p className="font-bold">
               المسافة المقطوعة:{' '}
-              {returnData?.mileageOut && contract.odometer_start
-                ? `${returnData.mileageOut - contract.odometer_start} كم`
+              {(contract.odometer_end || returnData?.mileageOut) && (contract.odometer_start || contract.mileage_start)
+                ? `${(contract.odometer_end || returnData?.mileageOut) - (contract.odometer_start || contract.mileage_start)} كم`
                 : '_____________'}
             </p>
+          </div>
+          <div className="mt-2 text-xs text-gray-600">
+            <p><span className="font-semibold">تاريخ الإرجاع الفعلي:</span> {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
           </div>
         </div>
 
@@ -87,10 +90,10 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
           <h3 className="font-bold mb-2">مستوى الوقود</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-gray-600">عند الاستلام: {contract.fuel_level_start || 'ممتلئ'}</p>
+              <p className="text-gray-600">عند الاستلام: {contract.fuel_level_start || 'غير محدد'}</p>
             </div>
             <div>
-              <p className="font-semibold">عند الإرجاع: {returnData?.fuelLevelOut || '___________'}</p>
+              <p className="font-semibold">عند الإرجاع: {contract.fuel_level_end || returnData?.fuelLevelOut || '___________'}</p>
             </div>
           </div>
         </div>

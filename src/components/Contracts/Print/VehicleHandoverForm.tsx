@@ -62,27 +62,25 @@ export const VehicleHandoverForm = ({ contract, inspectionData }: VehicleHandove
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="font-semibold">عداد الكيلومترات:</p>
-              <div className="border-b-2 border-gray-400 mt-2 pb-1">
-                {inspectionData?.mileage || '_____________'} كم
+              <div className="border-b-2 border-gray-400 mt-2 pb-1 font-bold">
+                {contract.odometer_start || contract.mileage_start || inspectionData?.mileage || '_____________'} كم
               </div>
             </div>
             <div>
               <p className="font-semibold">مستوى الوقود:</p>
-              <div className="flex gap-3 mt-2">
-                <label className="flex items-center gap-1">
-                  <input type="checkbox" className="print:hidden" /> ممتلئ
-                </label>
-                <label className="flex items-center gap-1">
-                  <input type="checkbox" className="print:hidden" /> 3/4
-                </label>
-                <label className="flex items-center gap-1">
-                  <input type="checkbox" className="print:hidden" /> نصف
-                </label>
-                <label className="flex items-center gap-1">
-                  <input type="checkbox" className="print:hidden" /> 1/4
-                </label>
+              <div className="border-b-2 border-gray-400 mt-2 pb-1 font-bold">
+                {contract.fuel_level_start || inspectionData?.fuelLevel || '_____________'}
+              </div>
+              <div className="flex gap-3 mt-2 text-xs text-gray-600">
+                <span>☐ ممتلئ</span>
+                <span>☐ 3/4</span>
+                <span>☐ نصف</span>
+                <span>☐ 1/4</span>
               </div>
             </div>
+          </div>
+          <div className="mt-3 text-xs text-gray-600">
+            <p><span className="font-semibold">تاريخ الاستلام:</span> {format(new Date(contract.start_date || new Date()), 'dd/MM/yyyy HH:mm')}</p>
           </div>
         </div>
 
