@@ -3103,8 +3103,10 @@ export type Database = {
           fuel_level_end: string | null
           fuel_level_start: string | null
           handover_form_pdf_url: string | null
+          handover_pdf_url: string | null
           id: string
           insurance_amount: number | null
+          invoice_pdf_url: string | null
           mileage_end: number | null
           mileage_start: number | null
           notes: string | null
@@ -3112,10 +3114,12 @@ export type Database = {
           paid_amount: number | null
           payment_method: string | null
           payment_status: string | null
+          pdf_url: string | null
           pickup_location: string | null
           remaining_amount: number | null
           return_form_pdf_url: string | null
           return_location: string | null
+          return_pdf_url: string | null
           signed_at: string | null
           start_date: string
           status: string | null
@@ -3145,8 +3149,10 @@ export type Database = {
           fuel_level_end?: string | null
           fuel_level_start?: string | null
           handover_form_pdf_url?: string | null
+          handover_pdf_url?: string | null
           id?: string
           insurance_amount?: number | null
+          invoice_pdf_url?: string | null
           mileage_end?: number | null
           mileage_start?: number | null
           notes?: string | null
@@ -3154,10 +3160,12 @@ export type Database = {
           paid_amount?: number | null
           payment_method?: string | null
           payment_status?: string | null
+          pdf_url?: string | null
           pickup_location?: string | null
           remaining_amount?: number | null
           return_form_pdf_url?: string | null
           return_location?: string | null
+          return_pdf_url?: string | null
           signed_at?: string | null
           start_date: string
           status?: string | null
@@ -3187,8 +3195,10 @@ export type Database = {
           fuel_level_end?: string | null
           fuel_level_start?: string | null
           handover_form_pdf_url?: string | null
+          handover_pdf_url?: string | null
           id?: string
           insurance_amount?: number | null
+          invoice_pdf_url?: string | null
           mileage_end?: number | null
           mileage_start?: number | null
           notes?: string | null
@@ -3196,10 +3206,12 @@ export type Database = {
           paid_amount?: number | null
           payment_method?: string | null
           payment_status?: string | null
+          pdf_url?: string | null
           pickup_location?: string | null
           remaining_amount?: number | null
           return_form_pdf_url?: string | null
           return_location?: string | null
+          return_pdf_url?: string | null
           signed_at?: string | null
           start_date?: string
           status?: string | null
@@ -5221,6 +5233,10 @@ export type Database = {
           p_entity_id: string
           p_entity_type: string
         }
+        Returns: string
+      }
+      generate_contract_number: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       generate_discount_number: {
