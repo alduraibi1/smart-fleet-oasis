@@ -57,7 +57,7 @@ export const PrintDialog = ({ open, onOpenChange, contract }: PrintDialogProps) 
     try {
       setGenerating(true);
       
-      const elementId = 'print-content';
+      const elementId = `print-content-${activeTab}`;
       const docType = getDocumentType(activeTab);
       const fileName = `${contract.contract_number}_${activeTab}_${Date.now()}`;
 
@@ -172,8 +172,8 @@ export const PrintDialog = ({ open, onOpenChange, contract }: PrintDialogProps) 
           )}
 
           {/* التبويبات */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="print:hidden">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-4 print:hidden">
               <TabsTrigger value="contract">
                 <FileText className="h-4 w-4 ml-2" />
                 العقد
@@ -191,15 +191,35 @@ export const PrintDialog = ({ open, onOpenChange, contract }: PrintDialogProps) 
                 الفاتورة
               </TabsTrigger>
             </TabsList>
-          </Tabs>
 
-          {/* معاينة المستند */}
-          <div id="print-content" className="border border-gray-300 rounded-lg bg-gray-50 p-4">
-            {activeTab === 'contract' && <ContractTemplate contract={contract} />}
-            {activeTab === 'handover' && <VehicleHandoverForm contract={contract} />}
-            {activeTab === 'return' && <VehicleReturnForm contract={contract} />}
-            {activeTab === 'invoice' && <TaxInvoice contract={contract} />}
-          </div>
+            {/* معاينة المستند - العقد */}
+            <TabsContent value="contract">
+              <div id="print-content-contract" className="border border-gray-300 rounded-lg bg-gray-50 p-4">
+                <ContractTemplate contract={contract} />
+              </div>
+            </TabsContent>
+
+            {/* معاينة المستند - استلام المركبة */}
+            <TabsContent value="handover">
+              <div id="print-content-handover" className="border border-gray-300 rounded-lg bg-gray-50 p-4">
+                <VehicleHandoverForm contract={contract} />
+              </div>
+            </TabsContent>
+
+            {/* معاينة المستند - إرجاع المركبة */}
+            <TabsContent value="return">
+              <div id="print-content-return" className="border border-gray-300 rounded-lg bg-gray-50 p-4">
+                <VehicleReturnForm contract={contract} />
+              </div>
+            </TabsContent>
+
+            {/* معاينة المستند - الفاتورة */}
+            <TabsContent value="invoice">
+              <div id="print-content-invoice" className="border border-gray-300 rounded-lg bg-gray-50 p-4">
+                <TaxInvoice contract={contract} />
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </DialogContent>
     </Dialog>
