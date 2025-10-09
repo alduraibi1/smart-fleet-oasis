@@ -101,11 +101,13 @@ export const generateAndUploadPDF = async (
  */
 export const generateAllContractDocuments = async (
   contractId: string,
-  contractNumber: string
+  contractNumber: string,
+  includeReturn: boolean = false
 ): Promise<{
   contract: string | null;
   invoice: string | null;
   handover: string | null;
+  return: string | null;
 }> => {
   const timestamp = Date.now();
   
@@ -113,6 +115,7 @@ export const generateAllContractDocuments = async (
     contract: null as string | null,
     invoice: null as string | null,
     handover: null as string | null,
+    return: null as string | null,
   };
 
   // توليد عقد الإيجار
@@ -138,6 +141,16 @@ export const generateAllContractDocuments = async (
     contractId,
     'handover'
   );
+
+  // توليد نموذج الإرجاع (اختياري - فقط عند طلبه)
+  if (includeReturn) {
+    results.return = await generateAndUploadPDF(
+      'return-template',
+      `return-${contractNumber}-${timestamp}.pdf`,
+      contractId,
+      'return'
+    );
+  }
 
   return results;
 };

@@ -46,6 +46,10 @@ import {
   calculateMileageCharge,
   calculateContractDays 
 } from '@/utils/returnCalculations';
+// PDF generation
+import { generateAndUploadPDF } from '@/utils/pdfGenerator';
+// Return form for PDF generation
+import { VehicleReturnForm } from './Print/VehicleReturnForm';
 
 export interface VehicleCondition {
   exterior: 'excellent' | 'good' | 'fair' | 'damaged';
@@ -238,6 +242,38 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
       };
 
       await completeContract(formData.contractId, returnData);
+      
+      toast({
+        title: "✅ تم إرجاع المركبة بنجاح",
+        description: "جاري توليد نموذج الإرجاع...",
+      });
+
+      // توليد نموذج الإرجاع تلقائياً
+      try {
+        const contract = selectedContract;
+        if (contract) {
+          // الانتظار قليلاً لضمان تحديث البيانات
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          const pdfUrl = await generateAndUploadPDF(
+            'return-form-preview',
+            `return-${contract.id}-${Date.now()}.pdf`,
+            formData.contractId,
+            'return'
+          );
+          
+          if (pdfUrl) {
+            toast({
+              title: "✅ تم إنشاء نموذج الإرجاع",
+              description: "تم حفظ نموذج الإرجاع في قاعدة البيانات",
+            });
+          }
+        }
+      } catch (pdfError) {
+        console.error('Error generating return PDF:', pdfError);
+        // لا نعرض خطأ للمستخدم لأن الإرجاع تم بنجاح
+      }
+
       onOpenChange(false);
       setCurrentStep(1);
       // Reset form data
@@ -803,6 +839,41 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
           )}
         </div>
       </DialogContent>
+      
+      {/* Hidden return form for PDF generation */}
+      {selectedContract && (
+        <div id="return-form-preview" className="fixed -left-[9999px] top-0 w-[210mm] bg-white">
+          <VehicleReturnForm 
+            contract={{
+              ...selectedContract,
+              customers: { name: selectedContract.customerName },
+              vehicles: { 
+                brand: selectedContract.vehicleModel.split(' ')[0],
+                model: selectedContract.vehicleModel.split(' ').slice(1).join(' '),
+                plate_number: selectedContract.vehiclePlate 
+              },
+              odometer_end: formData.currentMileage,
+              fuel_level_end: `${formData.fuelLevel}%`,
+              mileage_start: selectedContract.startMileage,
+            }}
+            returnData={{
+              mileageOut: formData.currentMileage,
+              fuelLevelOut: `${formData.fuelLevel}%`,
+              damages: [],
+              additionalCharges: {
+                lateFee: formData.additionalCharges.lateFee,
+                fuelFee: formData.additionalCharges.fuelCharge,
+                cleaningFee: formData.additionalCharges.cleaningFee,
+                mileageFee: formData.additionalCharges.other,
+                other: 0,
+              },
+              notes: formData.returnNotes,
+              distance: formData.currentMileage - selectedContract.startMileage,
+              inspectorName: formData.inspectorName,
+            }}
+          />
+        </div>
+      )}
     </Dialog>
   );
 }

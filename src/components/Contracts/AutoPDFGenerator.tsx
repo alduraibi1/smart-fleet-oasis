@@ -3,6 +3,7 @@ import { Contract } from '@/hooks/useContracts';
 import { ContractTemplate } from './Print/ContractTemplate';
 import { TaxInvoice } from './Print/TaxInvoice';
 import { VehicleHandoverForm } from './Print/VehicleHandoverForm';
+import { VehicleReturnForm } from './Print/VehicleReturnForm';
 import { generateAllContractDocuments } from '@/utils/pdfGenerator';
 import { useToast } from '@/hooks/use-toast';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -11,13 +12,14 @@ import { FileText } from 'lucide-react';
 interface AutoPDFGeneratorProps {
   contract: Contract;
   onComplete?: () => void;
+  includeReturn?: boolean; // إضافة نموذج الإرجاع (اختياري)
 }
 
 /**
  * مكون خفي يقوم بتوليد مستندات PDF تلقائياً
- * يتم استخدامه بعد إنشاء العقد مباشرة
+ * يتم استخدامه بعد إنشاء العقد مباشرة أو عند إتمام الإرجاع
  */
-export const AutoPDFGenerator = ({ contract, onComplete }: AutoPDFGeneratorProps) => {
+export const AutoPDFGenerator = ({ contract, onComplete, includeReturn = false }: AutoPDFGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
@@ -33,15 +35,17 @@ export const AutoPDFGenerator = ({ contract, onComplete }: AutoPDFGeneratorProps
 
         const results = await generateAllContractDocuments(
           contract.id,
-          contract.contract_number
+          contract.contract_number,
+          includeReturn
         );
 
         const successCount = Object.values(results).filter(r => r !== null).length;
+        const totalDocs = includeReturn ? 4 : 3;
         
         if (successCount > 0) {
           toast({
-            title: 'تم توليد المستندات',
-            description: `تم توليد ${successCount} مستند بنجاح`,
+            title: '✅ تم توليد المستندات',
+            description: `تم توليد ${successCount} من ${totalDocs} مستند بنجاح`,
           });
         }
 
@@ -69,7 +73,9 @@ export const AutoPDFGenerator = ({ contract, onComplete }: AutoPDFGeneratorProps
             <LoadingSpinner size="lg" />
             <div className="text-center">
               <p className="font-semibold text-lg mb-1">جارٍ توليد المستندات...</p>
-              <p className="text-sm text-muted-foreground">يتم إنشاء ملفات PDF وحفظها</p>
+              <p className="text-sm text-muted-foreground">
+                يتم إنشاء {includeReturn ? '4' : '3'} ملفات PDF وحفظها
+              </p>
             </div>
           </div>
         </div>
@@ -85,6 +91,11 @@ export const AutoPDFGenerator = ({ contract, onComplete }: AutoPDFGeneratorProps
         <div id="handover-template">
           <VehicleHandoverForm contract={contract} />
         </div>
+        {includeReturn && (
+          <div id="return-template">
+            <VehicleReturnForm contract={contract} />
+          </div>
+        )}
       </div>
     </>
   );
