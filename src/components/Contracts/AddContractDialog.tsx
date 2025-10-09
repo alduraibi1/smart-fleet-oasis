@@ -31,6 +31,7 @@ import { useCustomers } from '@/hooks/useCustomers';
 import { useVehicles } from '@/hooks/useVehicles';
 import { useToast } from '@/hooks/use-toast';
 import { useContractNotifications } from '@/hooks/useContractNotifications';
+import { AutoPDFGenerator } from './AutoPDFGenerator';
 
 interface AddContractDialogProps {
   open: boolean;
@@ -58,6 +59,7 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
   const { vehicles } = useVehicles();
   const { toast } = useToast();
   const { sendContractNotification } = useContractNotifications();
+  const [generatedContract, setGeneratedContract] = useState<any>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,6 +121,9 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
           console.error('Failed to send notification:', notificationError);
           // لا نوقف العملية إذا فشل الإشعار
         }
+        
+        // تفعيل توليد PDF التلقائي
+        setGeneratedContract(newContract);
       }
 
       // Reset form
@@ -177,8 +182,16 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
   const amountDetails = getAmountDetails();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+    <>
+      {generatedContract && (
+        <AutoPDFGenerator 
+          contract={generatedContract} 
+          onComplete={() => setGeneratedContract(null)}
+        />
+      )}
+      
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>إضافة عقد جديد</DialogTitle>
           <DialogDescription>
@@ -427,5 +440,6 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
         </form>
       </DialogContent>
     </Dialog>
+    </>
   );
-}
+};
