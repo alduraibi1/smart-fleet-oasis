@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Camera, FileText, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import { uploadMultipleContractImages } from '@/lib/supabase-storage';
+import { VehicleDiagram, DamagePoint } from './VehicleDiagram';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -67,6 +68,7 @@ export interface ReturnFormData {
   fuelLevel: number;
   condition: VehicleCondition;
   damageNotes: string;
+  damagePoints: DamagePoint[];
   additionalCharges: {
     lateFee: number;
     fuelCharge: number;
@@ -112,6 +114,7 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
       engine: 'excellent',
     },
     damageNotes: '',
+    damagePoints: [],
     additionalCharges: {
       lateFee: 0,
       fuelCharge: 0,
@@ -330,6 +333,7 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
           engine: 'excellent',
         },
         damageNotes: '',
+        damagePoints: [],
         additionalCharges: {
           lateFee: 0,
           fuelCharge: 0,
@@ -557,6 +561,34 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
                     placeholder="اذكر أي أضرار أو ملاحظات على حالة المركبة..."
                     value={formData.damageNotes}
                     onChange={(e) => setFormData(prev => ({ ...prev, damageNotes: e.target.value }))}
+                  />
+                </div>
+
+                {/* Vehicle Damage Diagram */}
+                <div className="border-2 border-orange-200 rounded-lg p-4 bg-orange-50">
+                  <h3 className="font-bold text-orange-900 mb-3 flex items-center gap-2">
+                    <span className="text-xl">🚗</span>
+                    مخطط تحديد الأضرار التفاعلي
+                  </h3>
+                  <VehicleDiagram
+                    damages={formData.damagePoints}
+                    onAddDamage={(damage) => {
+                      const newDamage: DamagePoint = {
+                        ...damage,
+                        id: `damage-${Date.now()}-${Math.random()}`,
+                      };
+                      setFormData(prev => ({
+                        ...prev,
+                        damagePoints: [...prev.damagePoints, newDamage],
+                      }));
+                    }}
+                    onRemoveDamage={(id) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        damagePoints: prev.damagePoints.filter(d => d.id !== id),
+                      }));
+                    }}
+                    interactive
                   />
                 </div>
 
@@ -921,6 +953,7 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
               mileageOut: formData.currentMileage,
               fuelLevelOut: `${formData.fuelLevel}%`,
               photos: uploadedImageUrls.length > 0 ? uploadedImageUrls : undefined,
+              damagePoints: formData.damagePoints.length > 0 ? formData.damagePoints : undefined,
               damages: [],
               additionalCharges: {
                 lateFee: formData.additionalCharges.lateFee,

@@ -2,6 +2,7 @@ import { PrintLayout } from './PrintLayout';
 import { QRCodeSVG } from 'qrcode.react';
 import { format } from 'date-fns';
 import { Camera, FileText, TrendingUp, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { VehicleDiagram, DamagePoint } from '../VehicleDiagram';
 
 interface VehicleReturnFormProps {
   contract: any;
@@ -9,6 +10,7 @@ interface VehicleReturnFormProps {
     mileageOut: number;
     fuelLevelOut: string;
     photos?: string[];
+    damagePoints?: DamagePoint[];
     damages: Array<{ 
       location?: string;
       severity?: 'minor' | 'moderate' | 'major';
@@ -178,6 +180,21 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
             )}
           </div>
         </div>
+
+        {/* مخطط المركبة مع الأضرار */}
+        {returnData?.damagePoints && returnData.damagePoints.length > 0 && (
+          <div className="border-3 border-orange-300 rounded-xl p-4 bg-gradient-to-br from-orange-50 to-white shadow-lg">
+            <div className="flex items-center gap-2 mb-4 border-b-2 border-orange-300 pb-3">
+              <span className="text-2xl">🗺️</span>
+              <h3 className="font-bold text-xl text-orange-900">مخطط توزيع الأضرار على المركبة</h3>
+            </div>
+            <VehicleDiagram
+              damages={returnData.damagePoints}
+              interactive={false}
+              compact
+            />
+          </div>
+        )}
 
         {/* الأضرار الجديدة */}
         {returnData?.damages && returnData.damages.length > 0 && (
