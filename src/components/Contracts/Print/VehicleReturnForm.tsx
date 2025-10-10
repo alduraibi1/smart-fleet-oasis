@@ -40,7 +40,7 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
     ? Object.values(returnData.additionalCharges).reduce((sum, val) => sum + val, 0)
     : 0;
   
-  const damagesCost = returnData?.damages?.reduce((sum, d) => sum + d.cost, 0) || 0;
+  const damagesCost = returnData?.damages?.reduce((sum, d) => sum + d.estimatedCost, 0) || 0;
   const totalDeductions = totalCharges + damagesCost;
   const refund = (contract.deposit_amount || 0) - totalDeductions;
 
@@ -182,17 +182,25 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
           </div>
         </div>
 
-        {/* مخطط المركبة مع الأضرار */}
-        {returnData?.damagePoints && returnData.damagePoints.length > 0 && (
-          <div className="border-3 border-orange-300 rounded-xl p-4 bg-gradient-to-br from-orange-50 to-white shadow-lg">
-            <div className="flex items-center gap-2 mb-4 border-b-2 border-orange-300 pb-3">
-              <span className="text-2xl">🗺️</span>
-              <h3 className="font-bold text-xl text-orange-900">مخطط توزيع الأضرار على المركبة</h3>
-            </div>
+        {/* Vehicle Diagram */}
+        {returnData.damages && returnData.damages.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-3 text-primary">
+              الرسم التخطيطي للأضرار
+            </h3>
             <VehicleDiagram
-              damages={returnData.damagePoints}
+              damages={returnData.damages
+                .filter(d => d.visualLocation)
+                .map(d => ({
+                  id: d.id,
+                  view: d.visualLocation!.view,
+                  x: d.visualLocation!.x,
+                  y: d.visualLocation!.y,
+                  severity: d.severity,
+                  description: d.description
+                }))}
               interactive={false}
-              compact
+              compact={true}
             />
           </div>
         )}
@@ -221,9 +229,9 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
                       <td className="border border-red-300 p-2 text-center font-semibold">{index + 1}</td>
                       <td className="border border-red-300 p-2">
                         <div className="flex items-start gap-2">
-                          {damage.photo && (
+                          {damage.photos && damage.photos[0] && (
                             <img 
-                              src={damage.photo} 
+                              src={damage.photos[0]} 
                               alt={`ضرر ${index + 1}`}
                               className="w-16 h-16 object-cover rounded border-2 border-red-300 flex-shrink-0 shadow-sm"
                               onError={(e) => {
@@ -253,7 +261,7 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
                       </td>
                       <td className="border border-red-300 p-2 font-medium">{damage.description}</td>
                       <td className="border border-red-300 p-2 text-left font-bold text-red-700 bg-red-100">
-                        {damage.cost.toFixed(2)} ر.س
+                        {damage.estimatedCost.toFixed(2)} ر.س
                       </td>
                     </tr>
                   ))}
