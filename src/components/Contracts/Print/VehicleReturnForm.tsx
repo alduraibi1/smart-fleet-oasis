@@ -107,13 +107,66 @@ export const VehicleReturnForm = ({ contract, returnData }: VehicleReturnFormPro
           </div>
         </div>
 
-        {/* القراءات عند الإرجاع */}
+        {/* مقارنة حالة المركبة */}
         <div className="border-3 border-orange-400 rounded-xl p-5 bg-gradient-to-br from-orange-50 via-white to-amber-50 shadow-lg">
           <div className="flex items-center gap-2 mb-4 border-b-2 border-orange-300 pb-3">
             <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center shadow-md">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
-            <h3 className="font-bold text-xl text-orange-900">القراءات عند الإرجاع</h3>
+            <h3 className="font-bold text-xl text-orange-900">📊 مقارنة حالة المركبة</h3>
+          </div>
+          
+          {/* جدول المقارنة */}
+          <div className="mb-4 overflow-x-auto">
+            <table className="w-full border-2 border-orange-300 rounded-lg overflow-hidden shadow-md">
+              <thead className="bg-gradient-to-r from-orange-200 to-amber-200">
+                <tr>
+                  <th className="border border-orange-300 p-3 font-bold text-orange-900">البند</th>
+                  <th className="border border-orange-300 p-3 font-bold text-green-900 bg-green-50">عند الاستلام</th>
+                  <th className="border border-orange-300 p-3 font-bold text-red-900 bg-red-50">عند الإرجاع</th>
+                  <th className="border border-orange-300 p-3 font-bold text-blue-900 bg-blue-50">الفرق</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm">
+                <tr className="bg-white">
+                  <td className="border border-orange-300 p-3 font-semibold text-gray-700">قراءة العداد</td>
+                  <td className="border border-orange-300 p-3 text-center bg-green-50 font-bold text-green-900">
+                    {contract.odometer_start || contract.mileage_start || '__'} كم
+                  </td>
+                  <td className="border border-orange-300 p-3 text-center bg-red-50 font-bold text-red-900">
+                    {contract.odometer_end || returnData?.mileageOut || '__'} كم
+                  </td>
+                  <td className="border border-orange-300 p-3 text-center bg-blue-100 font-black text-blue-900 text-lg">
+                    {returnData?.distance || 
+                      ((contract.odometer_end || returnData?.mileageOut) && (contract.odometer_start || contract.mileage_start)
+                        ? `${(contract.odometer_end || returnData?.mileageOut) - (contract.odometer_start || contract.mileage_start)} كم`
+                        : '__')}
+                  </td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="border border-orange-300 p-3 font-semibold text-gray-700">مستوى الوقود</td>
+                  <td className="border border-orange-300 p-3 text-center bg-green-50 font-bold text-green-900">
+                    {contract.fuel_level_start || '__'}
+                  </td>
+                  <td className="border border-orange-300 p-3 text-center bg-red-50 font-bold text-red-900">
+                    {contract.fuel_level_end || returnData?.fuelLevelOut || '__'}
+                  </td>
+                  <td className="border border-orange-300 p-3 text-center bg-blue-50">
+                    {returnData?.fuelCostDetails || '-'}
+                  </td>
+                </tr>
+                <tr className="bg-white">
+                  <td className="border border-orange-300 p-3 font-semibold text-gray-700">تاريخ الاستلام/الإرجاع</td>
+                  <td className="border border-orange-300 p-3 text-center bg-green-50 text-sm">
+                    {contract.start_date ? format(new Date(contract.start_date), 'dd/MM/yyyy') : '__'}
+                  </td>
+                  <td className="border border-orange-300 p-3 text-center bg-red-50 text-sm">
+                    {format(new Date(), 'dd/MM/yyyy HH:mm')}
+                  </td>
+                  <td className="border border-orange-300 p-3 text-center bg-blue-50">-</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
           
           <div className="grid grid-cols-3 gap-4 mb-4">

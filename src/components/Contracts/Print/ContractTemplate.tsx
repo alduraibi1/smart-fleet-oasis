@@ -112,69 +112,77 @@ export const ContractTemplate = ({ contract }: ContractTemplateProps) => {
         {/* معلومات المستأجر */}
         <div className="border border-gray-300 rounded-lg p-4">
           <h3 className="font-bold text-lg mb-3 text-gray-800">معلومات المستأجر / Lessee Information</h3>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-            <div>
-              <span className="text-gray-600">الاسم / Name:</span>
-              <span className="font-medium mr-2">{contract.customers?.name}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">رقم الهوية / ID No.:</span>
-              <span className="font-medium mr-2 ltr">{contract.customers?.national_id}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">الجنسية / Nationality:</span>
-              <span className="font-medium mr-2">{contract.customers?.nationality || 'غير محدد'}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">الهاتف / Mobile:</span>
-              <span className="font-medium mr-2 ltr">{contract.customers?.phone}</span>
-            </div>
-            {contract.customers?.email && (
+          {contract.customers ? (
+            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
               <div>
-                <span className="text-gray-600">البريد / Email:</span>
-                <span className="font-medium mr-2 ltr text-xs">{contract.customers.email}</span>
+                <span className="text-gray-600">الاسم / Name:</span>
+                <span className="font-medium mr-2">{contract.customers.name}</span>
               </div>
-            )}
-            {contract.customers?.address && (
-              <div className="col-span-2">
-                <span className="text-gray-600">العنوان / Address:</span>
-                <span className="font-medium mr-2">{contract.customers.address}</span>
+              <div>
+                <span className="text-gray-600">رقم الهوية / ID No.:</span>
+                <span className="font-medium mr-2 ltr">{contract.customers.national_id}</span>
               </div>
-            )}
-          </div>
+              <div>
+                <span className="text-gray-600">الجنسية / Nationality:</span>
+                <span className="font-medium mr-2">{contract.customers.nationality || 'غير محدد'}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">الهاتف / Mobile:</span>
+                <span className="font-medium mr-2 ltr">{contract.customers.phone}</span>
+              </div>
+              {contract.customers.email && (
+                <div>
+                  <span className="text-gray-600">البريد / Email:</span>
+                  <span className="font-medium mr-2 ltr text-xs">{contract.customers.email}</span>
+                </div>
+              )}
+              {contract.customers.address && (
+                <div className="col-span-2">
+                  <span className="text-gray-600">العنوان / Address:</span>
+                  <span className="font-medium mr-2">{contract.customers.address}</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-destructive">⚠️ بيانات العميل غير متوفرة</p>
+          )}
         </div>
 
         {/* معلومات المركبة */}
         <div className="border border-gray-300 rounded-lg p-4 bg-blue-50">
           <h3 className="font-bold text-lg mb-3 text-gray-800">معلومات المركبة / Vehicle Information</h3>
-          <div className="grid grid-cols-3 gap-x-8 gap-y-2">
-            <div>
-              <span className="text-gray-600">نوع المركبة / Type:</span>
-              <span className="font-medium mr-2">
-                {contract.vehicles?.brand} {contract.vehicles?.model}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-600">الموديل / Year:</span>
-              <span className="font-medium mr-2">{contract.vehicles?.year}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">رقم اللوحة / Plate No.:</span>
-              <span className="font-medium mr-2 ltr">{contract.vehicles?.plate_number}</span>
-            </div>
-            {contract.vehicles?.color && (
+          {contract.vehicles ? (
+            <div className="grid grid-cols-3 gap-x-8 gap-y-2">
               <div>
-                <span className="text-gray-600">اللون / Color:</span>
-                <span className="font-medium mr-2">{contract.vehicles.color}</span>
+                <span className="text-gray-600">نوع المركبة / Type:</span>
+                <span className="font-medium mr-2">
+                  {contract.vehicles.brand} {contract.vehicles.model}
+                </span>
               </div>
-            )}
-            {contract.vehicles?.vin && (
-              <div className="col-span-2">
-                <span className="text-gray-600">رقم الشاصي / VIN:</span>
-                <span className="font-medium mr-2 ltr text-xs">{contract.vehicles.vin}</span>
+              <div>
+                <span className="text-gray-600">الموديل / Year:</span>
+                <span className="font-medium mr-2">{contract.vehicles.year}</span>
               </div>
-            )}
-          </div>
+              <div>
+                <span className="text-gray-600">رقم اللوحة / Plate No.:</span>
+                <span className="font-medium mr-2 ltr">{contract.vehicles.plate_number}</span>
+              </div>
+              {contract.vehicles.color && (
+                <div>
+                  <span className="text-gray-600">اللون / Color:</span>
+                  <span className="font-medium mr-2">{contract.vehicles.color}</span>
+                </div>
+              )}
+              {contract.vehicles.vin && (
+                <div className="col-span-2">
+                  <span className="text-gray-600">رقم الشاصي / VIN:</span>
+                  <span className="font-medium mr-2 ltr text-xs">{contract.vehicles.vin}</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-destructive">⚠️ بيانات المركبة غير متوفرة</p>
+          )}
         </div>
 
         {/* التفاصيل المالية */}

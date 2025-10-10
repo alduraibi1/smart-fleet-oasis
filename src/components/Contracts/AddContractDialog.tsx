@@ -420,13 +420,17 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
           </div>
 
           <div>
-            <Label htmlFor="notes">ملاحظات</Label>
+            <Label htmlFor="handoverNotes">حالة المركبة عند الاستلام</Label>
             <Textarea
-              id="notes"
-              placeholder="أي ملاحظات إضافية..."
+              id="handoverNotes"
+              placeholder="مثال: المركبة نظيفة، خدش صغير على الباب الأمامي الأيسر..."
+              rows={3}
               value={formData.notes}
               onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              سجّل أي ملاحظات أو أضرار موجودة في المركبة عند الاستلام
+            </p>
           </div>
 
           <div className="flex justify-end gap-2">

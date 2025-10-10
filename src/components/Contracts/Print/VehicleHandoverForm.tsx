@@ -248,15 +248,19 @@ export const VehicleHandoverForm = ({ contract, inspectionData }: VehicleHandove
           )}
         </div>
 
-        {/* ملاحظات إضافية */}
+        {/* ملاحظات حالة المركبة */}
         <div className="border-2 border-amber-200 rounded-xl p-4 bg-gradient-to-br from-amber-50 to-white shadow-md">
           <div className="flex items-center gap-2 mb-3 border-b border-amber-300 pb-2">
             <span className="text-2xl">📝</span>
-            <h3 className="font-bold text-amber-900 text-lg">ملاحظات إضافية</h3>
+            <h3 className="font-bold text-amber-900 text-lg">حالة المركبة والملاحظات</h3>
           </div>
           <div className="bg-white border-2 border-amber-200 rounded-lg p-3 min-h-[80px]">
-            {inspectionData?.notes && (
+            {contract.notes ? (
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{contract.notes}</p>
+            ) : inspectionData?.notes ? (
               <p className="text-sm text-gray-700">{inspectionData.notes}</p>
+            ) : (
+              <p className="text-xs text-gray-400 italic">لا توجد ملاحظات مسجلة</p>
             )}
           </div>
         </div>
