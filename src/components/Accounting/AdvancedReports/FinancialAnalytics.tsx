@@ -259,6 +259,7 @@ export function FinancialAnalytics() {
       'owner_commission': 'عمولة مالك',
       'salary': 'راتب',
       'office_expenses': 'مصاريف إدارية',
+      'deposit_refund': 'استرداد وديعة',
       'other': 'أخرى'
     };
     return labels[category as keyof typeof labels] || category;

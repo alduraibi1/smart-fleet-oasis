@@ -579,8 +579,8 @@ export interface PaymentVoucher {
   invoiceNumber?: string;
   
   // Classification & Accounting
-  expenseCategory: 'maintenance' | 'fuel' | 'insurance' | 'owner_commission' | 'salary' | 'office_expenses' | 'parts_purchase' | 'oil_purchase' | 'service_fees' | 'other';
-  expenseType: 'operational' | 'capital' | 'administrative';
+  expenseCategory: 'maintenance' | 'fuel' | 'insurance' | 'owner_commission' | 'salary' | 'office_expenses' | 'parts_purchase' | 'oil_purchase' | 'service_fees' | 'deposit_refund' | 'other';
+  expenseType: 'operational' | 'capital' | 'administrative' | 'refund';
   accountId: string; // للربط مع دليل الحسابات
   
   // Reference Details

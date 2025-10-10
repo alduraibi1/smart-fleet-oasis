@@ -440,6 +440,7 @@ export function CreatePaymentVoucherDialog() {
                       <SelectItem value="owner_commission">عمولة مالك</SelectItem>
                       <SelectItem value="salary">راتب</SelectItem>
                       <SelectItem value="office_expenses">مصروفات مكتبية</SelectItem>
+                      <SelectItem value="deposit_refund">استرداد وديعة</SelectItem>
                       <SelectItem value="other">أخرى</SelectItem>
                     </SelectContent>
                   </Select>
@@ -616,7 +617,8 @@ export function CreatePaymentVoucherDialog() {
                            formData.expenseCategory === 'insurance' ? 'تأمين' :
                            formData.expenseCategory === 'owner_commission' ? 'عمولة مالك' :
                            formData.expenseCategory === 'salary' ? 'راتب' :
-                           formData.expenseCategory === 'office_expenses' ? 'مصروفات مكتبية' : 'أخرى'}
+                           formData.expenseCategory === 'office_expenses' ? 'مصروفات مكتبية' :
+                           formData.expenseCategory === 'deposit_refund' ? 'استرداد وديعة' : 'أخرى'}
                         </Badge>
                       </div>
                     )}

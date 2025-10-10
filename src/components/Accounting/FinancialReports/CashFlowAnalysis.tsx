@@ -191,6 +191,7 @@ export function CashFlowAnalysis() {
       'parts_purchase': 'شراء قطع غيار',
       'oil_purchase': 'شراء زيوت',
       'service_fees': 'رسوم خدمات',
+      'deposit_refund': 'استرداد وديعة',
       'other': 'أخرى'
     };
     return categoryNames[category] || category;
