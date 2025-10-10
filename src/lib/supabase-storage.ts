@@ -84,3 +84,70 @@ export async function deleteContractImage(imageUrl: string): Promise<void> {
     throw new Error('فشل حذف الصورة');
   }
 }
+
+/**
+ * رفع صور الأضرار
+ * @param files - قائمة ملفات الصور
+ * @param contractId - معرف العقد
+ * @param damageId - معرف الضرر
+ * @returns قائمة روابط الصور
+ */
+export async function uploadDamageImages(
+  files: File[],
+  contractId: string,
+  damageId: string
+): Promise<string[]> {
+  const uploadPromises = files.map((file, index) => {
+    const fileExt = file.name.split('.').pop();
+    const timestamp = Date.now();
+    const fileName = `${contractId}/damages/${damageId}/photo-${timestamp}-${index}.${fileExt}`;
+    
+    return supabase.storage
+      .from('contract-images')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false,
+      })
+      .then(({ data, error }) => {
+        if (error) throw error;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('contract-images')
+          .getPublicUrl(data.path);
+        
+        return publicUrl;
+      });
+  });
+
+  try {
+    const urls = await Promise.all(uploadPromises);
+    return urls;
+  } catch (error) {
+    console.error('Error uploading damage images:', error);
+    throw new Error('فشل رفع صور الأضرار');
+  }
+}
+
+/**
+ * حذف صورة ضرر
+ * @param imageUrl - رابط الصورة
+ */
+export async function deleteDamageImage(imageUrl: string): Promise<void> {
+  try {
+    const urlParts = imageUrl.split('/contract-images/');
+    if (urlParts.length < 2) {
+      throw new Error('رابط صورة غير صحيح');
+    }
+    
+    const filePath = urlParts[1];
+    
+    const { error } = await supabase.storage
+      .from('contract-images')
+      .remove([filePath]);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error deleting damage image:', error);
+    throw new Error('فشل حذف صورة الضرر');
+  }
+}

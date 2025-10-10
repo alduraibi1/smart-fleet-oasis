@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Camera, FileText, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import { uploadMultipleContractImages } from '@/lib/supabase-storage';
-import { VehicleDiagram, DamagePoint } from './VehicleDiagram';
+import EnhancedDamageAssessment from './EnhancedDamageAssessment';
+import { UnifiedDamage } from '@/types/damage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -68,7 +69,7 @@ export interface ReturnFormData {
   fuelLevel: number;
   condition: VehicleCondition;
   damageNotes: string;
-  damagePoints: DamagePoint[];
+  damages: UnifiedDamage[];
   additionalCharges: {
     lateFee: number;
     fuelCharge: number;
@@ -114,7 +115,7 @@ export default function VehicleReturnDialog({ contractId, open, onOpenChange }: 
       engine: 'excellent',
     },
     damageNotes: '',
-    damagePoints: [],
+    damages: [],
     additionalCharges: {
       lateFee: 0,
       fuelCharge: 0,

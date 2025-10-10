@@ -2,7 +2,8 @@ import { PrintLayout } from './PrintLayout';
 import { QRCodeSVG } from 'qrcode.react';
 import { format } from 'date-fns';
 import { Camera, FileText, TrendingUp, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { VehicleDiagram, DamagePoint } from '../VehicleDiagram';
+import { VehicleDiagram } from '../VehicleDiagram';
+import { UnifiedDamage, severityLabels, damageTypeLabels, repairUrgencyLabels } from '@/types/damage';
 
 interface VehicleReturnFormProps {
   contract: any;
@@ -10,8 +11,8 @@ interface VehicleReturnFormProps {
     mileageOut: number;
     fuelLevelOut: string;
     photos?: string[];
-    damagePoints?: DamagePoint[];
-    damages: Array<{ 
+    damages?: UnifiedDamage[];
+    newDamages?: Array<{
       location?: string;
       severity?: 'minor' | 'moderate' | 'major';
       description: string; 
