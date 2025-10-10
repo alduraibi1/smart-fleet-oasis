@@ -536,6 +536,54 @@ export const useContracts = () => {
         })
         .eq('id', contract.vehicle_id);
 
+      // استرداد الوديعة إذا لم تكن هناك أضرار
+      const depositRefund = contract.deposit_amount || 0;
+      const damagesCost = returnData.additional_charges || 0;
+      const refundAmount = Math.max(0, depositRefund - damagesCost);
+
+      if (refundAmount > 0) {
+        // توليد رقم سند الصرف
+        const { data: voucherNumber, error: voucherNumError } = await supabase
+          .rpc('generate_voucher_number');
+
+        if (!voucherNumError && voucherNumber) {
+          // الحصول على معلومات المستخدم
+          const { data: { user } } = await supabase.auth.getUser();
+
+          if (user) {
+            // إنشاء سند صرف لاسترداد الوديعة
+            const { error: voucherError } = await supabase.from('payment_vouchers').insert({
+              voucher_number: voucherNumber,
+              recipient_type: 'customer',
+              recipient_id: contract.customer_id,
+              recipient_name: contract.customer?.name || data.customer?.name || 'عميل',
+              amount: refundAmount,
+              payment_method: contract.payment_method || 'cash',
+              payment_date: returnData.actual_return_date,
+              expense_category: 'deposit_refund',
+              expense_type: 'refund',
+              contract_id: contract.id,
+              vehicle_id: contract.vehicle_id,
+              description: `استرداد وديعة - العقد ${contract.contract_number}`,
+              status: 'pending_approval',
+              requested_by: user.id,
+              issued_by: user.id,
+              notes: damagesCost > 0 
+                ? `تم خصم ${damagesCost.toLocaleString()} ر.س قيمة الأضرار من الوديعة. المبلغ المسترد: ${refundAmount.toLocaleString()} ر.س` 
+                : `استرداد كامل للوديعة - لا توجد أضرار. المبلغ المسترد: ${refundAmount.toLocaleString()} ر.س`
+            });
+
+            if (!voucherError) {
+              // تحديث رسالة النجاح لتشمل معلومات الاسترداد
+              toast({
+                title: '✅ تم إكمال العقد',
+                description: `تم إرجاع المركبة بنجاح. مبلغ الاسترداد: ${refundAmount.toLocaleString()} ر.س`,
+              });
+            }
+          }
+        }
+      }
+
       const customer = data.customer || undefined;
       const vehicle = data.vehicle || undefined;
       
