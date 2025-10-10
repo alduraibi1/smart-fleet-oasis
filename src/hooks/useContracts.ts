@@ -285,7 +285,7 @@ export const useContracts = () => {
                  contractDate.getFullYear() === currentYear &&
                  (c.status === 'active' || c.status === 'completed');
         })
-        .reduce((sum, c) => sum + c.total_amount, 0),
+        .reduce((sum, c) => sum + (c.paid_amount || 0), 0),
     };
 
     setStats(stats);

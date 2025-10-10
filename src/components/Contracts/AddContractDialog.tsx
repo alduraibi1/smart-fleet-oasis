@@ -318,6 +318,9 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
               <p className="text-xs text-muted-foreground mt-1">
                 الحد الأدنى للوديعة: 1000 ريال
               </p>
+              <p className="text-xs text-amber-600 mt-1 font-medium">
+                💰 الوديعة هي مبلغ ضمان يُسترد للعميل عند إنهاء العقد بدون أضرار
+              </p>
             </div>
             <div>
               {/* خيار الضريبة */}
@@ -382,6 +385,32 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
               </div>
             </div>
           </div>
+
+          {/* ملخص المبالغ */}
+          {formData.totalAmount && parseFloat(formData.totalAmount) > 0 && (
+            <div className="bg-muted/50 p-4 rounded-lg space-y-2 border border-border">
+              <h4 className="font-semibold text-sm mb-3">📊 ملخص المبالغ</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">إجمالي قيمة الإيجار:</span>
+                  <span className="font-bold">{parseFloat(formData.totalAmount).toLocaleString()} ر.س</span>
+                </div>
+                <div className="flex justify-between text-amber-600">
+                  <span>الوديعة (قابلة للاسترداد):</span>
+                  <span className="font-bold">{parseFloat(formData.depositAmount || '0').toLocaleString()} ر.س</span>
+                </div>
+                <div className="border-t border-border pt-2 mt-2">
+                  <div className="flex justify-between text-primary">
+                    <span className="font-semibold">المبلغ المطلوب الآن:</span>
+                    <span className="font-bold text-lg">{parseFloat(formData.depositAmount || '0').toLocaleString()} ر.س</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    يُدفع فقط مبلغ الوديعة عند توقيع العقد
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-3 gap-4">
             <div>

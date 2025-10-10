@@ -242,6 +242,32 @@ export const ContractTemplate = ({ contract }: ContractTemplateProps) => {
           </table>
         </div>
 
+        {/* شروط الوديعة */}
+        <div className="border-2 border-amber-500 rounded-lg p-4 bg-amber-50">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-2xl">💰</span>
+            <h3 className="font-bold text-lg text-amber-800">شروط الوديعة الضامنة / Security Deposit Terms</h3>
+          </div>
+          <ul className="text-sm text-amber-900 space-y-2 mr-6">
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>الوديعة البالغة <strong>{contract.deposit_amount?.toLocaleString() || 0} ر.س</strong> هي مبلغ ضمان فقط ولا تُحتسب من قيمة الإيجار</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>تُسترد الوديعة بالكامل عند إعادة المركبة بحالة جيدة ودون أضرار أو مخالفات</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>في حال وجود أضرار أو مخالفات، يتم خصم قيمتها من مبلغ الوديعة</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1">•</span>
+              <span>الوديعة غير قابلة للاسترداد في حالة إلغاء العقد من قبل المستأجر خلال أول 7 أيام</span>
+            </li>
+          </ul>
+        </div>
+
         {/* مدة العقد */}
         <div className="grid grid-cols-2 gap-4">
           <div className="border border-gray-300 rounded-lg p-3">
