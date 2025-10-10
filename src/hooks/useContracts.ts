@@ -99,6 +99,7 @@ export interface ContractStats {
   pending: number;
   completed: number;
   totalRevenue: number;
+  remainingAmount: number;
   avgContractValue: number;
   monthlyRevenue: number;
 }
@@ -145,6 +146,7 @@ export const useContracts = () => {
     pending: 0,
     completed: 0,
     totalRevenue: 0,
+    remainingAmount: 0,
     avgContractValue: 0,
     monthlyRevenue: 0,
   });
@@ -269,7 +271,10 @@ export const useContracts = () => {
       completed: contractsData.filter(c => c.status === 'completed').length,
       totalRevenue: contractsData
         .filter(c => c.status === 'active' || c.status === 'completed')
-        .reduce((sum, c) => sum + c.total_amount, 0),
+        .reduce((sum, c) => sum + (c.paid_amount || 0), 0),
+      remainingAmount: contractsData
+        .filter(c => c.status === 'active' || c.status === 'pending')
+        .reduce((sum, c) => sum + (c.remaining_amount || 0), 0),
       avgContractValue: contractsData.length > 0 
         ? contractsData.reduce((sum, c) => sum + c.total_amount, 0) / contractsData.length 
         : 0,
