@@ -219,7 +219,17 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
 
             <div>
               <Label htmlFor="vehicle">المركبة</Label>
-              <Select value={formData.vehicleId} onValueChange={(value) => setFormData(prev => ({ ...prev, vehicleId: value }))}>
+              <Select 
+                value={formData.vehicleId} 
+                onValueChange={(value) => {
+                  const selectedVehicle = vehicles.find(v => v.id === value);
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    vehicleId: value,
+                    mileageStart: selectedVehicle?.mileage?.toString() || ''
+                  }));
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="اختر المركبة" />
                 </SelectTrigger>
@@ -480,7 +490,12 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
               />
             </div>
             <div>
-              <Label htmlFor="mileageStart">قراءة العداد (كم) *</Label>
+              <Label htmlFor="mileageStart" className="flex items-center gap-2">
+                قراءة العداد (كم) *
+                {formData.mileageStart && formData.vehicleId && (
+                  <span className="text-xs text-green-600 font-medium">✓ تم التعبئة تلقائياً</span>
+                )}
+              </Label>
               <Input
                 id="mileageStart"
                 type="number"
@@ -488,8 +503,14 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
                 placeholder="0"
                 value={formData.mileageStart}
                 onChange={(e) => setFormData(prev => ({ ...prev, mileageStart: e.target.value }))}
+                className={formData.mileageStart && formData.vehicleId ? "border-green-500 bg-green-50" : ""}
                 required
               />
+              {formData.mileageStart && formData.vehicleId && (
+                <p className="text-xs text-green-600 mt-1">
+                  📊 تم تعبئة الكيلومترات من بيانات المركبة
+                </p>
+              )}
             </div>
             <div>
               <Label htmlFor="fuelLevelStart">مستوى الوقود (%)</Label>
