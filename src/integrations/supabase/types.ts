@@ -2407,6 +2407,72 @@ export type Database = {
         }
         Relationships: []
       }
+      outstanding_invoices: {
+        Row: {
+          amount: number
+          contract_id: string | null
+          created_at: string | null
+          created_by: string | null
+          customer_id: string
+          description: string
+          due_date: string
+          id: string
+          invoice_type: string
+          notes: string | null
+          paid_amount: number | null
+          paid_at: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          contract_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_id: string
+          description: string
+          due_date: string
+          id?: string
+          invoice_type: string
+          notes?: string | null
+          paid_amount?: number | null
+          paid_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          contract_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_id?: string
+          description?: string
+          due_date?: string
+          id?: string
+          invoice_type?: string
+          notes?: string | null
+          paid_amount?: number | null
+          paid_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outstanding_invoices_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "rental_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outstanding_invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       password_requirements: {
         Row: {
           created_at: string

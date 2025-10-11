@@ -460,6 +460,7 @@ export interface Invoice {
   status: 'draft' | 'sent' | 'paid' | 'partial' | 'overdue' | 'cancelled';
   paidAmount: number;
   remainingAmount: number;
+  rentalPaidAmount?: number; // المرحلة 1: المبلغ المدفوع من قيمة الإيجار فقط (لا يشمل الوديعة)
   paymentTerms: string;
   
   // Line Items

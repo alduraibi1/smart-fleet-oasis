@@ -285,7 +285,14 @@ export const useContracts = () => {
                  contractDate.getFullYear() === currentYear &&
                  (c.status === 'active' || c.status === 'completed');
         })
-        .reduce((sum, c) => sum + (c.paid_amount || 0), 0),
+        .reduce((sum, c) => {
+          // للعقود المكتملة نحسب total_amount الفعلي
+          if (c.status === 'completed') {
+            return sum + (c.total_amount || 0);
+          }
+          // للعقود النشطة نحسب paid_amount (الدفعات الجزئية)
+          return sum + (c.paid_amount || 0);
+        }, 0),
     };
 
     setStats(stats);
@@ -313,8 +320,9 @@ export const useContracts = () => {
       // حساب الوديعة: حد أدنى 1000 ريال
       const deposit = Math.max(1000, contractData.deposit_amount ?? 1000);
       // Calculate paid and remaining amounts
-      const paidAmount = deposit;
-      const remainingAmount = Math.max(0, contractData.total_amount - paidAmount);
+      // المرحلة 1: إصلاح منطق paid_amount - لم يتم دفع أي جزء من قيمة الإيجار بعد
+      const paidAmount = 0; // فقط الوديعة تُدفع الآن، وهي منفصلة عن قيمة الإيجار
+      const remainingAmount = contractData.total_amount; // كامل قيمة الإيجار متبقية
 
       const newContract = {
         ...contractData,
@@ -540,8 +548,35 @@ export const useContracts = () => {
       const depositRefund = contract.deposit_amount || 0;
       const damagesCost = returnData.additional_charges || 0;
       const refundAmount = Math.max(0, depositRefund - damagesCost);
+      const remainingOwed = Math.max(0, damagesCost - depositRefund); // المرحلة 2: حساب المبلغ المتبقي على العميل
 
-      if (refundAmount > 0) {
+      // المرحلة 2: معالجة حالة الأضرار > الوديعة
+      if (remainingOwed > 0) {
+        const { error: invoiceError } = await supabase
+          .from('outstanding_invoices')
+          .insert({
+            customer_id: contract.customer_id,
+            contract_id: contract.id,
+            invoice_type: 'damages',
+            amount: remainingOwed,
+            due_date: new Date(returnData.actual_return_date).toISOString().split('T')[0],
+            description: `أضرار المركبة ${contract.vehicle?.plate_number || ''} تتجاوز قيمة الوديعة`,
+            status: 'pending',
+            notes: `الوديعة: ${depositRefund.toLocaleString()} ر.س | الأضرار: ${damagesCost.toLocaleString()} ر.س | المتبقي: ${remainingOwed.toLocaleString()} ر.س`
+          });
+
+        if (!invoiceError) {
+          toast({
+            title: '⚠️ تنبيه مالي مهم',
+            description: `تم استخدام كامل الوديعة. مبلغ ${remainingOwed.toLocaleString()} ر.س مستحق على العميل`,
+            variant: 'destructive',
+            duration: 8000,
+          });
+        }
+      }
+
+      // المرحلة 3: إنشاء سند صرف حتى لو كان الاسترداد = 0
+      if (depositRefund > 0) {
         // توليد رقم سند الصرف
         const { data: voucherNumber, error: voucherNumError } = await supabase
           .rpc('generate_voucher_number');
@@ -557,7 +592,7 @@ export const useContracts = () => {
               recipient_type: 'customer',
               recipient_id: contract.customer_id,
               recipient_name: contract.customer?.name || data.customer?.name || 'عميل',
-              amount: refundAmount,
+              amount: refundAmount, // قد يكون 0
               payment_method: contract.payment_method || 'cash',
               payment_date: returnData.actual_return_date,
               expense_category: 'deposit_refund',
@@ -565,20 +600,30 @@ export const useContracts = () => {
               contract_id: contract.id,
               vehicle_id: contract.vehicle_id,
               description: `استرداد وديعة - العقد ${contract.contract_number}`,
-              status: 'pending_approval',
+              status: refundAmount > 0 ? 'pending_approval' : 'void', // المرحلة 3: حالة خاصة للمبلغ الصفري
               requested_by: user.id,
               issued_by: user.id,
-              notes: damagesCost > 0 
-                ? `تم خصم ${damagesCost.toLocaleString()} ر.س قيمة الأضرار من الوديعة. المبلغ المسترد: ${refundAmount.toLocaleString()} ر.س` 
-                : `استرداد كامل للوديعة - لا توجد أضرار. المبلغ المسترد: ${refundAmount.toLocaleString()} ر.س`
+              notes: refundAmount === 0 
+                ? `✋ تم استخدام كامل الوديعة (${depositRefund.toLocaleString()} ر.س) لتغطية الأضرار البالغة ${damagesCost.toLocaleString()} ر.س. لا يوجد مبلغ مسترد للعميل.`
+                : damagesCost > 0
+                  ? `تم خصم ${damagesCost.toLocaleString()} ر.س قيمة الأضرار من الوديعة. المبلغ المسترد: ${refundAmount.toLocaleString()} ر.س`
+                  : `✅ استرداد كامل للوديعة - لا توجد أضرار. المبلغ المسترد: ${refundAmount.toLocaleString()} ر.س`
             });
 
             if (!voucherError) {
-              // تحديث رسالة النجاح لتشمل معلومات الاسترداد
-              toast({
-                title: '✅ تم إكمال العقد',
-                description: `تم إرجاع المركبة بنجاح. مبلغ الاسترداد: ${refundAmount.toLocaleString()} ر.س`,
-              });
+              // المرحلة 3: رسالة توضيحية حسب الحالة
+              if (refundAmount > 0) {
+                toast({
+                  title: '✅ تم إكمال العقد',
+                  description: `تم إرجاع المركبة بنجاح. مبلغ الاسترداد: ${refundAmount.toLocaleString()} ر.س`,
+                });
+              } else {
+                toast({
+                  title: '⚠️ تم إكمال العقد',
+                  description: `تم إرجاع المركبة. تم استخدام كامل الوديعة (${depositRefund.toLocaleString()} ر.س) لتغطية الأضرار.`,
+                  variant: 'destructive',
+                });
+              }
             }
           }
         }
@@ -599,10 +644,7 @@ export const useContracts = () => {
         prev.map(c => c.id === id ? updatedContract : c)
       );
 
-      toast({
-        title: 'تم بنجاح',
-        description: 'تم إكمال العقد وإرجاع المركبة بنجاح',
-      });
+      // المرحلة 4: حذف Toast المكرر (تم حذفه)
 
       return data;
     } catch (error) {

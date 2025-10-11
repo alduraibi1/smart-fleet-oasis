@@ -386,26 +386,82 @@ export default function AddContractDialog({ open, onOpenChange }: AddContractDia
             </div>
           </div>
 
-          {/* ملخص المبالغ */}
+          {/* المرحلة 6: ملخص المبالغ المحسّن */}
           {formData.totalAmount && parseFloat(formData.totalAmount) > 0 && (
-            <div className="bg-muted/50 p-4 rounded-lg space-y-2 border border-border">
-              <h4 className="font-semibold text-sm mb-3">📊 ملخص المبالغ</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">إجمالي قيمة الإيجار:</span>
-                  <span className="font-bold">{parseFloat(formData.totalAmount).toLocaleString()} ر.س</span>
-                </div>
-                <div className="flex justify-between text-amber-600">
-                  <span>الوديعة (قابلة للاسترداد):</span>
-                  <span className="font-bold">{parseFloat(formData.depositAmount || '0').toLocaleString()} ر.س</span>
-                </div>
-                <div className="border-t border-border pt-2 mt-2">
-                  <div className="flex justify-between text-primary">
-                    <span className="font-semibold">المبلغ المطلوب الآن:</span>
-                    <span className="font-bold text-lg">{parseFloat(formData.depositAmount || '0').toLocaleString()} ر.س</span>
+            <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+              <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                💰 ملخص المبالغ المالية
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-4 w-4 text-blue-500" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>الوديعة منفصلة تماماً عن قيمة الإيجار وقابلة للاسترداد الكامل</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </h4>
+              
+              <div className="space-y-3 text-sm">
+                {/* قيمة الإيجار */}
+                <div className="pb-2 border-b border-blue-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700 font-medium">📋 إجمالي قيمة الإيجار:</span>
+                    <span className="font-bold text-lg text-blue-700">
+                      {parseFloat(formData.totalAmount).toLocaleString()} ر.س
+                    </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    يُدفع فقط مبلغ الوديعة عند توقيع العقد
+                  <p className="text-xs text-gray-600 mt-1 mr-6">
+                    سيُدفع على دفعات خلال فترة العقد (حسب الاتفاق)
+                  </p>
+                </div>
+                
+                {/* الوديعة */}
+                {formData.depositAmount && (
+                  <div className="pb-2 border-b border-amber-200 bg-amber-50 p-3 rounded-lg">
+                    <div className="flex justify-between items-center text-amber-800">
+                      <span className="font-semibold flex items-center gap-1">
+                        🔒 الوديعة (ضمان قابل للاسترداد):
+                      </span>
+                      <span className="font-bold text-lg">
+                        {parseFloat(formData.depositAmount || '0').toLocaleString()} ر.س
+                      </span>
+                    </div>
+                    <div className="mt-2 bg-amber-100 p-2 rounded text-xs text-amber-900 border border-amber-300">
+                      <p className="font-semibold mb-1">⚠️ ملاحظة مهمة:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>هذا المبلغ <strong>ليس</strong> من قيمة الإيجار</li>
+                        <li>يُسترد بالكامل عند إرجاع المركبة بدون أضرار</li>
+                        <li>الحد الأدنى: 1,000 ريال سعودي</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+                
+                {/* المطلوب الآن */}
+                <div className="bg-green-50 p-3 rounded-lg border-2 border-green-400">
+                  <div className="flex justify-between items-center text-green-800">
+                    <span className="font-bold flex items-center gap-1">
+                      ✅ المطلوب دفعه عند التوقيع:
+                    </span>
+                    <span className="font-bold text-2xl text-green-700">
+                      {parseFloat(formData.depositAmount || '0').toLocaleString()} ر.س
+                    </span>
+                  </div>
+                  <p className="text-xs text-green-700 mt-2 font-medium">
+                    💡 الوديعة فقط - ليس من قيمة الإيجار
+                  </p>
+                </div>
+                
+                {/* معلومات إضافية */}
+                <div className="bg-gray-50 p-2 rounded text-xs text-gray-700 border border-gray-200">
+                  <p className="flex items-start gap-1">
+                    <span className="font-semibold">ℹ️</span>
+                    <span>
+                      قيمة الإيجار ({parseFloat(formData.totalAmount).toLocaleString()} ر.س) 
+                      ستُدفع لاحقاً حسب شروط الدفع المتفق عليها
+                    </span>
                   </p>
                 </div>
               </div>
