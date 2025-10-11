@@ -3117,6 +3117,7 @@ export type Database = {
           pdf_url: string | null
           pickup_location: string | null
           remaining_amount: number | null
+          rental_paid_amount: number | null
           return_form_pdf_url: string | null
           return_location: string | null
           return_pdf_url: string | null
@@ -3163,6 +3164,7 @@ export type Database = {
           pdf_url?: string | null
           pickup_location?: string | null
           remaining_amount?: number | null
+          rental_paid_amount?: number | null
           return_form_pdf_url?: string | null
           return_location?: string | null
           return_pdf_url?: string | null
@@ -3209,6 +3211,7 @@ export type Database = {
           pdf_url?: string | null
           pickup_location?: string | null
           remaining_amount?: number | null
+          rental_paid_amount?: number | null
           return_form_pdf_url?: string | null
           return_location?: string | null
           return_pdf_url?: string | null
